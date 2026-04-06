@@ -1,0 +1,16 @@
+# Credentials - NEVER commit
+creds/*.env
+creds/**/*.env
+!creds/.env.example
+
+# Session state - ephemeral
+memory/_session/handoff.md
+memory/_session/decisions.md
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/

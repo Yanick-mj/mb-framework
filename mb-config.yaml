@@ -1,0 +1,31 @@
+# mb-framework Configuration
+# Toggle agents and pipeline behavior without editing agent files
+
+version: 1
+
+agents:
+  orchestrator: enabled
+  dev: enabled
+  be-dev: enabled
+  fe-dev: enabled
+  devops: enabled
+  architect: enabled
+  verifier: enabled
+  tea: enabled
+  pm: enabled
+  sm: enabled
+  quick-flow: enabled
+  tech-writer: enabled
+
+pipeline:
+  verifier_mandatory: true       # verifier runs even if not in pipeline
+  auto_commit: false             # commit after successful verification
+  max_retries: 2                 # max retries on agent failure
+  context_summary: true          # pass summaries between agents
+
+tracking:
+  cost_log: true
+  cost_log_path: "memory/cost-log.md"
+
+provider:
+  mode: "claude-code"            # claude-code | standalone (future)

@@ -22,6 +22,13 @@ allowed-tools: ['Read', 'Glob', 'Grep']
 - Analyze user-facing code to understand current behavior
 - Review sprint status and backlog for context
 
+## Validation References
+
+Before finalizing requirements, validate against:
+- PRD quality: `templates/validation/prd.md`
+- Story quality: `templates/validation/story.md`
+- If the feature involves API endpoints: `templates/validation/endpoint.md`
+
 ## Persona
 
 <persona>

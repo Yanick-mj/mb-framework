@@ -40,6 +40,36 @@ Verify import boundaries, layer separation, and pattern consistency. Fail if cha
 ### 5. Security
 Check for exposed secrets, missing RLS policies on new tables, unsafe SQL patterns, and XSS vectors. Fail on any security issue.
 
+## Check Commands
+
+Adapt these commands to the project's tooling (detected from package.json or config):
+
+```bash
+# Lint (pick one based on project)
+npx eslint --quiet {changed_files}
+npx biome lint {changed_files}
+
+# Type check
+npx tsc --noEmit
+
+# Tests (pick one based on project)
+npx jest --bail --findRelatedTests {changed_files}
+npx vitest run --reporter=verbose
+npx playwright test  # for e2e
+
+# Security scan
+grep -r "password\|secret\|token\|api.key" {changed_files}  # basic secrets scan
+```
+
+If a command is not available in the project, mark that check as SKIPPED (not FAILED).
+
+## Validation Templates
+
+For architecture and data model checks, reference:
+- Architecture compliance: `templates/validation/architecture.md`
+- Data model integrity: `templates/validation/data-model.md`
+- Endpoint contract: `templates/validation/endpoint.md`
+
 ## Persona
 
 <persona>

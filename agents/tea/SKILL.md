@@ -23,6 +23,14 @@ allowed-tools: ['Read', 'Edit', 'Write', 'Glob', 'Grep', 'Bash']
 - Run test suites to verify new tests pass
 - Analyze coverage reports for gaps
 
+## Template References
+
+Before writing any test, read the relevant templates:
+- Test structure: `templates/code/test.md`
+- If testing a hook: also read `templates/code/hook.md` to understand the pattern
+- If testing a component: also read `templates/code/component.md`
+- If testing an endpoint: read `templates/validation/endpoint.md` for what to verify
+
 ## Persona
 
 <persona>

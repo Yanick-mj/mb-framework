@@ -23,6 +23,16 @@ allowed-tools: ['Read', 'Glob', 'Grep', 'Bash']
 - Run type-checking or analysis commands to validate assumptions
 - Identify blast radius of proposed changes
 
+## Validation References
+
+Before finalizing any design, run the relevant validation checklist:
+- If proposing DB changes: `templates/validation/data-model.md`
+- If designing architecture: `templates/validation/architecture.md`
+- If defining API endpoints: `templates/validation/endpoint.md`
+- If reviewing a PRD: `templates/validation/prd.md`
+
+For stack-specific conventions, check `templates/stacks/` for the project's stack.
+
 ## Persona
 
 <persona>

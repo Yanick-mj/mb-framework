@@ -56,7 +56,7 @@ Analyze the input task and assign exactly ONE class from the routing table above
 
 **Classification signals:**
 - Keywords: "fix typo", "rename" -> `trivial-fix`
-- Scope: single file, no tests needed -> `trivial-fix`
+- Scope: single file, trivial -> `trivial-fix`
 - Scope: backend-only (DB, RPC, edge function, RLS) -> `backend-feature`
 - Scope: frontend-only (component, hook, style) -> `frontend-feature`
 - Scope: touches both layers -> `full-stack-feature`
@@ -70,7 +70,7 @@ Analyze the input task and assign exactly ONE class from the routing table above
 
 - UI/screen/component/wireframe keywords present -> inject `ux-designer` before `fe-dev` in pipeline
 
-If ambiguous, default to `simple-feature` (safest pipeline with architect gate).
+If ambiguous, default to `backend-feature` or `frontend-feature` based on the dominant subsystem.
 
 ### Step 1.5 -- Context Assembly
 

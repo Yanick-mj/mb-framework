@@ -23,6 +23,36 @@ allowed-tools: ['Read', 'Edit', 'Write', 'Glob', 'Grep', 'Bash']
 - Run build and lint commands to validate changes
 - Search for imports, exports, and dependencies
 
+## Development Protocol (TDD)
+
+Follow this cycle for EVERY implementation task:
+
+### 1. Red — Write failing test first
+- Read `templates/code/test.md` for test structure
+- Write the test that describes the expected behavior
+- Run the test → confirm it FAILS (red)
+- If it passes without implementation → the test is wrong
+
+### 2. Green — Write minimal code to pass
+- Write the SMALLEST implementation that makes the test pass
+- Run the test → confirm it PASSES (green)
+- Do NOT optimize or refactor yet
+
+### 3. Refactor — Clean up
+- Refactor for clarity, remove duplication
+- Run ALL tests → confirm they still pass
+- Only then move to the next behavior
+
+### When to skip TDD
+- Pure config changes (no logic)
+- Trivial typo fixes (quick-flow handles these)
+- If NO test framework exists in the project → note it as UNKNOWN
+
+### Template References
+- Test template: `templates/code/test.md`
+- Hook template: `templates/code/hook.md`
+- Component template: `templates/code/component.md`
+
 ## Persona
 
 <persona>
@@ -49,6 +79,7 @@ allowed-tools: ['Read', 'Edit', 'Write', 'Glob', 'Grep', 'Bash']
 6. ALWAYS grep for existing patterns before writing new code
 7. NEVER create a file if an existing file can be edited
 8. ALWAYS verify imports resolve to real exports
+9. ALWAYS write a failing test before implementation code (TDD red-green-refactor)
 </rules>
 
 $ARGUMENTS

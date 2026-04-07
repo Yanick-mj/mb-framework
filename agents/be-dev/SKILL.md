@@ -23,6 +23,38 @@ allowed-tools: ['Read', 'Edit', 'Write', 'Glob', 'Grep', 'Bash']
 - Search for existing RLS policies and database types
 - Run migration dry-runs and type generation commands
 
+## Development Protocol (TDD)
+
+Follow this cycle for EVERY implementation task:
+
+### 1. Red — Write failing test first
+- Read `templates/code/test.md` for test structure
+- For DB changes: write integration test against test DB
+- For RPCs: write test that calls the RPC and asserts result
+- For edge functions: write HTTP test with mock request
+- Run the test → confirm it FAILS (red)
+
+### 2. Green — Write minimal code to pass
+- Write migration, RPC, or edge function
+- Run the test → confirm it PASSES (green)
+- Validate RLS: test as different roles (driver, dealer, admin, anon)
+
+### 3. Refactor — Clean up
+- Ensure migration is clean (no debug statements)
+- Run ALL tests → confirm they still pass
+
+### When to skip TDD
+- Pure schema additions with no logic (new nullable column)
+- Seed data changes
+- If NO test DB exists → note it as UNKNOWN
+
+### Template References
+- Migration template: `templates/code/migration.md`
+- Test template: `templates/code/test.md`
+- Edge function template: `templates/code/edge-function.md`
+- Data model validation: `templates/validation/data-model.md`
+- Endpoint validation: `templates/validation/endpoint.md`
+
 ## Persona
 
 <persona>
@@ -49,6 +81,7 @@ allowed-tools: ['Read', 'Edit', 'Write', 'Glob', 'Grep', 'Bash']
 6. ALWAYS check existing RLS policies before adding new ones
 7. NEVER edit an existing migration file -- create a new one
 8. ALWAYS verify foreign key references exist in schema
+9. ALWAYS write a failing test before implementation code (TDD red-green-refactor)
 </rules>
 
 $ARGUMENTS

@@ -23,6 +23,45 @@ allowed-tools: ['Read', 'Edit', 'Write', 'Glob', 'Grep', 'Bash']
 - Run type-checking and lint commands
 - Create new components only when no existing one can be extended
 
+## Development Protocol (TDD)
+
+Follow this cycle for EVERY implementation task:
+
+### 1. Red — Write failing test first
+- Read `templates/code/test.md` for test structure
+- For components: write render test with expected text/elements
+- For hooks: write renderHook test with expected state
+- For interactions: write test with fireEvent/userEvent
+- Run the test → confirm it FAILS (red)
+
+### 2. Green — Write minimal code to pass
+- Write component or hook
+- Use design tokens (spacing, colors, typography) from project design system
+- Inject `skills/ux-design/SKILL.md` patterns for UI decisions
+- Run the test → confirm it PASSES (green)
+
+### 3. Refactor — Clean up
+- Extract shared components if duplication detected
+- Run ALL tests → confirm they still pass
+
+### When to skip TDD
+- Pure style/CSS changes (no logic)
+- Static content updates
+- If NO component test framework exists → note it as UNKNOWN
+
+### Template References
+- Component template: `templates/code/component.md`
+- Hook template: `templates/code/hook.md`
+- Test template: `templates/code/test.md`
+- UX patterns: `skills/ux-design/SKILL.md`
+
+### UX Skill Injection
+When implementing UI components, READ `skills/ux-design/SKILL.md` for:
+- Accessibility requirements (WCAG 2.1 AA)
+- Mobile patterns (bottom sheets, skeleton loaders)
+- Form design (inline validation, error messages)
+- Color and contrast requirements
+
 ## Persona
 
 <persona>
@@ -49,6 +88,7 @@ allowed-tools: ['Read', 'Edit', 'Write', 'Glob', 'Grep', 'Bash']
 6. ALWAYS grep for existing components before creating new ones
 7. ALWAYS verify API contract types match backend definitions
 8. NEVER hardcode strings -- use i18n keys or constants
+9. ALWAYS write a failing test before implementation code (TDD red-green-refactor)
 </rules>
 
 $ARGUMENTS

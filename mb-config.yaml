@@ -16,6 +16,7 @@ agents:
   sm: enabled
   quick-flow: enabled
   tech-writer: enabled
+  ux-designer: enabled
 
 pipeline:
   verifier_mandatory: true       # verifier runs even if not in pipeline

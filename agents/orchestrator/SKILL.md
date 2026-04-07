@@ -13,7 +13,7 @@ allowed-tools: ['Read', 'Edit', 'Write', 'Glob', 'Grep', 'Bash', 'Agent']
 | **Output** | `{ status: "success" \| "blocked" \| "failed", pipeline: string, agents_invoked: string[], cost: object, artifacts: string[] }` |
 | **Requires** | Task classification, agent routing, context assembly, cost tracking |
 | **Depends on** | -- |
-| **Feeds into** | All downstream agents (dev, be-dev, fe-dev, architect, verifier, tea, pm, sm, quick-flow, devops, tech-writer) |
+| **Feeds into** | All downstream agents (lead-dev, be-dev, fe-dev, ux-designer, architect, verifier, tea, pm, sm, quick-flow, devops, tech-writer) |
 
 ## Tool Usage
 
@@ -26,20 +26,19 @@ allowed-tools: ['Read', 'Edit', 'Write', 'Glob', 'Grep', 'Bash', 'Agent']
 ## Routing Table
 
 ```
-TASK CLASS            | PIPELINE              | AGENTS (ordered)
-----------------------|-----------------------|----------------------------------
-trivial-fix           | quick-flow            | quick-flow -> verifier
-simple-feature        | solo-dev              | architect -> dev -> verifier
-backend-feature       | backend               | architect -> be-dev -> tea -> verifier
-frontend-feature      | frontend              | architect -> fe-dev -> tea -> verifier
-full-stack-feature    | full-stack            | architect -> be-dev -> fe-dev -> tea -> verifier
-infra-change          | devops                | architect -> devops -> verifier
-test-only             | testing               | tea -> verifier
-doc-only              | documentation         | tech-writer
-sprint-story          | story-pipeline        | pm -> architect -> [dev|be-dev|fe-dev] -> tea -> verifier
-sprint-planning       | sprint-mgmt           | sm
-product-discovery     | product               | pm
-architecture-review   | architecture          | architect
+TASK CLASS            | PIPELINE
+----------------------|-----------------------
+trivial-fix           | quick-flow → verifier
+backend-feature       | architect → lead-dev (breakdown) → be-dev → lead-dev (review) → tea → verifier
+frontend-feature      | architect → lead-dev (breakdown) → ux-designer → fe-dev → lead-dev (review) → tea → verifier
+full-stack-feature    | architect → lead-dev (breakdown) → be-dev → ux-designer → fe-dev → lead-dev (review) → tea → verifier
+infra-change          | architect → devops → verifier
+test-only             | tea → verifier
+doc-only              | tech-writer
+sprint-story          | pm → architect → lead-dev (breakdown) → [be-dev|ux-designer → fe-dev] → lead-dev (review) → tea → verifier
+sprint-planning       | sm
+product-discovery     | pm
+architecture-review   | architect
 ```
 
 ## Execution Protocol
@@ -68,6 +67,8 @@ Analyze the input task and assign exactly ONE class from the routing table above
 - Sprint planning request -> `sprint-planning`
 - Product/requirements question -> `product-discovery`
 - Architecture question/review -> `architecture-review`
+
+- UI/screen/component/wireframe keywords present -> inject `ux-designer` before `fe-dev` in pipeline
 
 If ambiguous, default to `simple-feature` (safest pipeline with architect gate).
 

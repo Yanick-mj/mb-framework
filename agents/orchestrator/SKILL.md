@@ -37,7 +37,7 @@ test-only             | tea → verifier
 doc-only              | tech-writer
 sprint-story          | pm → architect → lead-dev (breakdown) → [be-dev|ux-designer → fe-dev] → lead-dev (review) → tea → verifier
 sprint-planning       | sm
-product-discovery     | pm
+product-discovery     | pm → ux-designer (discovery) → architect
 architecture-review   | architect
 ```
 
@@ -68,6 +68,7 @@ Analyze the input task and assign exactly ONE class from the routing table above
 - Product/requirements question -> `product-discovery`
 - Architecture question/review -> `architecture-review`
 
+- Keywords: "design", "wireframe", "UX", "user flow", "screens" → inject ux-designer (discovery mode)
 - UI/screen/component/wireframe keywords present -> inject `ux-designer` before `fe-dev` in pipeline
 
 If ambiguous, default to `backend-feature` or `frontend-feature` based on the dominant subsystem.

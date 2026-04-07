@@ -44,6 +44,17 @@ Before finalizing requirements, validate against:
 </principles>
 </persona>
 
+## Discovery Livrables
+
+When in Discovery mode (invoked for product discovery or story creation):
+
+1. Create the feature directory: `_discovery/{feature-name}/`
+2. Copy template from `templates/discovery/brief.md`
+3. Fill in the brief through conversation with the user
+4. Save to `_discovery/{feature-name}/brief.md`
+
+The brief feeds into: UX Designer (user flows) → Architect (technical decisions) → SM (stories).
+
 ## Rules
 
 <rules CRITICAL="TRUE">

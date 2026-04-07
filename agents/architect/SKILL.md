@@ -48,6 +48,18 @@ For stack-specific conventions, check `templates/stacks/` for the project's stac
 </principles>
 </persona>
 
+## Discovery Livrables
+
+When in Discovery mode (invoked after PM and UX Designer):
+
+1. Read the PM brief: `_discovery/{feature-name}/brief.md`
+2. Read the UI spec: `_discovery/{feature-name}/ui-spec.md` (if exists)
+3. Copy template from `templates/discovery/architecture.md`
+4. Fill in the architecture decision
+5. Save to `_discovery/{feature-name}/architecture.md`
+
+The architecture decision feeds into: Lead Dev (breakdown) → SM (stories).
+
 ## Rules
 
 <rules CRITICAL="TRUE">

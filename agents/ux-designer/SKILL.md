@@ -48,6 +48,15 @@ Create the UX foundation BEFORE development starts. Deliverables feed into archi
 5. **Accessibility audit** — Validate against WCAG 2.1 AA before handoff
 6. **Produce UI spec** — Structured spec that enriches stories and guides fe-dev
 
+### Discovery Livrables
+
+1. Read the PM brief: `_discovery/{feature-name}/brief.md`
+2. Create wireframes directory: `_discovery/{feature-name}/wireframes/`
+3. Save Excalidraw files to that directory
+4. Copy template from `templates/discovery/ui-spec.md`
+5. Fill in the UI spec
+6. Save to `_discovery/{feature-name}/ui-spec.md`
+
 ### Discovery Output
 
 ```markdown

@@ -23,6 +23,18 @@ allowed-tools: ['Read', 'Edit', 'Write', 'Glob', 'Grep']
 - Search for story dependencies and blockers
 - Read epic definitions and backlog items
 
+## Discovery Livrables
+
+When preparing stories from Discovery artifacts:
+
+1. Read ALL discovery livrables:
+   - `_discovery/{feature-name}/brief.md` (requirements + ACs)
+   - `_discovery/{feature-name}/ui-spec.md` (UX criteria)
+   - `_discovery/{feature-name}/architecture.md` (technical approach + impact)
+2. Decompose into stories using `templates/validation/story.md` checklist
+3. Save stories to `_discovery/{feature-name}/stories/story-{n}.md`
+4. Each story must reference which discovery livrable it implements
+
 ## Persona
 
 <persona>

@@ -87,11 +87,32 @@ Create the UX foundation BEFORE development starts. Deliverables feed into archi
 - [ ] Keyboard navigation (web)
 - [ ] Focus indicators visible
 
+### Design System Updates (MANDATORY before dev starts)
+
+If this feature requires NEW design tokens or components not in the existing design system:
+
+1. **List missing tokens** — new colors, typography variants, spacing values, shadows
+2. **List missing atoms** — new base components needed (buttons, inputs, badges)
+3. **Create a Design System Update task** — this MUST be completed BEFORE any US dev starts
+
+```
+### Design System Updates Required
+| Type | Token/Component | Value | Reason |
+|------|----------------|-------|--------|
+| Color | warning-amber | #F59E0B | Counter-offer status |
+| Atom | CountdownBadge | — | Timer display in bid sheets |
+| Spacing | sheet-padding | 24px | Standard bottom sheet padding |
+```
+
+⚠️ RULE: fe-dev is FORBIDDEN from modifying the design system during US implementation.
+Design system changes are a PREREQUISITE, not a side-effect.
+
 ### Story Enrichment
 These UX requirements should be added to story acceptance criteria:
 - AC: {ux-specific acceptance criterion}
 - AC: {accessibility criterion}
 - AC: {state management criterion}
+- AC: {design system prerequisite — if design system update needed}
 ```
 
 ---

@@ -30,16 +30,33 @@ TASK CLASS            | PIPELINE
 ----------------------|-----------------------
 trivial-fix           | quick-flow → verifier
 backend-feature       | architect → lead-dev (breakdown) → be-dev → lead-dev (review) → tea → verifier
-frontend-feature      | architect → lead-dev (breakdown) → ux-designer → fe-dev → lead-dev (review) → tea → verifier
-full-stack-feature    | architect → lead-dev (breakdown) → be-dev → ux-designer → fe-dev → lead-dev (review) → tea → verifier
+frontend-feature      | architect → lead-dev (breakdown) → ux-designer (delivery) → [DS UPDATE GATE] → fe-dev → lead-dev (review) → tea → verifier
+full-stack-feature    | architect → lead-dev (breakdown) → be-dev → ux-designer (delivery) → [DS UPDATE GATE] → fe-dev → lead-dev (review) → tea → verifier
 infra-change          | architect → devops → verifier
 test-only             | tea → verifier
 doc-only              | tech-writer
-sprint-story          | pm → architect → lead-dev (breakdown) → [be-dev|ux-designer → fe-dev] → lead-dev (review) → tea → verifier
+sprint-story          | pm → architect → lead-dev (breakdown) → [be-dev|ux-designer (delivery) → [DS UPDATE GATE] → fe-dev] → lead-dev (review) → tea → verifier
 sprint-planning       | sm
-product-discovery     | pm → ux-designer (discovery) → architect
+product-discovery     | pm → ux-designer (discovery) → [DS UPDATE GATE] → architect
 architecture-review   | architect
 ```
+
+### Design System Update Gate (DS UPDATE GATE)
+
+After ux-designer completes (discovery OR delivery), check if design system updates are needed:
+
+1. Read ux-designer output → look for "Design System Updates Required" section
+2. If updates listed:
+   a. PAUSE the pipeline
+   b. Execute design system update as a SEPARATE sub-task:
+      - Create/update design tokens (colors, typography, spacing)
+      - Create/update atom components (if new atoms needed)
+      - Commit design system changes BEFORE resuming pipeline
+   c. RESUME pipeline → fe-dev receives updated design system
+3. If no updates needed → continue pipeline immediately
+
+**RULE**: fe-dev MUST NEVER execute while design system updates are pending.
+The gate ensures design tokens and atoms exist BEFORE implementation starts.
 
 ## Execution Protocol
 
@@ -145,6 +162,8 @@ After pipeline completion, append to `cost-log.md`:
 6. NEVER implement code directly -- always delegate to a dev agent
 7. NEVER skip the classification step
 8. NEVER invoke an agent without a context summary
+9. NEVER invoke fe-dev while design system updates are pending — DS UPDATE GATE must pass first
+10. ALWAYS execute design system updates as a separate sub-task, committed before fe-dev starts
 </rules>
 
 $ARGUMENTS

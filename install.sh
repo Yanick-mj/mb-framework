@@ -11,6 +11,13 @@ if [ ! -d "$MB_DIR" ]; then
   exit 1
 fi
 
+NO_STAGE=false
+for arg in "$@"; do
+  case "$arg" in
+    --no-stage) NO_STAGE=true ;;
+  esac
+done
+
 echo "Installing mb-framework..."
 
 # 1. Symlink commands → .claude/commands/mb/
@@ -25,6 +32,16 @@ for agent_dir in "$MB_DIR"/agents/*/; do
   ln -sfn "../../$MB_DIR/agents/$agent_name" ".claude/skills/mb-$agent_name"
 done
 echo "  Agents linked as skills"
+
+# 2b. (v2) Symlink early-stage agents → .claude/skills/mb-early-{name}/
+if [ -d "$MB_DIR/agents-early" ]; then
+  for agent_dir in "$MB_DIR"/agents-early/*/; do
+    [ -d "$agent_dir" ] || continue
+    agent_name=$(basename "$agent_dir")
+    ln -sfn "../../$MB_DIR/agents-early/$agent_name" ".claude/skills/mb-early-$agent_name"
+  done
+  echo "  Early-stage agents linked"
+fi
 
 # 3. Symlink skills → .claude/skills/mb-skill-{name}/
 for skill_dir in "$MB_DIR"/skills/*/; do
@@ -44,6 +61,36 @@ if [ -f "$MB_DIR/templates/code/pre-commit.sh" ]; then
   echo "  Git hook installed"
 fi
 
+# 5. (v2) Stage initialization
+if [ "$NO_STAGE" = false ] && [ ! -f "mb-stage.yaml" ]; then
+  echo ""
+  echo "── Stage Setup (v2) ──────────────────────────────────────"
+  echo "What stage is this project in?"
+  echo "  1) discovery — validating an idea, no users yet"
+  echo "  2) mvp       — building janky wedge, looking for first paying users"
+  echo "  3) pmf       — first customers, looking for product-market fit"
+  echo "  4) scale     — production-grade, recurring revenue (default)"
+  echo ""
+  read -r -p "Choose [1-4] (default: 4): " stage_choice
+  case "$stage_choice" in
+    1) chosen_stage="discovery" ;;
+    2) chosen_stage="mvp" ;;
+    3) chosen_stage="pmf" ;;
+    *) chosen_stage="scale" ;;
+  esac
+  today=$(date +%Y-%m-%d)
+  cp "$MB_DIR/mb-stage.yaml.template" mb-stage.yaml
+  # Patch stage and date
+  if [ "$(uname)" = "Darwin" ]; then
+    sed -i '' "s/^stage: discovery/stage: $chosen_stage/" mb-stage.yaml
+    sed -i '' "s/^since: YYYY-MM-DD/since: $today/" mb-stage.yaml
+  else
+    sed -i "s/^stage: discovery/stage: $chosen_stage/" mb-stage.yaml
+    sed -i "s/^since: YYYY-MM-DD/since: $today/" mb-stage.yaml
+  fi
+  echo "  mb-stage.yaml created (stage: $chosen_stage)"
+fi
+
 echo ""
 echo "mb-framework installed successfully!"
 echo ""
@@ -53,3 +100,6 @@ echo "  /mb:sprint                 — Execute next story"
 echo "  /mb:fix \"bug\"              — Fix a bug"
 echo "  /mb:review                 — Code review"
 echo "  /mb:init                   — Scan project (run this first!)"
+echo "  /mb:stage                  — (v2) View/manage project stage"
+echo "  /mb:validate \"idea\"        — (v2) Discovery: validate an idea"
+echo "  /mb:ship \"wedge\"           — (v2) MVP: ship a wedge product"

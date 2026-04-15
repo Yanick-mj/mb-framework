@@ -30,3 +30,9 @@ tracking:
 
 provider:
   mode: "claude-code"            # claude-code | standalone (future)
+
+# (v2) Stage-aware behavior
+stage_aware:
+  enabled: true                  # false = strict v1 behavior, ignore mb-stage.yaml
+  default_stage: scale           # used if mb-stage.yaml absent
+  early_agents_path: agents-early  # location of stage-only agents

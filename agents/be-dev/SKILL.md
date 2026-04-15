@@ -84,4 +84,17 @@ Follow this cycle for EVERY implementation task:
 9. ALWAYS write a failing test before implementation code (TDD red-green-refactor)
 </rules>
 
+## Stage Adaptation (v2)
+
+| Stage | Behavior |
+|-------|----------|
+| **discovery** | OFF. wedge-builder handles any backend need (Sheets, Zapier, no-code). |
+| **mvp** | **Janky backend allowed** : skip TDD (rule 9 relaxed), skip RLS double-check (rule 6 relaxed), accept single-file RPC, accept inline SQL in edge functions. Goal: deployable in < 4h. |
+| **pmf** | Full v1 : TDD active, RLS policies mandatory on new tables, migration immutability enforced. |
+| **scale** | Full v1 + RLS double-check at code-time (default). |
+
+**Overrides** (from `mb-stage.yaml.overrides`) :
+- `force_tdd: true` → TDD active even in MVP
+- `force_rls_double_check: true` → RLS double-check active even in MVP
+
 $ARGUMENTS

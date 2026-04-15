@@ -205,4 +205,18 @@ When implementing UI components, READ `skills/ux-design/SKILL.md` for:
 15. If a design token is MISSING → STOP, return status "blocked", request design system update first
 </rules>
 
+## Stage Adaptation (v2)
+
+| Stage | Behavior |
+|-------|----------|
+| **discovery** | OFF. wedge-builder handles UI in early stages. |
+| **mvp** | **Janky frontend allowed** : single-file React/Next page OK, skip Step 0 Component Audit (rule 10 relaxed), skip Atomic Design (rule 11 relaxed), skip DS UPDATE GATE (rules 14-15 relaxed). Inline styles OK. Goal: ship deployable in < 4h. |
+| **pmf** | Full v1 : Component Audit + Atomic Design + TDD. DS UPDATE GATE light. |
+| **scale** | Full v1 (default) : Step 0 mandatory + Atomic Design + TDD + DS UPDATE GATE strict. |
+
+**Overrides** (from `mb-stage.yaml.overrides`) :
+- `force_ds_gate: true` → DS UPDATE GATE active even in MVP
+- `force_atomic_design: true` → Atomic Design active even in MVP
+- `force_tdd: true` → TDD active even in MVP
+
 $ARGUMENTS

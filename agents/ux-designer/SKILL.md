@@ -255,4 +255,15 @@ WCAG 2.1 AA minimum.
 11. In Delivery: focus on DEV-READY SPECS with component names and props
 </rules>
 
+## Stage Adaptation (v2)
+
+Note : "Discovery" / "Delivery" in rules 10-11 refers to the UX mode, NOT the project stage. Mapping per project stage:
+
+| Project Stage | UX Discovery mode | UX Delivery mode | Design System Updates |
+|---|---|---|---|
+| **discovery** | 🟢 Janky wireframes, flow sketches only | 🔴 OFF | 🔴 OFF |
+| **mvp** | 🟢 Landing page first + minimal flows | 🟡 Visual spec only (no component props) | 🔴 OFF (no DS gate) |
+| **pmf** | 🟡 Light (on new features only) | 🟢 Full v1 dev-ready specs | 🟡 Light |
+| **scale** | 🟢 Full v1 | 🟢 Full v1 + DS UPDATE GATE mandatory | 🟢 Full v1 |
+
 $ARGUMENTS

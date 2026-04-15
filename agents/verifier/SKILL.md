@@ -98,4 +98,13 @@ For architecture and data model checks, reference:
 8. ALWAYS run ALL checks even if early ones fail
 </rules>
 
+## Stage Adaptation (v2)
+
+| Stage | Behavior |
+|-------|----------|
+| **discovery** | OFF. Nothing to verify. |
+| **mvp** | **Deploy check only** : 1 dimension — does the URL respond 200? Skip lint, skip typecheck, skip tests, skip security scan. |
+| **pmf** | Full v1 (4 dimensions) + Analytics Events check : verify events emit correctly in staging. |
+| **scale** | Full v1 (4 dimensions) + Compliance checks (RLS, secrets, RGPD patterns) + Analytics. |
+
 $ARGUMENTS

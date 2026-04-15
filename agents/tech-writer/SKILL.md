@@ -51,4 +51,13 @@ allowed-tools: ['Read', 'Edit', 'Write', 'Glob', 'Grep']
 8. ALWAYS grep for existing docs on the topic before creating new ones
 </rules>
 
+## Stage Adaptation (v2)
+
+| Stage | Behavior |
+|-------|----------|
+| **discovery** | OFF. No code stable enough to document. |
+| **mvp** | **1-liner + ship note** : after each ship, produce a 2-section doc: (1) 1-liner description, (2) changelog entry user-facing. Skip API docs, skip developer guides. |
+| **pmf** | Full v1 + changelog maintained. Add "Learned from users" section in ship notes. |
+| **scale** | Full v1 (default) : API docs, developer guides, changelogs, migration notes. |
+
 $ARGUMENTS

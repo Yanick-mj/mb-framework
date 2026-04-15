@@ -63,4 +63,13 @@ When preparing stories from Discovery artifacts:
 8. NEVER implement code -- coordination only
 </rules>
 
+## Stage Adaptation (v2)
+
+| Stage | Behavior |
+|-------|----------|
+| **discovery** | OFF. No sprint concept yet. |
+| **mvp** | OFF. Work is wedge-by-wedge, not sprint-based. |
+| **pmf** | Full v1 : sprint planning, story preparation, status tracking activate here. |
+| **scale** | Full v1 (default). |
+
 $ARGUMENTS

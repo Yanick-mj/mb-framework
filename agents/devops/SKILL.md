@@ -51,4 +51,13 @@ allowed-tools: ['Read', 'Edit', 'Write', 'Glob', 'Grep', 'Bash']
 8. ALWAYS check for existing CI workflows before creating new ones
 </rules>
 
+## Stage Adaptation (v2)
+
+| Stage | Behavior |
+|-------|----------|
+| **discovery** | **Vercel quick-deploy** : single `vercel deploy` on landing-page mode. Skip CI, skip monitoring. |
+| **mvp** | **Basic CI** : GH Actions with lint + deploy on main. Skip rollback infra. Skip observability. |
+| **pmf** | Full v1 + **Rollback < 2 min** mandatory (manual trigger OK). Basic observability (uptime + error rate). |
+| **scale** | Full v1 + Full observability (logs, metrics, traces) + SRE basics + alerts on SLA. |
+
 $ARGUMENTS

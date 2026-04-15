@@ -188,4 +188,13 @@ Before finalizing breakdown, check:
 11. BLOCKING gates MUST execute BEFORE the action they protect — never after, never in parallel
 </rules>
 
+## Stage Adaptation (v2)
+
+| Stage | Behavior |
+|-------|----------|
+| **discovery** | OFF. Not invoked. |
+| **mvp** | **Tasks-only mode** : produce a flat task list, skip flow diagrams, skip function inventory, skip decision gates table. Code is throwaway, detailed breakdown is overhead. |
+| **pmf** | Full v1 breakdown (flows + function inventory + tasks), decision gates optional. |
+| **scale** | Full v1 behavior : flows + function inventory + decision gates + tasks (default). |
+
 $ARGUMENTS

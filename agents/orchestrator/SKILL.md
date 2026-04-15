@@ -67,6 +67,27 @@ The gate ensures design tokens and atoms exist BEFORE implementation starts.
 3. Load sprint status from `_bmad-output/implementation-artifacts/sprint-status.yaml` if sprint context
 4. Establish cost budget from config (default: unbounded)
 
+### Step 0.5 -- Stage Detection (v2)
+
+1. Check if `mb-stage.yaml` exists at project root
+2. If absent → set `stage = "scale"` (v1 strict behavior, no change to downstream)
+3. If present → read stage + overrides, invoke `mb-early-stage-advisor` with `action: "detect"` for validation
+4. Store stage context for injection into downstream agents' context summaries
+5. If stage is `discovery` or `mvp` → check Stage Routing Table (below) BEFORE Step 1
+
+### Stage Routing Table (v2)
+
+Applies ONLY when `mb-stage.yaml` is present AND stage ∈ {discovery, mvp}.
+
+| Stage + task pattern                         | Pipeline                                                         |
+|----------------------------------------------|------------------------------------------------------------------|
+| discovery + "validate idea" / new idea       | mb-early-idea-validator → mb-early-user-interviewer (if needed)  |
+| discovery + any feature request              | mb-early-idea-validator (blocks with "validate first")            |
+| mvp + "ship" or "build wedge"                | mb-early-wedge-builder → verifier (light mode)                   |
+| mvp + feature request                        | pm (lean) → mb-early-wedge-builder OR architect (light) → fe-dev (light) |
+| pmf + any                                    | v1 routing table applies                                         |
+| scale + any                                  | v1 routing table applies (default, unchanged)                    |
+
 ### Step 1 -- Classify Task
 
 Analyze the input task and assign exactly ONE class from the routing table above.
@@ -164,6 +185,25 @@ After pipeline completion, append to `cost-log.md`:
 8. NEVER invoke an agent without a context summary
 9. NEVER invoke fe-dev while design system updates are pending — DS UPDATE GATE must pass first
 10. ALWAYS execute design system updates as a separate sub-task, committed before fe-dev starts
+11. (v2) NEVER override `mb-stage.yaml` without explicit user confirmation
+12. (v2) ALWAYS pass current stage in context summary to downstream agents
 </rules>
+
+## Stage Adaptation (v2)
+
+The orchestrator reads `mb-stage.yaml` at Step 0.5. Behavior by stage:
+
+| Stage | Behavior |
+|-------|----------|
+| **discovery** | Stage Routing Table takes precedence. Gates: DS UPDATE GATE OFF, TDD OFF, RLS double-check OFF. Early agents (idea-validator, user-interviewer) preferred over v1 dev agents. |
+| **mvp** | Stage Routing Table takes precedence. Gates: DS UPDATE GATE OFF (unless override), TDD OFF (unless override). wedge-builder preferred. |
+| **pmf** | v1 routing table applies. All v1 gates ON. Stage context still injected into agents. |
+| **scale** | v1 routing table applies. All v1 gates ON. Default behavior when no `mb-stage.yaml` present. |
+
+**Overrides** (from `mb-stage.yaml.overrides`):
+- `force_ds_gate: true` → DS UPDATE GATE applies even in MVP
+- `force_tdd: true` → TDD applies even in MVP
+- `force_rls_double_check: true` → RLS double-check applies even in MVP
+- `force_atomic_design: true` → Atomic Design applies even in MVP
 
 $ARGUMENTS

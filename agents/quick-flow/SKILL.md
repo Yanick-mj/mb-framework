@@ -59,4 +59,13 @@ No architect plan. No test generation. No sprint ceremony. Just fix it.
 8. NEVER add tests -- that's tea's job if needed
 </rules>
 
+## Stage Adaptation (v2)
+
+| Stage | Behavior |
+|-------|----------|
+| **discovery** | 🟢 Default fallback when wedge/idea-validator don't apply. |
+| **mvp** | 🟢 Default fallback. Can handle quick wedge iterations. |
+| **pmf** | 🟡 Fallback for truly trivial tasks only (typo, rename). |
+| **scale** | 🔴 Exception only. Most tasks go through full v1 pipeline. |
+
 $ARGUMENTS

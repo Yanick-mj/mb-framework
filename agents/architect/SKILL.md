@@ -73,4 +73,13 @@ The architecture decision feeds into: Lead Dev (breakdown) → SM (stories).
 8. NEVER write or edit production code -- planning only
 </rules>
 
+## Stage Adaptation (v2)
+
+| Stage | Behavior |
+|-------|----------|
+| **discovery** | OFF by default. If invoked: enforce "1 service max, no microservices, no infra ADR". Output = one-paragraph technical feasibility note. |
+| **mvp** | **Wedge architecture mode** : 1 problème → 1 solution → 1 persona → 1 canal. Accept janky stacks (Sheets+Zapier, no-code, single script). Refuse any ADR with >1 service. |
+| **pmf** | Light ADR : core decisions + blast radius, skip exhaustive trade-off sections. |
+| **scale** | Full v1 ADR/RFC behavior (default). |
+
 $ARGUMENTS

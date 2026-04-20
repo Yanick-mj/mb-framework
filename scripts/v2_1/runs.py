@@ -32,7 +32,7 @@ def append(
     run_id = uuid.uuid4().hex[:12]
     entry = {
         "run_id": run_id,
-        "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "ts": datetime.now(timezone.utc).isoformat(timespec="microseconds"),
         "agent": agent,
         "story": story,
         "action": action,

@@ -76,3 +76,30 @@ def test_load_recent_skips_corrupted_lines(tmp_project):
     assert len(entries) == 2
     assert entries[0]["agent"] == "b"
     assert entries[1]["agent"] == "a"
+
+
+def test_rapid_fire_appends_preserve_order(tmp_project):
+    """10 consecutive appends keep insertion order on load_recent.
+
+    Second-precision ts previously collided on fast loops. Microsecond
+    precision restores a reliable ts tiebreaker; file-order reversal is
+    the ultimate fallback.
+    """
+    for i in range(10):
+        runs.append(
+            agent=f"a{i}", story="S", action="x",
+            tokens_in=1, tokens_out=1, summary=f"did {i}",
+        )
+    entries = runs.load_recent(limit=10)
+    assert entries[0]["agent"] == "a9"
+    assert entries[-1]["agent"] == "a0"
+
+
+def test_ts_has_microsecond_precision(tmp_project):
+    """Each run's ts includes microseconds (not just seconds)."""
+    runs.append(
+        agent="x", story="S", action="a",
+        tokens_in=1, tokens_out=1, summary="s",
+    )
+    entry = runs.load_recent(limit=1)[0]
+    assert "." in entry["ts"], f"expected microseconds in ts, got {entry['ts']}"

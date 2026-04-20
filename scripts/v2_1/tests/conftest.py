@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 # Prepend the scripts/ parent to sys.path so `from scripts.v2_1 import ...` works
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 
 @pytest.fixture

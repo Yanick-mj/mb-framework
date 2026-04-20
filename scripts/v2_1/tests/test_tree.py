@@ -62,3 +62,29 @@ def test_render_tree_orphan_story(tmp_project):
     _write_story(tmp_project, "STU-1", "Orphan")
     output = tree.render()
     assert "STU-1" in output
+
+
+def test_cycle_does_not_crash(tmp_project):
+    """Mutual parent references render [CYCLE] instead of infinite recursion."""
+    _write_story(tmp_project, "STU-1", "A", parent="STU-2")
+    _write_story(tmp_project, "STU-2", "B", parent="STU-1")
+    output = tree.render()  # should not raise RecursionError
+    assert "[CYCLE]" in output
+
+
+def test_missing_parent_promotes_to_root(tmp_project):
+    """Story referencing non-existent parent appears at root level."""
+    _write_story(tmp_project, "STU-5", "Orphaned child", parent="STU-99")
+    output = tree.render()
+    assert "STU-5" in output
+
+
+def test_malformed_yaml_skips_file(tmp_project):
+    """Story file with broken YAML is silently skipped."""
+    stories_dir = tmp_project / "_bmad-output" / "implementation-artifacts" / "stories"
+    stories_dir.mkdir(parents=True, exist_ok=True)
+    (stories_dir / "bad.md").write_text("---\n: [\ninvalid {{{\n---\n# Bad\n")
+    _write_story(tmp_project, "STU-1", "Good")
+    stories = tree.scan_stories()
+    assert len(stories) == 1
+    assert stories[0]["story_id"] == "STU-1"

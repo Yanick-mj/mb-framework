@@ -80,12 +80,13 @@ When writing a new story file, ALWAYS include these fields:
 ---
 story_id: STU-XXX             # required, unique identifier
 title: Short sentence         # required
-parent_story: STU-YYY         # optional, parent story id
-children: [STU-ZZZ, STU-ZZZZ] # optional, child story ids
+parent_story: STU-YYY         # optional, parent story id (used by /mb:tree)
+children: [STU-ZZZ, STU-ZZZZ] # optional, informational only
 status: backlog|todo|in_progress|in_review|done   # required
 ---
 ```
 
-This enables /mb:tree to render the hierarchy correctly.
+The tree is built from `parent_story` — always set that field on child stories.
+The `children` field is informational for human readers; /mb:tree does not use it.
 
 $ARGUMENTS

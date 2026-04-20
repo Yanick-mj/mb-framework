@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set
 
 import yaml
 
@@ -18,7 +18,7 @@ def _stories_root() -> Path:
 
 def _parse_frontmatter(text: str) -> dict:
     """Extract the YAML frontmatter block from a story md file."""
-    m = re.match(r"^---\n(.*?)\n---", text, re.DOTALL)
+    m = re.match(r"^---\r?\n(.*?)\r?\n---", text, re.DOTALL)
     if not m:
         return {}
     try:
@@ -47,10 +47,16 @@ def scan_stories() -> List[dict]:
 
 
 def _build_tree(stories: List[dict]) -> Dict[Optional[str], List[str]]:
-    """Return {parent_id: [child_ids]}. Root entries have parent_id=None."""
+    """Return {parent_id: [child_ids]}. Root entries have parent_id=None.
+
+    Stories referencing a non-existent parent are promoted to root level.
+    """
+    known_ids = {s["story_id"] for s in stories}
     children_by_parent: Dict[Optional[str], List[str]] = {}
     for s in stories:
         parent = s.get("parent_story")
+        if parent and parent not in known_ids:
+            parent = None  # promote to root if parent doesn't exist
         children_by_parent.setdefault(parent, []).append(s["story_id"])
     return children_by_parent
 
@@ -68,12 +74,17 @@ def render(focus: Optional[str] = None) -> str:
     by_id = _story_by_id(stories)
 
     lines: List[str] = []
+    visited: Set[str] = set()
 
     def walk(story_id: str, indent: str = "", is_last: bool = True):
         s = by_id.get(story_id)
         if not s:
             return
         connector = "└── " if is_last else "├── "
+        if story_id in visited:
+            lines.append(f"{indent}{connector}{story_id} [CYCLE]")
+            return
+        visited.add(story_id)
         marker = "  ← me" if focus == story_id else ""
         title = s.get("title", "")
         lines.append(f"{indent}{connector}{story_id} {title}{marker}")
@@ -85,6 +96,13 @@ def render(focus: Optional[str] = None) -> str:
     roots = by_parent.get(None, [])
     for i, r in enumerate(roots):
         walk(r, "", i == len(roots) - 1)
+
+    # Render any stories not reachable from roots (cycles)
+    unreachable = [sid for sid in by_id if sid not in visited]
+    if unreachable:
+        for i, sid in enumerate(unreachable):
+            walk(sid, "", i == len(unreachable) - 1)
+
     return "\n".join(lines)
 
 

@@ -19,12 +19,12 @@ def tmp_home(monkeypatch):
 
 
 @pytest.fixture
-def tmp_project(tmp_path):
+def tmp_project(tmp_path, monkeypatch):
     """Create a minimal mb project layout and cd into it."""
     project = tmp_path / "demo-project"
     project.mkdir()
     (project / "mb-stage.yaml").write_text("stage: mvp\nsince: 2026-04-19\n")
     (project / "memory").mkdir()
     (project / "_bmad-output").mkdir()
-    os.chdir(project)
+    monkeypatch.chdir(project)
     return project

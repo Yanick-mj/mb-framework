@@ -29,6 +29,8 @@ def path(story_id: str, type: str, rev: int) -> Path:
 
 def next_rev(story_id: str, type: str) -> int:
     """Return the next revision number for a given story_id + type."""
+    if type not in VALID_TYPES:
+        raise ValueError(f"Invalid type {type!r}. Must be one of {sorted(VALID_TYPES)}")
     story_dir = _deliverables_root() / story_id
     if not story_dir.exists():
         return 1
@@ -73,6 +75,8 @@ def list_for_story(story_id: str) -> Dict[str, List[Path]]:
         if not m:
             continue
         t = m.group(1)
+        if t not in VALID_TYPES:
+            continue
         by_type.setdefault(t, []).append(f)
     for t in by_type:
         by_type[t].sort(key=lambda p: int(pattern.match(p.name).group(2)))

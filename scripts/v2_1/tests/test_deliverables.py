@@ -54,3 +54,26 @@ def test_list_deliverables_for_story(tmp_project):
 def test_list_empty_story_returns_empty_dict(tmp_project):
     """list_for_story() returns {} for an unknown story."""
     assert deliverables.list_for_story("STU-999") == {}
+
+
+def test_path_rejects_invalid_type(tmp_project):
+    """path() raises ValueError for an unknown type."""
+    with pytest.raises(ValueError, match="Invalid type"):
+        deliverables.path("STU-46", "GARBAGE", 1)
+
+
+def test_next_rev_rejects_invalid_type(tmp_project):
+    """next_rev() raises ValueError for an unknown type."""
+    with pytest.raises(ValueError, match="Invalid type"):
+        deliverables.next_rev("STU-46", "GARBAGE")
+
+
+def test_list_for_story_ignores_invalid_types(tmp_project):
+    """list_for_story() skips files that don't match VALID_TYPES."""
+    story_dir = tmp_project / "_bmad-output" / "deliverables" / "STU-46"
+    story_dir.mkdir(parents=True)
+    (story_dir / "PLAN-rev1.md").write_text("valid")
+    (story_dir / "JUNK-rev1.md").write_text("stray file")
+    result = deliverables.list_for_story("STU-46")
+    assert "PLAN" in result
+    assert "JUNK" not in result

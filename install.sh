@@ -105,6 +105,23 @@ print(f'  Registered in ~/.mb/projects.yaml ($project_name, stage:$project_stage
 " 2>/dev/null || echo "  (skipped registration — python3 or pyyaml missing)"
 fi
 
+# 5c. (v2.1) Offer to install shell helper
+if [ "$NO_STAGE" = false ] && [ -n "${ZDOTDIR:-$HOME}" ]; then
+  rc_file="${ZDOTDIR:-$HOME}/.zshrc"
+  [ ! -f "$rc_file" ] && rc_file="$HOME/.bashrc"
+  helper_line="source $PWD/$MB_DIR/scripts/v2_1/mb_shell_helper.sh"
+  if ! grep -qF "$helper_line" "$rc_file" 2>/dev/null; then
+    echo ""
+    read -rp "Install 'mb' shell helper in $rc_file? [y/N] " answer
+    if [[ "$answer" =~ ^[Yy]$ ]]; then
+      echo "" >> "$rc_file"
+      echo "# mb-framework shell helper" >> "$rc_file"
+      echo "$helper_line" >> "$rc_file"
+      echo "  Added 'mb' helper to $rc_file — run 'source $rc_file' to activate"
+    fi
+  fi
+fi
+
 echo ""
 echo "mb-framework installed successfully!"
 echo ""

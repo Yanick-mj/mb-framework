@@ -25,10 +25,21 @@ def _parse_frontmatter(text: str) -> dict:
         data = yaml.safe_load(m.group(1)) or {}
     except yaml.YAMLError:
         return {}
-    # Normalize children: accept "[a, b]" or "- a\n- b"
+    # Normalize children: list form is ideal. When YAML parses the value as a
+    # string (because the frontmatter quoted the whole list), strip brackets
+    # AND any surrounding quotes on each id so we never end up with '"STU-2"'.
     children = data.get("children")
     if isinstance(children, str):
-        data["children"] = [c.strip() for c in children.strip("[]").split(",") if c.strip()]
+        parts = children.strip().strip("[]").split(",")
+        cleaned: List[str] = []
+        for p in parts:
+            p = p.strip().strip('"').strip("'")
+            if p:
+                cleaned.append(p)
+        data["children"] = cleaned
+    elif children is not None and not isinstance(children, list):
+        # Defensive: unknown type → treat as no children
+        data["children"] = []
     return data
 
 

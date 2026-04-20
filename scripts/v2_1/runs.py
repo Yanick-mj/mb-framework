@@ -71,13 +71,13 @@ def render_recent(limit: int = 10) -> str:
     """Human-readable recent runs listing."""
     entries = load_recent(limit)
     if not entries:
-        return "No runs logged yet."
-    lines = [f"Last {len(entries)} run(s)", ""]
+        return "🏃 No runs logged yet."
+    lines = [f"🏃 Last {len(entries)} run(s)", ""]
     for e in entries:
         lines.append(
             f"  {e['ts'][:19]}  {e['agent']:<12}  {e['story']:<10}  {e['action']}"
         )
-        lines.append(f"    -> {e['summary']}")
+        lines.append(f"    └─ {e['summary']}")
         lines.append("")
     return "\n".join(lines)
 

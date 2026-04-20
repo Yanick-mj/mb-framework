@@ -104,6 +104,15 @@ def test_children_as_yaml_list(tmp_project):
     assert stories[0]["children"] == ["STU-2", "STU-3"]
 
 
+def test_render_tree_uses_emoji(tmp_project):
+    """render() output carries the tree emoji in both empty and non-empty states."""
+    # Empty
+    assert "🌲" in tree.render()
+    # With stories
+    _write_story(tmp_project, "STU-1", "Root")
+    assert "🌲" in tree.render()
+
+
 def test_children_as_string_with_quotes_strips_them(tmp_project):
     """When YAML parses children as a string (rare), strip quotes + brackets.
 

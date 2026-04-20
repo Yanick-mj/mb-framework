@@ -80,11 +80,11 @@ def render(focus: Optional[str] = None) -> str:
     """ASCII render the tree. If focus is set, mark that story with <- me."""
     stories = scan_stories()
     if not stories:
-        return "No stories found."
+        return "🌲 No stories found."
     by_parent = _build_tree(stories)
     by_id = _story_by_id(stories)
 
-    lines: List[str] = []
+    lines: List[str] = [f"🌲 Story tree ({len(stories)} stories)", ""]
     visited: Set[str] = set()
 
     def walk(story_id: str, indent: str = "", is_last: bool = True):

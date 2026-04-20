@@ -52,50 +52,91 @@ def _parse_frontmatter(text: str) -> dict:
     return data
 
 
-def list_backlog() -> List[dict]:
-    """Return backlog stories with frontmatter metadata, priority-sorted.
-
-    - Missing or empty _backlog/ → []
-    - Files without story_id are skipped
-    - Files with malformed YAML are skipped
-    - Default priority is 'medium'
-    """
+def _scan() -> tuple[List[dict], List[dict]]:
+    """One-pass scan separating valid stories from priority-rejected ones."""
     d = _backlog_dir()
     if not d.exists():
-        return []
-    items: List[dict] = []
+        return [], []
+    valid: List[dict] = []
+    rejected: List[dict] = []
     for f in sorted(d.glob("*.md")):
-        fm = _parse_frontmatter(f.read_text())
+        try:
+            content = f.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        fm = _parse_frontmatter(content)
         if "story_id" not in fm:
             continue
         fm["_path"] = str(f)
-        items.append(fm)
+        prio = fm.get("priority", _DEFAULT_PRIORITY)
+        if prio not in _PRIORITY_ORDER:
+            rejected.append(fm)
+            continue
+        valid.append(fm)
 
-    def sort_key(entry: dict):
-        prio = entry.get("priority", _DEFAULT_PRIORITY)
-        return _PRIORITY_ORDER.get(prio, _PRIORITY_ORDER[_DEFAULT_PRIORITY])
+    valid.sort(key=lambda e: _PRIORITY_ORDER[e.get("priority", _DEFAULT_PRIORITY)])
+    return valid, rejected
 
-    items.sort(key=sort_key)
-    return items
+
+def list_backlog() -> List[dict]:
+    """Return backlog stories with frontmatter metadata, priority-sorted.
+
+    Strict rules (v2.1.2+):
+    - Missing or empty _backlog/ → []
+    - Files without story_id are skipped
+    - Files with malformed YAML are skipped
+    - Files with a priority NOT in {critical, high, medium, low} are REJECTED
+      (use list_rejected() to inspect; render_backlog() surfaces them as
+      warnings so typos like 'urgent' are caught early).
+    - Missing priority defaults to 'medium'.
+    """
+    valid, _ = _scan()
+    return valid
+
+
+def list_rejected() -> List[dict]:
+    """Return stories rejected for having an invalid priority."""
+    _, rejected = _scan()
+    return rejected
 
 
 def render_backlog() -> str:
-    """Human-readable priority-sorted backlog for /mb:backlog."""
-    items = list_backlog()
-    if not items:
+    """Human-readable priority-sorted backlog for /mb:backlog.
+
+    Includes a ⚠️ warning block for any story rejected for an invalid priority
+    so the author notices typos immediately.
+    """
+    valid, rejected = _scan()
+    lines: List[str]
+
+    if not valid and not rejected:
         return (
-            "No stories in _backlog/.\n"
+            "📋 No stories in _backlog/.\n"
             "Create one with the template at .claude/mb/templates/backlog-story.md"
         )
-    lines = [f"📋 {len(items)} story(ies) in backlog", ""]
-    # Compute paddings for alignment
-    pri_w = max(len(i.get("priority", _DEFAULT_PRIORITY)) for i in items)
-    id_w = max(len(i["story_id"]) for i in items)
-    for i in items:
-        prio = i.get("priority", _DEFAULT_PRIORITY)
+
+    lines = [f"📋 {len(valid)} story(ies) in backlog", ""]
+    if valid:
+        pri_w = max(len(i.get("priority", _DEFAULT_PRIORITY)) for i in valid)
+        id_w = max(len(i["story_id"]) for i in valid)
+        for i in valid:
+            prio = i.get("priority", _DEFAULT_PRIORITY)
+            lines.append(
+                f"  [{prio:<{pri_w}}] {i['story_id']:<{id_w}}  {i.get('title', '')}"
+            )
+
+    if rejected:
+        lines.append("")
         lines.append(
-            f"  [{prio:<{pri_w}}] {i['story_id']:<{id_w}}  {i.get('title', '')}"
+            f"⚠️  {len(rejected)} story(ies) REJECTED — priority must be "
+            f"one of: {', '.join(sorted(_PRIORITY_ORDER))}"
         )
+        for i in rejected:
+            lines.append(
+                f"  {i['story_id']} has priority={i.get('priority')!r}  "
+                f"({i['_path']})"
+            )
+
     return "\n".join(lines)
 
 

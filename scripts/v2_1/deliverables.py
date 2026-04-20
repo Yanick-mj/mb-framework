@@ -102,8 +102,8 @@ def render_list(story_id: str) -> str:
     """Human-readable listing for /mb:deliverables STU-N."""
     by_type = list_for_story(story_id)
     if not by_type:
-        return f"No deliverables for {story_id}."
-    lines = [f"Deliverables for {story_id}", ""]
+        return f"📦 No deliverables for {story_id}."
+    lines = [f"📦 Deliverables for {story_id}", ""]
     for t, files in by_type.items():
         lines.append(f"  {t}")
         for f in files:

@@ -1,3 +1,5 @@
+# priority MUST be exactly one of: critical | high | medium | low
+# Any other value (e.g. "urgent", "blocker") is rejected by /mb:backlog.
 ---
 story_id: STU-XXX
 title: Short sentence describing the work

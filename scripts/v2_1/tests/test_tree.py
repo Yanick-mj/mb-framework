@@ -88,3 +88,39 @@ def test_malformed_yaml_skips_file(tmp_project):
     stories = tree.scan_stories()
     assert len(stories) == 1
     assert stories[0]["story_id"] == "STU-1"
+
+
+def test_children_as_yaml_list(tmp_project):
+    """Normal YAML list form: children: [STU-2, STU-3]."""
+    stories_dir = tmp_project / "_bmad-output" / "implementation-artifacts" / "stories"
+    stories_dir.mkdir(parents=True, exist_ok=True)
+    (stories_dir / "root.md").write_text(
+        "---\n"
+        "story_id: STU-1\n"
+        "children: [STU-2, STU-3]\n"
+        "---\n"
+    )
+    stories = tree.scan_stories()
+    assert stories[0]["children"] == ["STU-2", "STU-3"]
+
+
+def test_children_as_string_with_quotes_strips_them(tmp_project):
+    """When YAML parses children as a string (rare), strip quotes + brackets.
+
+    This happens when a skill accidentally writes children as a quoted string
+    rather than a YAML list. We don't want stray ", ', [ or ] in story ids.
+    """
+    stories_dir = tmp_project / "_bmad-output" / "implementation-artifacts" / "stories"
+    stories_dir.mkdir(parents=True, exist_ok=True)
+    (stories_dir / "root.md").write_text(
+        "---\n"
+        "story_id: STU-1\n"
+        'children: \'["STU-2", "STU-3"]\'\n'
+        "---\n"
+    )
+    stories = tree.scan_stories()
+    parsed = stories[0].get("children", [])
+    assert "STU-2" in parsed
+    assert "STU-3" in parsed
+    for c in parsed:
+        assert '"' not in c and "'" not in c and "[" not in c

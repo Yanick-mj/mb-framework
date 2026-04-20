@@ -33,16 +33,16 @@ def test_next_rev_returns_1_when_none_exist(tmp_project):
 
 def test_next_rev_increments_from_existing(tmp_project):
     """next_rev() returns max(rev) + 1 based on existing files."""
-    deliverables.write("STU-46", "PLAN", "v1", author="architect")
-    deliverables.write("STU-46", "PLAN", "v2", author="architect")
+    deliverables.write("STU-46", "PLAN", body="first plan", author="architect")
+    deliverables.write("STU-46", "PLAN", body="refined plan", author="architect")
     assert deliverables.next_rev("STU-46", "PLAN") == 3
 
 
 def test_list_deliverables_for_story(tmp_project):
     """list_for_story() returns all deliverables for a story, grouped by type."""
-    deliverables.write("STU-46", "PLAN", "v1", author="architect")
-    deliverables.write("STU-46", "IMPL", "v1", author="fe-dev")
-    deliverables.write("STU-46", "PLAN", "v2", author="architect")
+    deliverables.write("STU-46", "PLAN", body="p1", author="architect")
+    deliverables.write("STU-46", "IMPL", body="i1", author="fe-dev")
+    deliverables.write("STU-46", "PLAN", body="p2", author="architect")
 
     result = deliverables.list_for_story("STU-46")
     assert "PLAN" in result
@@ -77,3 +77,30 @@ def test_list_for_story_ignores_invalid_types(tmp_project):
     result = deliverables.list_for_story("STU-46")
     assert "PLAN" in result
     assert "JUNK" not in result
+
+
+def test_write_does_not_clobber_existing_rev(tmp_project):
+    """If an explicit rev clashes (race condition), write() auto-increments.
+
+    Simulates the race: two agents each compute next_rev()=1, both try to write
+    rev=1. The second call must NOT overwrite — it should land on rev=2.
+    """
+    deliverables.write(
+        story_id="STU-46", type="PLAN", body="first", author="a"
+    )
+    path2 = deliverables.write(
+        story_id="STU-46", type="PLAN", body="second", author="b", rev=1
+    )
+    assert path2.name == "PLAN-rev2.md"
+    first = deliverables.path("STU-46", "PLAN", 1).read_text()
+    second = path2.read_text()
+    assert "first" in first
+    assert "second" in second
+
+
+def test_write_with_explicit_unique_rev_uses_it(tmp_project):
+    """Explicit rev that doesn't clash is honored verbatim."""
+    path = deliverables.write(
+        story_id="STU-46", type="PLAN", body="x", author="a", rev=5
+    )
+    assert path.name == "PLAN-rev5.md"

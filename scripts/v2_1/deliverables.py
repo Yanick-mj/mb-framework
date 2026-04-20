@@ -44,23 +44,38 @@ def next_rev(story_id: str, type: str) -> int:
 
 
 def write(story_id: str, type: str, body: str, author: str, rev: int | None = None) -> Path:
-    """Write a deliverable, auto-incrementing rev if not supplied. Returns the path."""
+    """Write a deliverable, auto-incrementing rev if not supplied. Returns the path.
+
+    Race-safe: uses exclusive create (O_CREAT | O_EXCL via mode='x'). If the
+    target rev already exists (because next_rev() was stale, or an explicit rev
+    clashes), retries with rev+1 up to 10 times.
+    """
     if rev is None:
         rev = next_rev(story_id, type)
-    target = path(story_id, type, rev)
-    target.parent.mkdir(parents=True, exist_ok=True)
-    now = datetime.now(timezone.utc).isoformat(timespec="seconds")
-    frontmatter = (
-        "---\n"
-        f"story_id: {story_id}\n"
-        f"type: {type}\n"
-        f"rev: {rev}\n"
-        f"author: {author}\n"
-        f"created: {now}\n"
-        "---\n\n"
+    # Validate the starting rev's type (raises ValueError for invalid type)
+    path(story_id, type, rev)
+    now = datetime.now(timezone.utc).isoformat(timespec="microseconds")
+    for _ in range(10):
+        target = path(story_id, type, rev)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        frontmatter = (
+            "---\n"
+            f"story_id: {story_id}\n"
+            f"type: {type}\n"
+            f"rev: {rev}\n"
+            f"author: {author}\n"
+            f"created: {now}\n"
+            "---\n\n"
+        )
+        try:
+            with open(target, "x", encoding="utf-8") as f:
+                f.write(frontmatter + body)
+            return target
+        except FileExistsError:
+            rev += 1
+    raise RuntimeError(
+        f"Could not reserve a rev slot for {story_id}/{type} after 10 tries"
     )
-    target.write_text(frontmatter + body)
-    return target
 
 
 def list_for_story(story_id: str) -> Dict[str, List[Path]]:

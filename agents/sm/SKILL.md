@@ -72,4 +72,20 @@ When preparing stories from Discovery artifacts:
 | **pmf** | Full v1 : sprint planning, story preparation, status tracking activate here. |
 | **scale** | Full v1 (default). |
 
+## Story frontmatter convention (v2.1)
+
+When writing a new story file, ALWAYS include these fields:
+
+```yaml
+---
+story_id: STU-XXX             # required, unique identifier
+title: Short sentence         # required
+parent_story: STU-YYY         # optional, parent story id
+children: [STU-ZZZ, STU-ZZZZ] # optional, child story ids
+status: backlog|todo|in_progress|in_review|done   # required
+---
+```
+
+This enables /mb:tree to render the hierarchy correctly.
+
 $ARGUMENTS

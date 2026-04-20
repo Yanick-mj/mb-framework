@@ -76,7 +76,6 @@ Each feature must emit at minimum :
 
 Event payload must include : user_id, feature_name, timestamp, relevant IDs (bid_id, mission_id, etc.). Test with `templates/stages/pmf/analytics-event-spec.md`.
 
-$ARGUMENTS
 
 ## Run Summary (v2.1 — mandatory)
 
@@ -110,3 +109,6 @@ Done. Here's what I did:
 Next agent should: instruction
 Unknowns: list
 ```
+
+
+$ARGUMENTS

@@ -266,7 +266,6 @@ Note : "Discovery" / "Delivery" in rules 10-11 refers to the UX mode, NOT the pr
 | **pmf** | 🟡 Light (on new features only) | 🟢 Full v1 dev-ready specs | 🟡 Light |
 | **scale** | 🟢 Full v1 | 🟢 Full v1 + DS UPDATE GATE mandatory | 🟢 Full v1 |
 
-$ARGUMENTS
 
 ## Run Summary (v2.1 — mandatory)
 
@@ -300,3 +299,6 @@ Done. Here's what I did:
 Next agent should: instruction
 Unknowns: list
 ```
+
+
+$ARGUMENTS

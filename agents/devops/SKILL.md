@@ -60,7 +60,6 @@ allowed-tools: ['Read', 'Edit', 'Write', 'Glob', 'Grep', 'Bash']
 | **pmf** | Full v1 + **Rollback < 2 min** mandatory (manual trigger OK). Basic observability (uptime + error rate). |
 | **scale** | Full v1 + Full observability (logs, metrics, traces) + SRE basics + alerts on SLA. |
 
-$ARGUMENTS
 
 ## Run Summary (v2.1 — mandatory)
 
@@ -94,3 +93,6 @@ Done. Here's what I did:
 Next agent should: instruction
 Unknowns: list
 ```
+
+
+$ARGUMENTS

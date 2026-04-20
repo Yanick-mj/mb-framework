@@ -197,7 +197,6 @@ Before finalizing breakdown, check:
 | **pmf** | Full v1 breakdown (flows + function inventory + tasks), decision gates optional. |
 | **scale** | Full v1 behavior : flows + function inventory + decision gates + tasks (default). |
 
-$ARGUMENTS
 
 ## Run Summary (v2.1 — mandatory)
 
@@ -231,3 +230,6 @@ Done. Here's what I did:
 Next agent should: instruction
 Unknowns: list
 ```
+
+
+$ARGUMENTS

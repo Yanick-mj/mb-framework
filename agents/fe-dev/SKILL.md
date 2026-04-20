@@ -219,7 +219,6 @@ When implementing UI components, READ `skills/ux-design/SKILL.md` for:
 - `force_atomic_design: true` → Atomic Design active even in MVP
 - `force_tdd: true` → TDD active even in MVP
 
-$ARGUMENTS
 
 ## Run Summary (v2.1 — mandatory)
 
@@ -253,3 +252,6 @@ Done. Here's what I did:
 Next agent should: instruction
 Unknowns: list
 ```
+
+
+$ARGUMENTS

@@ -206,7 +206,6 @@ The orchestrator reads `mb-stage.yaml` at Step 0.5. Behavior by stage:
 - `force_rls_double_check: true` → RLS double-check applies even in MVP
 - `force_atomic_design: true` → Atomic Design applies even in MVP
 
-$ARGUMENTS
 
 ## Run Summary (v2.1 — mandatory)
 
@@ -240,3 +239,6 @@ Done. Here's what I did:
 Next agent should: instruction
 Unknowns: list
 ```
+
+
+$ARGUMENTS

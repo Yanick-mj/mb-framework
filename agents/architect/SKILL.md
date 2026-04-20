@@ -82,7 +82,6 @@ The architecture decision feeds into: Lead Dev (breakdown) → SM (stories).
 | **pmf** | Light ADR : core decisions + blast radius, skip exhaustive trade-off sections. |
 | **scale** | Full v1 ADR/RFC behavior (default). |
 
-$ARGUMENTS
 
 ## Run Summary (v2.1 — mandatory)
 
@@ -116,3 +115,6 @@ Done. Here's what I did:
 Next agent should: instruction
 Unknowns: list
 ```
+
+
+$ARGUMENTS

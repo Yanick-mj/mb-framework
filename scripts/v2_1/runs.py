@@ -54,7 +54,14 @@ def load_recent(limit: int = 10) -> List[dict]:
     if not path.exists():
         return []
     lines = path.read_text().strip().splitlines()
-    entries = [json.loads(l) for l in lines if l.strip()]
+    entries = []
+    for l in lines:
+        if not l.strip():
+            continue
+        try:
+            entries.append(json.loads(l))
+        except json.JSONDecodeError:
+            continue  # skip corrupted lines
     # Reverse since file is append-only (last entry = most recent)
     entries.reverse()
     return entries[:limit]

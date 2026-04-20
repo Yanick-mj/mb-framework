@@ -62,3 +62,17 @@ def test_render_recent_human_readable(tmp_project):
 def test_render_recent_empty_returns_placeholder(tmp_project):
     out = runs.render_recent()
     assert "No runs" in out
+
+
+def test_load_recent_skips_corrupted_lines(tmp_project):
+    """Corrupted JSONL lines are skipped, valid ones still load."""
+    runs.append(agent="a", story="S", action="x", tokens_in=1, tokens_out=1, summary="good")
+    log = tmp_project / "memory" / "runs.jsonl"
+    # Inject a corrupted line
+    with log.open("a") as f:
+        f.write("this is not json\n")
+    runs.append(agent="b", story="S", action="y", tokens_in=1, tokens_out=1, summary="also good")
+    entries = runs.load_recent(limit=10)
+    assert len(entries) == 2
+    assert entries[0]["agent"] == "b"
+    assert entries[1]["agent"] == "a"

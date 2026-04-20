@@ -68,7 +68,6 @@ No architect plan. No test generation. No sprint ceremony. Just fix it.
 | **pmf** | 🟡 Fallback for truly trivial tasks only (typo, rename). |
 | **scale** | 🔴 Exception only. Most tasks go through full v1 pipeline. |
 
-$ARGUMENTS
 
 ## Run Summary (v2.1 — mandatory)
 
@@ -102,3 +101,6 @@ Done. Here's what I did:
 Next agent should: instruction
 Unknowns: list
 ```
+
+
+$ARGUMENTS

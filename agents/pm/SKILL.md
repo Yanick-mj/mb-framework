@@ -84,7 +84,6 @@ The brief feeds into: UX Designer (user flows) → Architect (technical decision
 - Grandmother test : non-technical person understands it
 - Visualisable : one can imagine what to build
 
-$ARGUMENTS
 
 ## Run Summary (v2.1 — mandatory)
 
@@ -118,3 +117,6 @@ Done. Here's what I did:
 Next agent should: instruction
 Unknowns: list
 ```
+
+
+$ARGUMENTS

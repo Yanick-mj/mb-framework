@@ -93,8 +93,9 @@ fi
 
 # 5b. (v2.1) Auto-register project in user registry
 if [ -f "mb-stage.yaml" ]; then
-  project_name=$(basename "$PWD")
-  project_path="$PWD"
+  # pwd -P resolves symlinks, giving a stable absolute path for the registry
+  project_path="$(pwd -P)"
+  project_name=$(basename "$project_path")
   project_stage=$(grep '^stage:' mb-stage.yaml | awk '{print $2}')
   MB_REG_NAME="$project_name" MB_REG_PATH="$project_path" MB_REG_STAGE="$project_stage" \
   PYTHONPATH="$MB_DIR/scripts" python3 -c "

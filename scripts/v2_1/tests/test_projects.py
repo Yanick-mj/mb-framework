@@ -75,3 +75,20 @@ def test_load_unexpected_structure_returns_empty(tmp_home):
     mb_dir.mkdir()
     (mb_dir / "projects.yaml").write_text("version: 1\nprojects: not-a-list\n")
     assert projects.load() == []
+
+
+def test_render_handles_entries_missing_name(tmp_home):
+    """If someone hand-edits projects.yaml and omits name, render() must not crash."""
+    mb_dir = tmp_home / ".mb"
+    mb_dir.mkdir()
+    (mb_dir / "projects.yaml").write_text(yaml.safe_dump({
+        "version": 1,
+        "projects": [
+            {"path": "/tmp/nameless", "stage": "mvp"},  # no name
+            {"name": "okproj", "path": "/tmp/ok", "stage": "pmf"},
+        ],
+    }))
+    # Must not raise KeyError on 'name'
+    out = projects.render()
+    assert "okproj" in out
+    assert "unnamed" in out.lower()

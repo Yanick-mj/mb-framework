@@ -49,18 +49,27 @@ def add(name: str, path: str, stage: str) -> None:
 
 
 def render() -> str:
-    """Render a human-readable listing suitable for /mb:projects output."""
+    """Render a human-readable listing suitable for /mb:projects output.
+
+    Tolerant of hand-edited registries: entries missing `name` are shown
+    as `<unnamed>` instead of raising KeyError.
+    """
     items = load()
     if not items:
         return (
             "No mb projects registered.\n"
             "Run `bash .claude/mb/install.sh` inside a project to register it."
         )
+
+    def _name(p: Dict[str, Any]) -> str:
+        n = p.get("name")
+        return n if n else "<unnamed>"
+
     lines = [f"📁 {len(items)} mb project(s)", ""]
-    name_w = max(len(p["name"]) for p in items)
+    name_w = max(len(_name(p)) for p in items)
     for p in items:
         lines.append(
-            f"  {p['name']:<{name_w}}  stage:{p.get('stage', '?')}  "
+            f"  {_name(p):<{name_w}}  stage:{p.get('stage', '?')}  "
             f"{p.get('path', '?')}"
         )
     return "\n".join(lines)

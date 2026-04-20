@@ -14,3 +14,9 @@ Thumbs.db
 # Editor
 .vscode/
 .idea/
+
+# Python
+scripts/v2_1/.venv/
+__pycache__/
+*.pyc
+.pytest_cache/

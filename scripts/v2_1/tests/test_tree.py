@@ -104,6 +104,47 @@ def test_children_as_yaml_list(tmp_project):
     assert stories[0]["children"] == ["STU-2", "STU-3"]
 
 
+def test_scan_stories_skips_binary_files(tmp_project):
+    """Binary garbage in stories/ dir (e.g. accidental pdf rename) is skipped."""
+    stories_dir = tmp_project / "_bmad-output" / "implementation-artifacts" / "stories"
+    stories_dir.mkdir(parents=True)
+    # Write raw bytes that can't decode as UTF-8
+    (stories_dir / "garbage.md").write_bytes(b"\xff\xfe\xfd binary crud \x00\x00")
+    _write_story(tmp_project, "STU-1", "Valid")
+    stories = tree.scan_stories()  # must not raise UnicodeDecodeError
+    assert len(stories) == 1
+    assert stories[0]["story_id"] == "STU-1"
+
+
+def test_yaml_null_story_id_treated_as_missing(tmp_project):
+    """Frontmatter with `story_id: null` or `story_id:` (no value) is skipped.
+
+    YAML parses `story_id:` as None. Without normalization, the script used
+    None as a dict key — surprising behavior. Now treated as missing.
+    """
+    stories_dir = tmp_project / "_bmad-output" / "implementation-artifacts" / "stories"
+    stories_dir.mkdir(parents=True)
+    (stories_dir / "null.md").write_text(
+        "---\nstory_id: null\ntitle: Nullish\n---\n"
+    )
+    (stories_dir / "empty.md").write_text(
+        "---\nstory_id:\ntitle: Emptyish\n---\n"
+    )
+    _write_story(tmp_project, "STU-1", "Valid")
+    stories = tree.scan_stories()
+    # Only STU-1 should survive
+    assert len(stories) == 1
+    assert stories[0]["story_id"] == "STU-1"
+
+
+def test_render_rejects_invalid_focus_story_id(tmp_project):
+    """focus arg with path separators or shell meta must be rejected."""
+    _write_story(tmp_project, "STU-1", "Root")
+    for bad in ["../escape", "STU/46", "STU 46", "STU-46; rm -rf /", ""]:
+        with pytest.raises(ValueError, match="story_id"):
+            tree.render(focus=bad)
+
+
 def test_render_tree_uses_emoji(tmp_project):
     """render() output carries the tree emoji in both empty and non-empty states."""
     # Empty

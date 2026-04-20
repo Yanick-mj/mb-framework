@@ -7,7 +7,19 @@ from __future__ import annotations
 from pathlib import Path
 from typing import List, Dict, Any
 
-import yaml
+try:
+    import yaml
+except ImportError:  # pragma: no cover — only hit when pyyaml missing
+    import sys
+    print(
+        "⚠️  mb-framework needs PyYAML but it's not installed.\n"
+        "\n"
+        "Fix: pip install pyyaml\n"
+        "\n"
+        "(one-time, system-wide). See docs/v2-migration.md §10 for details.",
+        file=sys.stderr,
+    )
+    sys.exit(2)
 
 
 def registry_path() -> Path:
@@ -65,7 +77,8 @@ def render() -> str:
         n = p.get("name")
         return n if n else "<unnamed>"
 
-    lines = [f"📁 {len(items)} mb project(s)", ""]
+    from scripts.v2_1._emoji import tag
+    lines = [f"{tag('projects')} {len(items)} mb project(s)", ""]
     name_w = max(len(_name(p)) for p in items)
     for p in items:
         lines.append(

@@ -69,10 +69,12 @@ def load_recent(limit: int = 10) -> List[dict]:
 
 def render_recent(limit: int = 10) -> str:
     """Human-readable recent runs listing."""
+    from scripts.v2_1._emoji import tag
+    t = tag("runs")
     entries = load_recent(limit)
     if not entries:
-        return "🏃 No runs logged yet."
-    lines = [f"🏃 Last {len(entries)} run(s)", ""]
+        return f"{t} No runs logged yet."
+    lines = [f"{t} Last {len(entries)} run(s)", ""]
     for e in entries:
         lines.append(
             f"  {e['ts'][:19]}  {e['agent']:<12}  {e['story']:<10}  {e['action']}"

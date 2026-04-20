@@ -113,7 +113,8 @@ def render_list(story_id: str) -> str:
 
 if __name__ == "__main__":
     import sys
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 2 or not sys.argv[1].strip():
         print("Usage: python deliverables.py <story-id>", file=sys.stderr)
+        print("Example: /mb:deliverables STU-46", file=sys.stderr)
         sys.exit(1)
-    print(render_list(sys.argv[1]))
+    print(render_list(sys.argv[1].strip()))

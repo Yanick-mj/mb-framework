@@ -17,8 +17,10 @@ Display the most recent entries from `memory/runs.jsonl`.
 
 ## Process
 
+Claude Code passes user args via `$ARGUMENTS`. If empty, default to 10.
+
 ```bash
-python3 "${MB_DIR:-.claude/mb}/scripts/v2_1/runs.py" ${1:-10}
+python3 "${MB_DIR:-.claude/mb}/scripts/v2_1/runs.py" ${ARGUMENTS:-10}
 ```
 
 $ARGUMENTS

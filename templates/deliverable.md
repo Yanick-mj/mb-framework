@@ -6,7 +6,7 @@ author: agent-name
 created: 2026-04-19T14:00:00+00:00
 ---
 
-# {{ Deliverable title }}
+# <Deliverable title>
 
 ## Context
 

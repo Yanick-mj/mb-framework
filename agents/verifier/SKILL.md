@@ -107,4 +107,20 @@ For architecture and data model checks, reference:
 | **pmf** | Full v1 (4 dimensions) + Analytics Events check : verify events emit correctly in staging. |
 | **scale** | Full v1 (4 dimensions) + Compliance checks (RLS, secrets, RGPD patterns) + Analytics. |
 
+## Deliverables (v2.1)
+
+When producing a verification report for a story, persist it as a typed deliverable:
+
+```python
+from v2_1 import deliverables
+deliverables.write(
+    story_id="STU-46",
+    type="REVIEW",
+    body=verification_report_markdown,
+    author="verifier",
+)
+```
+
+This creates a versioned file at `_bmad-output/deliverables/{story_id}/REVIEW-rev{n}.md`.
+
 $ARGUMENTS

@@ -60,4 +60,33 @@ allowed-tools: ['Read', 'Edit', 'Write', 'Glob', 'Grep']
 | **pmf** | Full v1 + changelog maintained. Add "Learned from users" section in ship notes. |
 | **scale** | Full v1 (default) : API docs, developer guides, changelogs, migration notes. |
 
+## Deliverables (v2.1)
+
+When producing documentation for a story, write it as a typed deliverable:
+
+```bash
+python3 "${MB_DIR:-.claude/mb}/scripts/v2_1/deliverables.py" <story_id>
+```
+
+Use the helper to persist:
+
+```python
+from v2_1 import deliverables
+deliverables.write(
+    story_id="STU-46",
+    type="DOC",
+    body=markdown_body,
+    author="tech-writer",
+)
+```
+
+Follow the type conventions:
+- PLAN — architect
+- IMPL — lead-dev / fe-dev / be-dev
+- REVIEW — verifier
+- DOC — tech-writer
+- SPEC — pm
+- TEST — tea
+- NOTE — anyone (informal artifact)
+
 $ARGUMENTS

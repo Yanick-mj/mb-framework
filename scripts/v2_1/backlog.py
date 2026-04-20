@@ -40,7 +40,7 @@ def _roadmap_path() -> Path:
 
 def _parse_frontmatter(text: str) -> dict:
     """Extract the YAML frontmatter block. Returns {} if missing or invalid."""
-    m = re.match(r"^---\n(.*?)\n---", text, re.DOTALL)
+    m = re.match(r"^---\r?\n(.*?)\r?\n---", text, re.DOTALL)
     if not m:
         return {}
     try:
@@ -65,10 +65,14 @@ def list_backlog() -> List[dict]:
         return []
     items: List[dict] = []
     for f in sorted(d.glob("*.md")):
-        fm = _parse_frontmatter(f.read_text())
+        try:
+            content = f.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        fm = _parse_frontmatter(content)
         if "story_id" not in fm:
             continue
-        fm["_path"] = str(f)
+        fm["_path"] = f
         items.append(fm)
 
     def sort_key(entry: dict):
@@ -107,7 +111,7 @@ def read_roadmap() -> str:
             "No _roadmap.md at project root yet.\n"
             "Create one from .claude/mb/templates/roadmap.md"
         )
-    return p.read_text()
+    return p.read_text(encoding="utf-8")
 
 
 if __name__ == "__main__":

@@ -198,3 +198,55 @@ cat mb-stage.yaml 2>/dev/null || echo "No stage file — v1 strict mode"
 - No web UI. Stage management is yaml + git.
 
 See `docs/v2-prd.md` §13 for the v3 roadmap.
+
+---
+
+## 10. v2.1 changes (additive, non-breaking)
+
+No migration needed for existing v2.0 projects. Rerunning `install.sh` will:
+
+1. **Auto-register** the project in `~/.mb/projects.yaml` (if absent)
+2. **Offer** to append the `mb` shell helper to `.zshrc` / `.bashrc` (interactive only; skipped in CI)
+3. Symlink the new v2.1 commands (`projects.md`, `tree.md`, `runs.md`, `deliverables.md`, `backlog.md`, `roadmap.md`) into `.claude/commands/mb/`
+
+### New conventions (all optional, all degrade gracefully)
+
+| Convention | Purpose | Missing = |
+|---|---|---|
+| `~/.mb/projects.yaml` | Multi-project registry | `/mb:projects` says "No projects registered" |
+| `_backlog/*.md` at project root | Stories not yet scheduled | `/mb:backlog` says "No stories in _backlog/" |
+| `_roadmap.md` at project root | Strategic roadmap | `/mb:roadmap` suggests the template |
+| `_bmad-output/deliverables/{story}/{TYPE}-rev{n}.md` | Typed, versioned artifacts | `/mb:deliverables STU-X` says "No deliverables" |
+| `memory/runs.jsonl` | Structured run log | `/mb:runs` says "No runs logged yet" |
+| Story frontmatter `parent_story:` / `children:` | Hierarchy for `/mb:tree` | Stories without these appear as roots |
+
+### New runtime dependency
+
+`pip install pyyaml` (once, globally) so the helper scripts can parse YAML
+outside the bundled venv. If pyyaml is missing:
+
+- `install.sh` logs "skipped registration — pyyaml missing" but continues OK
+- `/mb:*` commands will fail with `ModuleNotFoundError` — that's the signal to install pyyaml
+
+### No retroactive migration
+
+Stories already in `_bmad-output/implementation-artifacts/stories/` keep working
+as-is. `/mb:tree` will render them as orphan roots (no `parent_story`), and
+`/mb:deliverables` will be empty for them. v2.1 features apply forward, not
+backward — zero risk to existing artifacts.
+
+### Verifying v2.1 install
+
+```bash
+# Commands present
+ls .claude/commands/mb/ | grep -E 'projects|tree|runs|deliverables|backlog|roadmap'
+
+# Helper scripts present
+ls .claude/mb/scripts/v2_1/
+
+# Test registry
+python3 .claude/mb/scripts/v2_1/projects.py
+
+# Run test suite
+cd .claude/mb/scripts/v2_1 && source .venv/bin/activate && pytest tests/ -v
+```

@@ -82,4 +82,39 @@ The architecture decision feeds into: Lead Dev (breakdown) → SM (stories).
 | **pmf** | Light ADR : core decisions + blast radius, skip exhaustive trade-off sections. |
 | **scale** | Full v1 ADR/RFC behavior (default). |
 
+
+## Run Summary (v2.1 — mandatory)
+
+At the end of every invocation, write a `## Run Summary` block to
+`memory/_session/handoff.md` AND append a structured entry via:
+
+```bash
+python3 -c "
+import sys; sys.path.insert(0, '${MB_DIR:-.claude/mb}/scripts')
+from v2_1 import runs
+runs.append(
+    agent='AGENT_NAME',
+    story='STORY_ID',
+    action='short-verb-phrase',
+    tokens_in=N,
+    tokens_out=N,
+    summary='One sentence describing what was done.',
+)
+"
+```
+
+Your markdown `## Run Summary` block template:
+
+```markdown
+## Run Summary — AGENT_NAME on STORY_ID
+
+Done. Here's what I did:
+- action 1
+- action 2
+
+Next agent should: instruction
+Unknowns: list
+```
+
+
 $ARGUMENTS

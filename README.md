@@ -68,6 +68,21 @@ Projects without `mb-stage.yaml` default to `scale` → strict v1 behavior (zero
 | `/mb:validate "idea"` | discovery | 1-liner gate → YC 10Q scoring → anti-tarpit → go/no-go report |
 | `/mb:ship "wedge"` | mvp | Skip all v1 gates, build single-file wedge, deploy, invite 5 users |
 
+### v2.1 (solo quality-of-life)
+
+| Command | Description |
+|---|---|
+| `/mb:projects` | List every registered mb project (multi-project overview) |
+| `/mb:tree [STU-X]` | Show story hierarchy as ASCII tree (optional: focus on one) |
+| `/mb:runs [N]` | Show last N structured agent runs from `memory/runs.jsonl` |
+| `/mb:deliverables STU-X` | List typed artifacts (PLAN/IMPL/REVIEW/DOC) for a story |
+| `/mb:backlog` | Show `_backlog/` priority-sorted |
+| `/mb:roadmap` | Show `_roadmap.md` at project root |
+
+Also installs a `mb <name>` shell helper so `mb drivia` = `cd ~/projects/drivia && claude`.
+
+**Requires:** `pip install pyyaml` once (helpers degrade gracefully if missing).
+
 ## How It Works (v1 pipeline, e.g. scale stage)
 
 ```
@@ -113,7 +128,8 @@ project-skills/
 ## Versioning
 
 - `master` — v1 stable (latest feature: Design System Update Gate)
-- `v2` — stage-aware development branch → merged to master at v2.0.0
+- `v2` — stage-aware branch, tagged `v2.0.0`
+- `v2.1.0` — solo quality-of-life (multi-project, tree, runs, deliverables, backlog)
 - Projects can pin: `git submodule add -b v2 ...` or stay on `master`
 
 ## Documentation

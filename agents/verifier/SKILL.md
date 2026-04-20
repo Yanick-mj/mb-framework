@@ -107,4 +107,54 @@ For architecture and data model checks, reference:
 | **pmf** | Full v1 (4 dimensions) + Analytics Events check : verify events emit correctly in staging. |
 | **scale** | Full v1 (4 dimensions) + Compliance checks (RLS, secrets, RGPD patterns) + Analytics. |
 
+## Deliverables (v2.1)
+
+When producing a verification report for a story, persist it as a typed deliverable:
+
+```python
+from v2_1 import deliverables
+deliverables.write(
+    story_id="STU-46",
+    type="REVIEW",
+    body=verification_report_markdown,
+    author="verifier",
+)
+```
+
+This creates a versioned file at `_bmad-output/deliverables/{story_id}/REVIEW-rev{n}.md`.
+
+
+## Run Summary (v2.1 — mandatory)
+
+At the end of every invocation, write a `## Run Summary` block to
+`memory/_session/handoff.md` AND append a structured entry via:
+
+```bash
+python3 -c "
+import sys; sys.path.insert(0, '${MB_DIR:-.claude/mb}/scripts')
+from v2_1 import runs
+runs.append(
+    agent='AGENT_NAME',
+    story='STORY_ID',
+    action='short-verb-phrase',
+    tokens_in=N,
+    tokens_out=N,
+    summary='One sentence describing what was done.',
+)
+"
+```
+
+Your markdown `## Run Summary` block template:
+
+```markdown
+## Run Summary — AGENT_NAME on STORY_ID
+
+Done. Here is what I did:
+- action 1
+- action 2
+
+Next agent should: instruction
+Unknowns: list
+```
+
 $ARGUMENTS

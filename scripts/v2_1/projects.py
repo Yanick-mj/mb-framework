@@ -43,13 +43,32 @@ def load() -> List[Dict[str, Any]]:
 
 
 def save(projects: List[Dict[str, Any]]) -> None:
-    """Persist projects list to the registry. Creates ~/.mb/ if missing."""
+    """Persist projects list to the registry. Creates ~/.mb/ if missing.
+
+    Atomic: writes to a sibling tempfile then os.replace() — so a concurrent
+    reader (or a crashed writer) never sees a partially-written yaml.
+    """
+    import os
+    import tempfile
     path = registry_path()
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(yaml.safe_dump(
+    payload = yaml.safe_dump(
         {"version": 1, "projects": projects},
         sort_keys=False,
-    ))
+    )
+    # Write to tempfile in SAME directory (so os.replace is atomic — rename
+    # across filesystems is not guaranteed atomic).
+    fd, tmp_path = tempfile.mkstemp(
+        dir=str(path.parent), prefix=path.name + ".", suffix=".tmp",
+    )
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(payload)
+        os.replace(tmp_path, path)
+    except Exception:
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+        raise
 
 
 def add(name: str, path: str, stage: str) -> None:

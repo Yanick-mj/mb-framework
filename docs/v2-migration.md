@@ -201,6 +201,48 @@ See `docs/v2-prd.md` §13 for the v3 roadmap.
 
 ---
 
+## 11. v2.1.5 — `/mb:init` now scaffolds everything
+
+Prior to v2.1.5, `install.sh` created the Claude Code plumbing but left
+seven required artifacts to manual creation:
+
+- `CLAUDE.md`
+- `_roadmap.md`
+- `_backlog/` + `.gitkeep`
+- `_bmad-output/deliverables/`
+- `_bmad-output/implementation-artifacts/stories/`
+- `memory/_session/`
+- Seed first backlog story
+
+v2.1.5 adds `scripts/v2_1/init_scaffold.py` — a deterministic Python
+helper invoked by `/mb:init` that creates all of the above with stack-aware
+substitutions. Idempotent: re-running preserves user content.
+
+### Upgrade from v2.1.4
+
+```bash
+cd .claude/mb && git fetch && git checkout v2.1.5 && cd ../..
+# Then in Claude Code:
+/mb:init
+```
+
+`/mb:init` detects missing artifacts and scaffolds them. Existing files
+are left alone. Run as many times as you like.
+
+### What gets auto-detected
+
+| Manifest | Stack label | Framework detection |
+|---|---|---|
+| `package.json` | `node` | next.js, react+vite, react, expo, react-native, express, fastify, vue |
+| `Cargo.toml` | `rust` | — |
+| `go.mod` | `go` | — |
+| `pyproject.toml` / `requirements.txt` | `python` | — |
+
+Tools also detected from `package.json` deps: vitest, jest, playwright,
+tailwind, typescript, supabase, prisma, drizzle.
+
+---
+
 ## 10. v2.1 changes (additive, non-breaking)
 
 No migration needed for existing v2.0 projects. Rerunning `install.sh` will:

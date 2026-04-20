@@ -98,3 +98,36 @@ Follow this cycle for EVERY implementation task:
 - `force_rls_double_check: true` → RLS double-check active even in MVP
 
 $ARGUMENTS
+
+## Run Summary (v2.1 — mandatory)
+
+At the end of every invocation, write a `## Run Summary` block to
+`memory/_session/handoff.md` AND append a structured entry via:
+
+```bash
+python3 -c "
+import sys; sys.path.insert(0, '${MB_DIR:-.claude/mb}/scripts')
+from v2_1 import runs
+runs.append(
+    agent='AGENT_NAME',
+    story='STORY_ID',
+    action='short-verb-phrase',
+    tokens_in=N,
+    tokens_out=N,
+    summary='One sentence describing what was done.',
+)
+"
+```
+
+Your markdown `## Run Summary` block template:
+
+```markdown
+## Run Summary — AGENT_NAME on STORY_ID
+
+Done. Here's what I did:
+- action 1
+- action 2
+
+Next agent should: instruction
+Unknowns: list
+```

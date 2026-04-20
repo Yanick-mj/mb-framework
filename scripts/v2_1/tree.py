@@ -9,7 +9,29 @@ import re
 from pathlib import Path
 from typing import Dict, List, Optional, Set
 
-import yaml
+try:
+    import yaml
+except ImportError:  # pragma: no cover
+    import sys
+    print(
+        "⚠️  mb-framework needs PyYAML.\nFix: pip install pyyaml",
+        file=sys.stderr,
+    )
+    sys.exit(2)
+
+
+# Story IDs must match this pattern — prevents path traversal / shell meta
+# when story_id comes from CLI arg (sys.argv) in the focus= parameter.
+_STORY_ID_RE = re.compile(r"^[A-Z]+-[A-Za-z0-9_-]+$")
+
+
+def _validate_story_id(story_id: str) -> None:
+    """Reject story_id with path separators, shell meta, or null bytes."""
+    if not isinstance(story_id, str) or not _STORY_ID_RE.match(story_id):
+        raise ValueError(
+            f"Invalid story_id {story_id!r}. "
+            f"Expected pattern: [A-Z]+-[A-Za-z0-9_-]+  (e.g. STU-46)"
+        )
 
 
 def _stories_root() -> Path:
@@ -50,10 +72,16 @@ def scan_stories() -> List[dict]:
         return []
     stories = []
     for path in sorted(root.glob("*.md")):
-        fm = _parse_frontmatter(path.read_text())
-        if "story_id" in fm:
-            fm["_path"] = path
-            stories.append(fm)
+        try:
+            raw = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue  # binary garbage or unreadable — skip silently
+        fm = _parse_frontmatter(raw)
+        # Reject missing / null / empty story_id (YAML "null" parses as None)
+        if not fm.get("story_id"):
+            continue
+        fm["_path"] = path
+        stories.append(fm)
     return stories
 
 
@@ -78,13 +106,17 @@ def _story_by_id(stories: List[dict]) -> Dict[str, dict]:
 
 def render(focus: Optional[str] = None) -> str:
     """ASCII render the tree. If focus is set, mark that story with <- me."""
+    if focus is not None:
+        _validate_story_id(focus)
     stories = scan_stories()
     if not stories:
-        return "🌲 No stories found."
+        from scripts.v2_1._emoji import tag
+        return f"{tag('tree')} No stories found."
     by_parent = _build_tree(stories)
     by_id = _story_by_id(stories)
 
-    lines: List[str] = [f"🌲 Story tree ({len(stories)} stories)", ""]
+    from scripts.v2_1._emoji import tag
+    lines: List[str] = [f"{tag('tree')} Story tree ({len(stories)} stories)", ""]
     visited: Set[str] = set()
 
     def walk(story_id: str, indent: str = "", is_last: bool = True):

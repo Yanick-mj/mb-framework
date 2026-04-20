@@ -87,6 +87,17 @@ def test_render_backlog_shows_priority_and_title(tmp_project):
     assert "high" in out
 
 
+def test_list_backlog_treats_null_story_id_as_missing(tmp_project):
+    """Frontmatter with `story_id: null` is skipped (same as missing story_id)."""
+    bk = tmp_project / "_backlog"
+    bk.mkdir()
+    (bk / "null.md").write_text("---\nstory_id: null\npriority: high\n---\n")
+    (bk / "empty.md").write_text("---\nstory_id:\npriority: high\n---\n")
+    (bk / "ok.md").write_text("---\nstory_id: OK\npriority: high\n---\n")
+    items = backlog.list_backlog()
+    assert [i["story_id"] for i in items] == ["OK"]
+
+
 def test_list_backlog_skips_stories_with_invalid_priority(tmp_project):
     """Stories with a non-standard priority are skipped (strict rejection).
 

@@ -98,6 +98,45 @@ def test_write_does_not_clobber_existing_rev(tmp_project):
     assert "second" in second
 
 
+def test_path_rejects_path_traversal_in_story_id(tmp_project):
+    """story_id with path separators or parent refs must be rejected.
+
+    Defense-in-depth: mb is Claude-Code-local today but if it ever accepts
+    untrusted input (web UI, remote trigger), unsanitized story_id would let
+    an attacker write outside the _bmad-output/deliverables/ sandbox.
+    """
+    for bad in [
+        "../../etc/passwd",
+        "../escape",
+        "STU-46/subdir",         # contains slash
+        "STU-46\x00null",        # null byte
+        ".",                     # cwd reference
+        "",                      # empty
+        "STU 46",                # space
+        "STU-46; rm -rf /",      # shell meta
+    ]:
+        with pytest.raises(ValueError, match="story_id"):
+            deliverables.path(bad, "PLAN", 1)
+
+
+def test_next_rev_rejects_path_traversal(tmp_project):
+    for bad in ["../etc", "foo/bar"]:
+        with pytest.raises(ValueError, match="story_id"):
+            deliverables.next_rev(bad, "PLAN")
+
+
+def test_write_rejects_path_traversal(tmp_project):
+    with pytest.raises(ValueError, match="story_id"):
+        deliverables.write(
+            story_id="../escape", type="PLAN", body="x", author="a"
+        )
+
+
+def test_list_for_story_rejects_path_traversal(tmp_project):
+    with pytest.raises(ValueError, match="story_id"):
+        deliverables.list_for_story("../etc")
+
+
 def test_render_list_uses_emoji(tmp_project):
     """render_list() output carries the deliverables emoji in both states."""
     # Empty path

@@ -22,7 +22,15 @@ import re
 from pathlib import Path
 from typing import List
 
-import yaml
+try:
+    import yaml
+except ImportError:  # pragma: no cover
+    import sys
+    print(
+        "⚠️  mb-framework needs PyYAML.\nFix: pip install pyyaml",
+        file=sys.stderr,
+    )
+    sys.exit(2)
 
 
 # Lower value = higher priority in render order.
@@ -65,7 +73,8 @@ def _scan() -> tuple[List[dict], List[dict]]:
         except (OSError, UnicodeDecodeError):
             continue
         fm = _parse_frontmatter(content)
-        if "story_id" not in fm:
+        # Treat missing + null/empty story_id as "no story" (YAML "null" parses as None)
+        if not fm.get("story_id"):
             continue
         fm["_path"] = str(f)
         prio = fm.get("priority", _DEFAULT_PRIORITY)
@@ -109,13 +118,17 @@ def render_backlog() -> str:
     valid, rejected = _scan()
     lines: List[str]
 
+    from scripts.v2_1._emoji import tag
+    bk_tag = tag("backlog")
+    warn_tag = tag("warning")
+
     if not valid and not rejected:
         return (
-            "📋 No stories in _backlog/.\n"
+            f"{bk_tag} No stories in _backlog/.\n"
             "Create one with the template at .claude/mb/templates/backlog-story.md"
         )
 
-    lines = [f"📋 {len(valid)} story(ies) in backlog", ""]
+    lines = [f"{bk_tag} {len(valid)} story(ies) in backlog", ""]
     if valid:
         pri_w = max(len(i.get("priority", _DEFAULT_PRIORITY)) for i in valid)
         id_w = max(len(i["story_id"]) for i in valid)
@@ -128,7 +141,7 @@ def render_backlog() -> str:
     if rejected:
         lines.append("")
         lines.append(
-            f"⚠️  {len(rejected)} story(ies) REJECTED — priority must be "
+            f"{warn_tag} {len(rejected)} story(ies) REJECTED — priority must be "
             f"one of: {', '.join(sorted(_PRIORITY_ORDER))}"
         )
         for i in rejected:

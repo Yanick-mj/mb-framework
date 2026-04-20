@@ -15,6 +15,23 @@ from typing import Dict, List
 
 VALID_TYPES = {"PLAN", "IMPL", "REVIEW", "DOC", "SPEC", "TEST", "NOTE"}
 
+# Story IDs are strict: LETTERS-alphanumeric/underscore/hyphen.
+# Prevents path traversal (../), shell meta (;, |, &), null bytes, whitespace.
+_STORY_ID_RE = re.compile(r"^[A-Z]+-[A-Za-z0-9_-]+$")
+
+
+def _validate_story_id(story_id: str) -> None:
+    """Raise ValueError if story_id contains path separators or shell meta.
+
+    Accept: STU-46, STU-46-oauth, AUTH-123, MIG_A-99-retry
+    Reject: ../..., STU/46, STU 46, STU-46;rm, empty string, null bytes
+    """
+    if not isinstance(story_id, str) or not _STORY_ID_RE.match(story_id):
+        raise ValueError(
+            f"Invalid story_id {story_id!r}. "
+            f"Expected pattern: [A-Z]+-[A-Za-z0-9_-]+  (e.g. STU-46)"
+        )
+
 
 def _deliverables_root() -> Path:
     return Path.cwd() / "_bmad-output" / "deliverables"
@@ -22,6 +39,7 @@ def _deliverables_root() -> Path:
 
 def path(story_id: str, type: str, rev: int) -> Path:
     """Canonical path for a deliverable. Does not check existence."""
+    _validate_story_id(story_id)
     if type not in VALID_TYPES:
         raise ValueError(f"Invalid type {type!r}. Must be one of {sorted(VALID_TYPES)}")
     return _deliverables_root() / story_id / f"{type}-rev{rev}.md"
@@ -29,6 +47,7 @@ def path(story_id: str, type: str, rev: int) -> Path:
 
 def next_rev(story_id: str, type: str) -> int:
     """Return the next revision number for a given story_id + type."""
+    _validate_story_id(story_id)
     if type not in VALID_TYPES:
         raise ValueError(f"Invalid type {type!r}. Must be one of {sorted(VALID_TYPES)}")
     story_dir = _deliverables_root() / story_id
@@ -55,7 +74,12 @@ def write(story_id: str, type: str, body: str, author: str, rev: int | None = No
     # Validate the starting rev's type (raises ValueError for invalid type)
     path(story_id, type, rev)
     now = datetime.now(timezone.utc).isoformat(timespec="microseconds")
-    for _ in range(10):
+    max_retries = 50  # tolerates ~50 concurrent writers to same (story, type)
+    for attempt in range(max_retries):
+        # On retry, refresh rev from disk — handles bursts where many threads
+        # raced past each other (rev += 1 alone can't catch up fast enough).
+        if attempt > 0:
+            rev = next_rev(story_id, type)
         target = path(story_id, type, rev)
         target.parent.mkdir(parents=True, exist_ok=True)
         frontmatter = (
@@ -74,12 +98,14 @@ def write(story_id: str, type: str, body: str, author: str, rev: int | None = No
         except FileExistsError:
             rev += 1
     raise RuntimeError(
-        f"Could not reserve a rev slot for {story_id}/{type} after 10 tries"
+        f"Could not reserve a rev slot for {story_id}/{type} "
+        f"after {max_retries} tries (pathological concurrent writes?)"
     )
 
 
 def list_for_story(story_id: str) -> Dict[str, List[Path]]:
     """Return {type: [sorted paths by rev asc]} for a story. Empty dict if none."""
+    _validate_story_id(story_id)
     story_dir = _deliverables_root() / story_id
     if not story_dir.exists():
         return {}
@@ -100,10 +126,12 @@ def list_for_story(story_id: str) -> Dict[str, List[Path]]:
 
 def render_list(story_id: str) -> str:
     """Human-readable listing for /mb:deliverables STU-N."""
+    from scripts.v2_1._emoji import tag
+    del_tag = tag("deliverables")
     by_type = list_for_story(story_id)
     if not by_type:
-        return f"📦 No deliverables for {story_id}."
-    lines = [f"📦 Deliverables for {story_id}", ""]
+        return f"{del_tag} No deliverables for {story_id}."
+    lines = [f"{del_tag} Deliverables for {story_id}", ""]
     for t, files in by_type.items():
         lines.append(f"  {t}")
         for f in files:

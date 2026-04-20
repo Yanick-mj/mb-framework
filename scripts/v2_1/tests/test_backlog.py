@@ -87,6 +87,42 @@ def test_render_backlog_shows_priority_and_title(tmp_project):
     assert "high" in out
 
 
+def test_list_backlog_skips_stories_with_invalid_priority(tmp_project):
+    """Stories with a non-standard priority are skipped (strict rejection).
+
+    Rationale: silent defaulting masks typos (e.g. 'urgent' -> medium).
+    Better to force the author to use one of the 4 valid values.
+    """
+    bk = tmp_project / "_backlog"
+    bk.mkdir()
+    (bk / "ok.md").write_text("---\nstory_id: OK\npriority: high\n---\n")
+    (bk / "typo.md").write_text("---\nstory_id: TYPO\npriority: urgent\n---\n")
+    items = backlog.list_backlog()
+    ids = {i["story_id"] for i in items}
+    assert ids == {"OK"}
+
+
+def test_render_backlog_warns_about_rejected_stories(tmp_project):
+    """render_backlog() shows a warning listing stories that were skipped."""
+    bk = tmp_project / "_backlog"
+    bk.mkdir()
+    (bk / "ok.md").write_text("---\nstory_id: OK\npriority: high\n---\n")
+    (bk / "typo.md").write_text("---\nstory_id: TYPO\npriority: urgent\n---\n")
+    out = backlog.render_backlog()
+    assert "TYPO" in out
+    assert "urgent" in out
+    assert "⚠" in out or "Rejected" in out
+
+
+def test_render_backlog_uses_emoji(tmp_project):
+    """render_backlog() output starts with the backlog emoji."""
+    bk = tmp_project / "_backlog"
+    bk.mkdir()
+    (bk / "a.md").write_text("---\nstory_id: A\npriority: high\n---\n")
+    out = backlog.render_backlog()
+    assert "📋" in out
+
+
 def test_read_roadmap_missing_returns_placeholder(tmp_project):
     out = backlog.read_roadmap()
     assert "No _roadmap.md" in out

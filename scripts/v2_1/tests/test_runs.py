@@ -95,6 +95,18 @@ def test_rapid_fire_appends_preserve_order(tmp_project):
     assert entries[-1]["agent"] == "a0"
 
 
+def test_render_recent_uses_emoji(tmp_project):
+    """render_recent() output starts with the runs emoji for coherence."""
+    runs.append(agent="a", story="S", action="x", tokens_in=1, tokens_out=1, summary="s")
+    out = runs.render_recent()
+    assert "🏃" in out
+    empty = runs.render_recent()
+    # Empty placeholder should also carry the emoji (after clearing)
+    log = Path.cwd() / "memory" / "runs.jsonl"
+    log.unlink()
+    assert "🏃" in runs.render_recent()
+
+
 def test_ts_has_microsecond_precision(tmp_project):
     """Each run's ts includes microseconds (not just seconds)."""
     runs.append(

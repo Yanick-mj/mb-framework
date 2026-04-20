@@ -98,6 +98,15 @@ def test_write_does_not_clobber_existing_rev(tmp_project):
     assert "second" in second
 
 
+def test_render_list_uses_emoji(tmp_project):
+    """render_list() output carries the deliverables emoji in both states."""
+    # Empty path
+    assert "📦" in deliverables.render_list("STU-999")
+    # Non-empty path
+    deliverables.write("STU-46", "PLAN", body="x", author="a")
+    assert "📦" in deliverables.render_list("STU-46")
+
+
 def test_write_with_explicit_unique_rev_uses_it(tmp_project):
     """Explicit rev that doesn't clash is honored verbatim."""
     path = deliverables.write(

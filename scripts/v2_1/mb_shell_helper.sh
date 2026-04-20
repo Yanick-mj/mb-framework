@@ -21,15 +21,15 @@ mb() {
       ;;
     *)
       local target
-      target=$(python3 -c "
+      target=$(PYTHONPATH="$mb_repo/scripts" python3 -c "
 import sys
-sys.path.insert(0, '$mb_repo/scripts')
 from v2_1 import projects
+name = sys.argv[1]
 for p in projects.load():
-    if p['name'] == '$1':
+    if p['name'] == name:
         print(p['path'])
         break
-")
+" "$1")
       if [ -z "$target" ]; then
         echo "Unknown project: $1" >&2
         echo "Use 'mb list' to see registered projects." >&2

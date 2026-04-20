@@ -4,7 +4,6 @@ Read/write/render helpers backing /mb:projects and the `mb` shell wrapper.
 """
 from __future__ import annotations
 
-import os
 from pathlib import Path
 from typing import List, Dict, Any
 
@@ -12,17 +11,23 @@ import yaml
 
 
 def registry_path() -> Path:
-    """Return ~/.mb/projects.yaml path (respects $HOME)."""
-    return Path(os.environ["HOME"]) / ".mb" / "projects.yaml"
+    """Return ~/.mb/projects.yaml path (respects $HOME override)."""
+    return Path.home() / ".mb" / "projects.yaml"
 
 
 def load() -> List[Dict[str, Any]]:
-    """Load projects list from the registry. Returns [] if missing."""
+    """Load projects list from the registry. Returns [] if missing or malformed."""
     path = registry_path()
     if not path.exists():
         return []
-    data = yaml.safe_load(path.read_text()) or {}
-    return data.get("projects", [])
+    try:
+        data = yaml.safe_load(path.read_text()) or {}
+    except yaml.YAMLError:
+        return []
+    projects = data.get("projects", [])
+    if not isinstance(projects, list):
+        return []
+    return projects
 
 
 def save(projects: List[Dict[str, Any]]) -> None:

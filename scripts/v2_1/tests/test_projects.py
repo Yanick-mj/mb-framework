@@ -59,3 +59,19 @@ def test_render_lists_projects_with_stage(tmp_home):
     assert "pmf" in out
     assert "iris" in out
     assert "discovery" in out
+
+
+def test_load_corrupted_yaml_returns_empty(tmp_home):
+    """If projects.yaml contains invalid YAML, load() returns []."""
+    mb_dir = tmp_home / ".mb"
+    mb_dir.mkdir()
+    (mb_dir / "projects.yaml").write_text(": [\ninvalid yaml {{{\n")
+    assert projects.load() == []
+
+
+def test_load_unexpected_structure_returns_empty(tmp_home):
+    """If projects key is not a list, load() returns []."""
+    mb_dir = tmp_home / ".mb"
+    mb_dir.mkdir()
+    (mb_dir / "projects.yaml").write_text("version: 1\nprojects: not-a-list\n")
+    assert projects.load() == []

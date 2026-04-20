@@ -96,12 +96,15 @@ if [ -f "mb-stage.yaml" ]; then
   project_name=$(basename "$PWD")
   project_path="$PWD"
   project_stage=$(grep '^stage:' mb-stage.yaml | awk '{print $2}')
-  python3 -c "
-import sys
-sys.path.insert(0, '$MB_DIR/scripts')
+  MB_REG_NAME="$project_name" MB_REG_PATH="$project_path" MB_REG_STAGE="$project_stage" \
+  PYTHONPATH="$MB_DIR/scripts" python3 -c "
+import os
 from v2_1 import projects
-projects.add(name='$project_name', path='$project_path', stage='$project_stage')
-print(f'  Registered in ~/.mb/projects.yaml ($project_name, stage:$project_stage)')
+name = os.environ['MB_REG_NAME']
+path = os.environ['MB_REG_PATH']
+stage = os.environ['MB_REG_STAGE']
+projects.add(name=name, path=path, stage=stage)
+print(f'  Registered in ~/.mb/projects.yaml ({name}, stage:{stage})')
 " 2>/dev/null || echo "  (skipped registration — python3 or pyyaml missing)"
 fi
 
@@ -109,14 +112,16 @@ fi
 if [ "$NO_STAGE" = false ] && [ -n "${ZDOTDIR:-$HOME}" ]; then
   rc_file="${ZDOTDIR:-$HOME}/.zshrc"
   [ ! -f "$rc_file" ] && rc_file="$HOME/.bashrc"
-  helper_line="source $PWD/$MB_DIR/scripts/v2_1/mb_shell_helper.sh"
-  if ! grep -qF "$helper_line" "$rc_file" 2>/dev/null; then
+  mb_framework_abs="$(cd "$MB_DIR" && pwd)"
+  helper_marker="# mb-framework shell helper"
+  if ! grep -qF "$helper_marker" "$rc_file" 2>/dev/null; then
     echo ""
     read -rp "Install 'mb' shell helper in $rc_file? [y/N] " answer
     if [[ "$answer" =~ ^[Yy]$ ]]; then
       echo "" >> "$rc_file"
-      echo "# mb-framework shell helper" >> "$rc_file"
-      echo "$helper_line" >> "$rc_file"
+      echo "$helper_marker" >> "$rc_file"
+      echo "export MB_FRAMEWORK_PATH=\"$mb_framework_abs\"" >> "$rc_file"
+      echo "source \"\$MB_FRAMEWORK_PATH/scripts/v2_1/mb_shell_helper.sh\"" >> "$rc_file"
       echo "  Added 'mb' helper to $rc_file — run 'source $rc_file' to activate"
     fi
   fi

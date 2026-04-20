@@ -20,7 +20,12 @@ import pytest
 # commands/ lives at the repo root, 3 levels up from this test file
 # (scripts/v2_1/tests/test_commands_consistency.py → repo root)
 COMMANDS_DIR = Path(__file__).resolve().parents[3] / "commands"
-MB_COMMAND_PREFIXES = ("projects", "deliverables", "tree", "runs", "backlog", "roadmap")
+# v2.1 canonical /mb:* commands. Older commands (feature, fix, review, sprint)
+# predate the $ARGUMENTS convention — skip them from this guard.
+MB_COMMAND_PREFIXES = (
+    "projects", "deliverables", "tree", "runs", "backlog", "roadmap",
+    "init", "stage", "validate", "ship",
+)
 
 
 def _mb_command_files() -> list[Path]:

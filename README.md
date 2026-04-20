@@ -12,16 +12,27 @@ Replaces complex AI agent infrastructure (embeddings, vector stores, message bus
 # Add as submodule to your project
 cd your-project
 git submodule add git@github.com:Yanick-mj/mb-framework.git .claude/mb
+cd .claude/mb && git checkout v2.1.5 && cd ../..   # pin to stable
 
-# Install (creates symlinks + optionally prompts for stage)
+# One-time global dep
+pip3 install --user pyyaml
+
+# Install: wires Claude Code symlinks + registers project + offers shell helper
 bash .claude/mb/install.sh
 # → pick stage: 1=discovery 2=mvp 3=pmf 4=scale (default)
-# → writes mb-stage.yaml at project root (unless --no-stage)
 
-# Initialize project context
+# Initialize: scaffold directories, generate CLAUDE.md + _roadmap.md
+# + seed first backlog story. Deterministic Python + Claude pattern detection.
 # Then in Claude Code:
 /mb:init
 ```
+
+After `/mb:init` you have:
+- `CLAUDE.md` (stack-aware, edit to add conventions)
+- `_roadmap.md` (fill in mission + next milestone)
+- `_backlog/STU-1-initial-setup.md` (first task)
+- `_bmad-output/` + `memory/` directory skeleton
+- `memory/project.md` + `memory/codebase-index.md` (auto-generated)
 
 ## The 4 Stages (v2)
 

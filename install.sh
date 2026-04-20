@@ -91,6 +91,20 @@ if [ "$NO_STAGE" = false ] && [ ! -f "mb-stage.yaml" ]; then
   echo "  mb-stage.yaml created (stage: $chosen_stage)"
 fi
 
+# 5b. (v2.1) Auto-register project in user registry
+if [ -f "mb-stage.yaml" ]; then
+  project_name=$(basename "$PWD")
+  project_path="$PWD"
+  project_stage=$(grep '^stage:' mb-stage.yaml | awk '{print $2}')
+  python3 -c "
+import sys
+sys.path.insert(0, '$MB_DIR/scripts')
+from v2_1 import projects
+projects.add(name='$project_name', path='$project_path', stage='$project_stage')
+print(f'  Registered in ~/.mb/projects.yaml ($project_name, stage:$project_stage)')
+" 2>/dev/null || echo "  (skipped registration — python3 or pyyaml missing)"
+fi
+
 echo ""
 echo "mb-framework installed successfully!"
 echo ""

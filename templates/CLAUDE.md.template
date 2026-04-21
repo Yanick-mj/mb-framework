@@ -58,6 +58,76 @@ Refer to `mb-stage.yaml` for the current stage. Gate behavior:
 | pmf | ON | ON | ON | ON |
 | scale | ON | ON | ON | ON |
 
+## ⚠️ Pipeline enforcement (mb v2.1.6+) — RÈGLES STRICTES
+
+This project uses mb-framework. The pipeline is NOT optional. Claude MUST
+follow it and MUST NOT drift to generic `superpowers:*` skills for tasks
+that have an mb equivalent.
+
+### mb ↔ superpowers mapping (ABSOLUTE)
+
+| If the task is about... | Use mb agent / command | NEVER use |
+|---|---|---|
+| Writing a brief / PRD | `/mb:feature` → pm | `superpowers:brainstorming` |
+| Designing UI / wireframes | pipeline → ux-designer (Discovery) | — |
+| Redesign / refonte | `/mb:feature` class=`redesign` | `superpowers:writing-plans` |
+| Technical architecture | → architect | `superpowers:writing-plans` |
+| Breaking into stories | → sm | `superpowers:writing-plans` |
+| Implementation | → fe-dev / be-dev / devops | — |
+| Verification / review | → verifier / tea | `superpowers:verification-before-completion` |
+| Debugging | `/mb:fix` | `superpowers:systematic-debugging` |
+| Code review | `/mb:review` | — |
+| Test coverage | → tea | `superpowers:test-driven-development` |
+
+### Anti-drift rules (inviolables)
+
+1. **NEVER invoke `superpowers:*` for a task that has an mb agent equivalent.**
+   `superpowers:*` skills are reserved for framework-level work (modifying
+   mb-framework source itself), NOT for project work.
+
+2. **NEVER skip an agent in the pipeline** without explicit user confirmation
+   in the current session. "In-pipeline status=success" is the ONLY way for
+   an agent to be bypassed.
+
+3. **NEVER self-lighten the pipeline** based on stage alone. Even at
+   `mvp` stage, default is keep full pipeline. Lightening requires:
+   - User says inline: "skip ux-designer" / "lighten pipeline"
+   - OR `mb-stage.yaml` has `pipeline_skips: [...]` configured
+
+4. **NEVER write to `docs/plans/`** without first passing through `/mb:sm`
+   or `architect` agent. Direct plan writes = drift.
+
+5. **NEVER use Write/Edit tools before the orchestrator has classified and
+   routed** the task. Ad-hoc edits outside pipeline = drift.
+
+6. **If unsure which agent to use**, default to `/mb:orchestrator` — let it
+   classify. Don't guess.
+
+### UX GATE (redesign / UI-heavy tasks)
+
+When task class is `redesign`, `product-discovery`, or `frontend-feature`
+touching >1 screen:
+
+1. `ux-designer` MUST run in Discovery mode FIRST
+2. Must produce `_discovery/{feature}/` artifacts (brief, ui-spec, wireframes,
+   user-flows, accessibility-check)
+3. Architect CANNOT produce PLAN until UX GATE artifacts exist
+4. Override requires explicit user approval (inline or
+   `memory/approvals-resolved/gate-skip-ux-*.md`)
+
+### Handoff contract
+
+Each agent produces a handoff artifact. Next agent reads it. Missing artifact
+= no proceed. See orchestrator SKILL.md Step 3.6 for the full table.
+
+### Legitimate lightening examples
+
+- User: "This is just a color tweak, skip ux-designer" → OK, proceed
+- User: "Stage mvp, skip architect for this micro-feature" → OK, proceed
+- User hasn't said anything but task looks simple → **NOT OK**, ASK first
+
+Claude proposes lightening → user confirms → **then** skip. Never the reverse.
+
 ---
 
 ## Project-specific conventions

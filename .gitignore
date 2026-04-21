@@ -16,7 +16,7 @@ Thumbs.db
 .idea/
 
 # Python
-scripts/v2_1/.venv/
+scripts/*/.venv/
 __pycache__/
 *.pyc
 .pytest_cache/

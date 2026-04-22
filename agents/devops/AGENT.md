@@ -50,3 +50,40 @@ allowed-tools: ['Read', 'Edit', 'Write', 'Glob', 'Grep', 'Bash']
 7. ALWAYS validate config syntax before declaring success
 8. ALWAYS check for existing CI workflows before creating new ones
 </rules>
+
+## Pre-flight: Tool RBAC (v2.2 — mandatory at stage ≥ pmf)
+
+Before invoking ANY external tool (Supabase write, Vercel deploy, Stripe API,
+GitHub write-PR, Resend send, etc.), MUST run:
+
+```bash
+/mb:tool check <your-agent-name> <tool> <action>
+```
+
+If the response is DENIED, STOP and:
+1. Report the denial to the orchestrator with status=blocked
+2. Request the user escalate via /mb:tool check or editing memory/permissions.yaml
+3. Do NOT attempt the action — audit log already recorded the denial attempt
+
+### Scope — what counts as "external tool"
+
+A pre-flight check is REQUIRED for:
+- ✅ Production writes (deploy-prod, DB migrations, charges)
+- ✅ Preview deploys on shared infra (deploy-preview, staging DB writes)
+- ✅ API calls that leave monetary/side-effect traces (Stripe, Resend, SMS)
+- ✅ GitHub write operations (PRs, merges, label edits)
+
+It is NOT required for:
+- ❌ Local file edits / reads (no tool involved)
+- ❌ Running the local test suite (vitest, pytest) — tool-independent
+- ❌ Calls to LOCAL dev servers (e.g. Supabase local via `supabase start`)
+- ❌ Read-only GitHub operations (just use the git CLI locally)
+
+If unsure: err on the side of checking. Cost is ~10ms; benefit is auditability.
+
+### Stage defaults
+
+- discovery / mvp: permission checks default to ALLOW when no permissions.yaml exists
+- pmf / scale: missing permissions = DENIED (explicit permissions.yaml required)
+
+Once a `memory/permissions.yaml` EXISTS, it is strictly enforced at every stage.

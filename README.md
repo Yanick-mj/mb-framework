@@ -92,6 +92,26 @@ Projects without `mb-stage.yaml` default to `scale` → strict v1 behavior (zero
 
 Also installs a `mb <name>` shell helper so `mb drivia` = `cd ~/projects/drivia && claude`.
 
+### v2.2 (structural — governance, layers, views)
+
+| Command | Description |
+|---|---|
+| `/mb:tool list` | Show external tools declared in `tools/_catalog.yaml` |
+| `/mb:tool check <agent> <tool> <action>` | RBAC check — deny-by-default, stage-aware |
+| `/mb:tool audit [N]` | Last N tool access decisions (ALLOWED/DENIED log) |
+| `/mb:skill list` | Registered skills (only these are discoverable) |
+| `/mb:skill add <tier>/<key> [source]` | Register a new skill |
+| `/mb:skill remove <tier>/<key>` | Unregister (files preserved) |
+| `/mb:inbox` | Unified blockers: in_review + blocked + approvals pending |
+| `/mb:board` | ASCII kanban of all stories by status |
+
+**Architecture change (v2.2):** agents are now split into 3 layers —
+`AGENT.md` (persona), `uses-skills.yaml` (declared skills), and
+`skills/core/*/SKILL.md` (shared capabilities). At install time,
+`scripts/v2_2/agent_loader.py` composes these into the single
+`.claude/skills/mb-{name}/SKILL.md` file Claude Code loads. Legacy
+unmigrated agents keep working via fallback.
+
 **Requires:** `pip install pyyaml` once (helpers degrade gracefully if missing).
 
 ## How It Works (v1 pipeline, e.g. scale stage)

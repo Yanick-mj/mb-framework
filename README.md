@@ -112,6 +112,20 @@ Also installs a `mb <name>` shell helper so `mb drivia` = `cd ~/projects/drivia 
 `.claude/skills/mb-{name}/SKILL.md` file Claude Code loads. Legacy
 unmigrated agents keep working via fallback.
 
+### v2.2.1 — Orchestrator auto-invoke (hook)
+
+On install, mb now adds a `UserPromptSubmit` hook to `.claude/settings.json`
+that injects a system-reminder asking Claude to invoke `mb-orchestrator`
+BEFORE any file edit — so free-form prompts ("fix X", "implémente Y")
+automatically route through the orchestrator instead of falling into
+ad-hoc edits. `/mb:*` slash commands, short Q&A, and prompts without
+action verbs are let through unchanged.
+
+**Opt-out per prompt:** include `"skip orchestrator"` or `"quick answer"` in
+your message.
+**Opt-out per session:** `export MB_ORCHESTRATOR_AUTOINVOKE=off`.
+**Opt-out permanently:** `python3 -m scripts.v2_2.install_hooks $(pwd)/.claude/mb --remove`.
+
 **Requires:** `pip install pyyaml` once (helpers degrade gracefully if missing).
 
 ## How It Works (v1 pipeline, e.g. scale stage)

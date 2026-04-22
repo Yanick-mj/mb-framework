@@ -123,4 +123,21 @@ Next agent should: instruction
 Unknowns: list
 ```
 
+## Story frontmatter convention (v2.2)
+
+All stories created by sm MUST use `templates/story.md` as the base. The
+frontmatter must include `status:` with one of these values:
+
+  - `backlog`      → story is defined but not scheduled
+  - `todo`         → scheduled for current/next sprint
+  - `in_progress`  → actively being implemented
+  - `in_review`    → awaiting verification
+  - `done`         → completed + verified
+
+Invalid values (e.g. "wip", "blocked-external") are SILENTLY SKIPPED by
+`/mb:inbox` and `/mb:board`. Stick to the 5 canonical values.
+
+If a story is blocked, use `status: in_progress` + `blocked_by:` field
+(stories listed in `blocked_by:` must be resolved first).
+
 $ARGUMENTS

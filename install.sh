@@ -72,6 +72,21 @@ for skill_dir in "$MB_DIR"/skills/*/; do
 done
 echo "  Skills linked"
 
+# 3b. (v2.2.1) Install UserPromptSubmit hook that auto-invokes mb-orchestrator
+# for free-form prompts that look like implementation tasks. Merges idempotently
+# into .claude/settings.json — existing hooks are preserved.
+if command -v python3 >/dev/null 2>&1 && [ -f "$MB_DIR/scripts/v2_2/install_hooks.py" ]; then
+  MB_DIR_ABS="$(cd "$MB_DIR" && pwd)"
+  result=$(PYTHONPATH="$MB_DIR_ABS" python3 -m scripts.v2_2.install_hooks \
+           "$MB_DIR_ABS" --settings .claude/settings.json 2>/dev/null || echo "skip")
+  case "$result" in
+    added)   echo "  Orchestrator auto-invoke hook added to .claude/settings.json" ;;
+    updated) echo "  Orchestrator auto-invoke hook path updated (mb_dir moved)" ;;
+    noop)    echo "  Orchestrator auto-invoke hook already present (no change)" ;;
+    *)       echo "  (skipping orchestrator hook — python3 or settings unavailable)" ;;
+  esac
+fi
+
 # 4. Install git hook
 mkdir -p .githooks
 if [ -f "$MB_DIR/templates/code/pre-commit.sh" ]; then

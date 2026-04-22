@@ -25,11 +25,31 @@ mkdir -p .claude/commands
 ln -sfn "../mb/commands" .claude/commands/mb
 echo "  Commands linked"
 
-# 2. Symlink agents → .claude/skills/mb-{name}/
+# 2a. (v2.2-g) Compose agent SKILL.md from AGENT.md + skills (3-layer split)
+# Generates .claude/skills/mb-{name}/SKILL.md for every agent that has an
+# AGENT.md + uses-skills.yaml pair. Agents with legacy SKILL.md only are
+# handled by the symlink step below.
 mkdir -p .claude/skills
+if command -v python3 >/dev/null 2>&1 && [ -f "$MB_DIR/scripts/v2_2/agent_loader.py" ]; then
+  MB_DIR_ABS="$(cd "$MB_DIR" && pwd)"
+  if PYTHONPATH="$MB_DIR_ABS" python3 -m scripts.v2_2.agent_loader >/dev/null 2>&1; then
+    echo "  Agent SKILL.md composed (3-layer: AGENT.md + skills)"
+    # 2a-bis: surface oversized or previously-rejected composed skills
+    PYTHONPATH="$MB_DIR_ABS" python3 -m scripts.v2_2.compose_report 2>/dev/null || true
+  else
+    echo "  (skipping composition — using legacy SKILL.md as-is)"
+  fi
+fi
+
+# 2. Symlink agents → .claude/skills/mb-{name}/ (fallback / legacy agents)
 for agent_dir in "$MB_DIR"/agents/*/; do
   agent_name=$(basename "$agent_dir")
-  ln -sfn "../../$MB_DIR/agents/$agent_name" ".claude/skills/mb-$agent_name"
+  target=".claude/skills/mb-$agent_name"
+  # If compose step already produced SKILL.md here, skip symlink (keep composed file)
+  if [ -f "$target/SKILL.md" ] && [ ! -L "$target" ]; then
+    continue
+  fi
+  ln -sfn "../../$MB_DIR/agents/$agent_name" "$target"
 done
 echo "  Agents linked as skills"
 

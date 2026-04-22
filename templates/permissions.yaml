@@ -1,0 +1,85 @@
+# mb-framework v2.2 — RBAC permissions template
+#
+# Copy this file to `memory/permissions.yaml` in your project root and edit.
+#
+# Schema
+# ------
+# permissions:
+#   <agent-name>:
+#     - tool: <tool-name>                  # must match tools/_catalog.yaml
+#       actions: [...]                     # flat list: applies at all stages
+#     - tool: <tool-name>
+#       actions:                            # or stage-keyed dict:
+#         discovery: []                     # allowed actions per stage
+#         mvp: [...]
+#         pmf: [...]
+#         scale: [...]
+#
+# Stage-aware defaults when this file is ABSENT:
+#   - discovery, mvp → ALLOW everything (move fast)
+#   - pmf, scale     → DENY everything (safety first)
+#
+# Once this file EXISTS, it is strictly enforced at every stage.
+# Missing (agent, tool) pairs = DENIED regardless of stage.
+
+permissions:
+
+  # === Backend developer ===
+  be-dev:
+    - tool: supabase
+      actions:
+        discovery: []
+        mvp: [read, write]
+        pmf: [read, write, migrate]
+        scale: [read, write, migrate]
+    - tool: github
+      actions: [read, write-pr]
+    - tool: stripe
+      actions:
+        mvp: [read]
+        pmf: [read]
+        scale: [read]   # never [charge] — that's via devops
+
+  # === Frontend developer ===
+  fe-dev:
+    - tool: vercel
+      actions: [deploy-preview]          # NEVER deploy-prod
+    - tool: github
+      actions: [read, write-pr]
+
+  # === DevOps / production owner ===
+  devops:
+    - tool: vercel
+      actions: [deploy-preview, deploy-prod]
+    - tool: supabase
+      actions: [migrate]
+    - tool: stripe
+      actions: [read, charge]
+    - tool: github
+      actions: [read, write-pr, merge]
+
+  # === Test architect ===
+  tea:
+    - tool: supabase
+      actions:
+        mvp: [read]
+        pmf: [read]
+        scale: [read]
+
+  # === Verifier ===
+  verifier:
+    - tool: supabase
+      actions: [read]
+    - tool: github
+      actions: [read]
+
+  # === Lead dev ===
+  lead-dev:
+    - tool: github
+      actions: [read, write-pr]
+    # delegates Supabase/Vercel to be-dev/fe-dev — doesn't act directly
+
+  # === Tech writer ===
+  tech-writer:
+    - tool: github
+      actions: [read, write-pr]   # doc PRs only

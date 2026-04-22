@@ -1,0 +1,9 @@
+version: 1
+agent: verifier
+uses:
+  core:
+  - evidence-rules
+  - stage-adaptation
+  - run-summary
+  - preflight-tool-rbac
+  - handoff-contract

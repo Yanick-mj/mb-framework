@@ -1,0 +1,46 @@
+# mb-stage.yaml — Stage-aware configuration for mb-framework v2
+# Place this file at the ROOT of your project (NOT in .claude/mb/)
+#
+# If this file is absent, mb-framework defaults to "scale" mode (v1 strict behavior).
+
+version: 1
+
+# Current stage of the project
+# Options: discovery | mvp | pmf | scale
+stage: discovery
+
+# When did this stage start (used for tracking + retrospective)
+since: YYYY-MM-DD
+
+# Where you want to go next (informational, used by stage-advisor)
+target_next: mvp
+
+# Criteria for upgrade (read by stage-advisor; targets are stage-dependent)
+upgrade_criteria:
+  # Discovery → MVP : need ≥3 user interviews + problem validated
+  user_interviews_count: 0           # target: 3+
+  problem_validated: false           # set to true when pain confirmed
+  one_liner_validated: false         # set to true when 1-liner passes grandmother test
+  wedge_plan_written: false          # set to true when wedge spec exists
+
+  # MVP → PMF : need first paying users + retention
+  paying_users: 0                    # target: 3+
+  retention_months: 0                # target: 1+
+  analytics_in_place: false
+  pricing_tested: false
+
+  # PMF → Scale : need recurring revenue + compliance needs
+  mrr_stable_months: 0               # target: 3+
+  compliance_required: false         # set true if SLA/RGPD/audit needed
+  team_size: 1                       # target: 2+
+  ci_cd_in_place: false
+
+# Manual overrides (use sparingly)
+# Force certain v1 gates even in lower stages
+overrides:
+  force_ds_gate: false               # force Design System Update Gate even in MVP
+  force_tdd: false                   # force TDD even in MVP
+  force_rls_double_check: false      # force RLS double-check even in MVP
+  force_atomic_design: false         # force Atomic Design hierarchy even in MVP
+
+# Stage history is logged in memory/stage-history.md

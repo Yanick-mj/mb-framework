@@ -32,12 +32,13 @@ trivial-fix           | quick-flow → verifier
 backend-feature       | architect → lead-dev (breakdown) → be-dev → lead-dev (review) → tea → verifier
 frontend-feature      | architect → lead-dev (breakdown) → ux-designer (delivery) → [DS UPDATE GATE] → fe-dev → lead-dev (review) → tea → verifier
 full-stack-feature    | architect → lead-dev (breakdown) → be-dev → ux-designer (delivery) → [DS UPDATE GATE] → fe-dev → lead-dev (review) → tea → verifier
+redesign              | pm → ux-designer (discovery, MANDATORY) → [UX GATE] → architect → lead-dev (breakdown) → ux-designer (delivery) → [DS UPDATE GATE] → fe-dev → lead-dev (review) → tea → verifier
 infra-change          | architect → devops → verifier
 test-only             | tea → verifier
 doc-only              | tech-writer
 sprint-story          | pm → architect → lead-dev (breakdown) → [be-dev|ux-designer (delivery) → [DS UPDATE GATE] → fe-dev] → lead-dev (review) → tea → verifier
 sprint-planning       | sm
-product-discovery     | pm → ux-designer (discovery) → [DS UPDATE GATE] → architect
+product-discovery     | pm → ux-designer (discovery) → [UX GATE] → [DS UPDATE GATE] → architect
 architecture-review   | architect
 ```
 
@@ -58,6 +59,68 @@ After ux-designer completes (discovery OR delivery), check if design system upda
 **RULE**: fe-dev MUST NEVER execute while design system updates are pending.
 The gate ensures design tokens and atoms exist BEFORE implementation starts.
 
+### UX GATE (v2.1.6)
+
+**Activates when** task class ∈ {`redesign`, `product-discovery`} OR
+(`frontend-feature` AND user intent mentions >1 screen or new flow).
+
+**Enforced before** architect is allowed to produce a PLAN.
+
+**Check these artifacts exist** (produced by ux-designer in Discovery mode):
+
+1. `_discovery/{feature-slug}/brief.md` (from pm)
+2. `_discovery/{feature-slug}/ui-spec.md` (from ux-designer)
+3. `_discovery/{feature-slug}/wireframes/*.excalidraw` (≥ 1 file)
+4. `_discovery/{feature-slug}/user-flows.md` (from ux-designer)
+
+Stage-aware required set:
+- **discovery / mvp**: `brief.md` + `ui-spec.md` only (light)
+- **pmf / scale**: all 4 above (full)
+
+If ANY required artifact missing → HALT. Return to user with:
+
+```
+UX GATE blocked for {feature-slug}:
+  Missing artifacts:
+    - {path1}
+    - {path2}
+  
+  Expected producer: ux-designer (Discovery mode)
+  
+  Next action: invoke ux-designer in Discovery mode OR
+  override with user confirmation: "skip UX GATE because <reason>"
+  (logs to memory/approvals-resolved/gate-skip-ux-{date}.md)
+```
+
+**ONLY user can override** UX GATE. Claude must NEVER self-skip.
+
+### Handoff Artifact Validation (v2.1.6)
+
+Between any two agents in a pipeline, verify the upstream produced its
+expected handoff artifacts before routing downstream.
+
+```
+FROM agent      | TO agent              | Required artifacts
+----------------|-----------------------|----------------------------------------
+pm              | ux-designer           | _discovery/{feature}/brief.md
+pm              | architect             | _discovery/{feature}/brief.md
+ux-designer (D) | architect             | ui-spec.md + wireframes/ + user-flows.md
+architect       | lead-dev              | _discovery/{feature}/architecture.md
+lead-dev        | fe-dev | be-dev | devops | story file with ACs + file inventory
+fe-dev | be-dev | lead-dev (review)     | implementation files + tests/ entries
+lead-dev        | tea                   | review report
+tea             | verifier              | test coverage report
+```
+
+If a required artifact is missing at a transition:
+1. Mark upstream agent output as `status: failed` (not blocked)
+2. Do NOT proceed to downstream agent
+3. Report to user: "Handoff gate blocked: {from} → {to}, missing: {paths}"
+4. User decides: re-run upstream OR override
+
+**Design principle**: artifacts are the **contract** between agents. Missing
+artifact = contract violation = no proceed.
+
 ## Execution Protocol
 
 ### Step 0 -- Config & Context Load
@@ -66,6 +129,27 @@ The gate ensures design tokens and atoms exist BEFORE implementation starts.
 2. Read `memory/codebase-index.md` if it exists for cached codebase understanding
 3. Load sprint status from `_bmad-output/implementation-artifacts/sprint-status.yaml` if sprint context
 4. Establish cost budget from config (default: unbounded)
+
+### Step 0.5 -- Stage Detection (v2)
+
+1. Check if `mb-stage.yaml` exists at project root
+2. If absent → set `stage = "scale"` (v1 strict behavior, no change to downstream)
+3. If present → read stage + overrides, invoke `mb-early-stage-advisor` with `action: "detect"` for validation
+4. Store stage context for injection into downstream agents' context summaries
+5. If stage is `discovery` or `mvp` → check Stage Routing Table (below) BEFORE Step 1
+
+### Stage Routing Table (v2)
+
+Applies ONLY when `mb-stage.yaml` is present AND stage ∈ {discovery, mvp}.
+
+| Stage + task pattern                         | Pipeline                                                         |
+|----------------------------------------------|------------------------------------------------------------------|
+| discovery + "validate idea" / new idea       | mb-early-idea-validator → mb-early-user-interviewer (if needed)  |
+| discovery + any feature request              | mb-early-idea-validator (blocks with "validate first")            |
+| mvp + "ship" or "build wedge"                | mb-early-wedge-builder → verifier (light mode)                   |
+| mvp + feature request                        | pm (lean) → mb-early-wedge-builder OR architect (light) → fe-dev (light) |
+| pmf + any                                    | v1 routing table applies                                         |
+| scale + any                                  | v1 routing table applies (default, unchanged)                    |
 
 ### Step 1 -- Classify Task
 
@@ -84,11 +168,54 @@ Analyze the input task and assign exactly ONE class from the routing table above
 - Sprint planning request -> `sprint-planning`
 - Product/requirements question -> `product-discovery`
 - Architecture question/review -> `architecture-review`
+- **Redesign intent** -> `redesign` (v2.1.6)
+
+### Redesign classification (v2.1.6)
+
+Any task mentioning these keywords/phrases → `redesign` class (NOT `frontend-feature`):
+
+- EN: "redesign", "rework UI", "refactor UI", "revamp", "new version", "V2", "v3", "rebrand", "UI overhaul"
+- FR: "refonte", "refaire le design", "repenser", "nouvelle version", "V2", "V3", "relooker", "rebranding"
+
+These tasks REQUIRE ux-designer in Discovery mode BEFORE architect. Do NOT route to
+`frontend-feature` which would go architect-first and skip UX work.
+
+If a task says "redesign X" or "refonte de X", ALWAYS classify as `redesign`, never
+as `frontend-feature`, unless user explicitly overrides ("just a color change, not
+a redesign").
+
+### UX keyword triggers (expanded v2.1.6)
 
 - Keywords: "design", "wireframe", "UX", "user flow", "screens" → inject ux-designer (discovery mode)
 - UI/screen/component/wireframe keywords present -> inject `ux-designer` before `fe-dev` in pipeline
+- Redesign keywords (above) → force `redesign` class with ux-designer Discovery first
 
 If ambiguous, default to `backend-feature` or `frontend-feature` based on the dominant subsystem.
+
+### Anti-drift routing (v2.1.6)
+
+When a user request matches these intents, ROUTE THROUGH mb — NEVER invoke
+`superpowers:*` skills directly:
+
+| User intent signal | mb agent/command to invoke |
+|---|---|
+| "write a plan" / "plan d'implémentation" | /mb:feature → sm (stories) OR architect (technical PLAN) |
+| "brainstorm features" | /mb:feature → pm (brief) |
+| "redesign X" / "refonte de X" | /mb:feature class=redesign → pm → ux-designer |
+| "fix bug" / "corriger" | /mb:fix |
+| "review code" / "review PR" | /mb:review |
+| "write tests" / "ajouter tests" | /mb:feature → tea (test strategy) |
+| "verify" / "valider" | Route to verifier agent |
+| "debug" / "systematic debugging" | /mb:fix (orchestrator routes) |
+
+**Hard rule**: if an mb agent/command covers the user intent, use mb. Generic
+`superpowers:*` skills are for framework development (inside mb-framework repo
+itself), NOT for project work using mb.
+
+**Stage-based lightening** (mvp stage may skip some agents):
+- NEVER self-lighten without explicit user confirmation
+- Acceptable confirmation: user says inline "skip ux-designer" OR `mb-stage.yaml` has `pipeline_skips: [...]`
+- Default: keep full pipeline, even at mvp stage
 
 ### Step 1.5 -- Context Assembly
 
@@ -164,6 +291,60 @@ After pipeline completion, append to `cost-log.md`:
 8. NEVER invoke an agent without a context summary
 9. NEVER invoke fe-dev while design system updates are pending — DS UPDATE GATE must pass first
 10. ALWAYS execute design system updates as a separate sub-task, committed before fe-dev starts
+11. (v2) NEVER override `mb-stage.yaml` without explicit user confirmation
+12. (v2) ALWAYS pass current stage in context summary to downstream agents
 </rules>
+
+## Stage Adaptation (v2)
+
+The orchestrator reads `mb-stage.yaml` at Step 0.5. Behavior by stage:
+
+| Stage | Behavior |
+|-------|----------|
+| **discovery** | Stage Routing Table takes precedence. Gates: DS UPDATE GATE OFF, TDD OFF, RLS double-check OFF. Early agents (idea-validator, user-interviewer) preferred over v1 dev agents. |
+| **mvp** | Stage Routing Table takes precedence. Gates: DS UPDATE GATE OFF (unless override), TDD OFF (unless override). wedge-builder preferred. |
+| **pmf** | v1 routing table applies. All v1 gates ON. Stage context still injected into agents. |
+| **scale** | v1 routing table applies. All v1 gates ON. Default behavior when no `mb-stage.yaml` present. |
+
+**Overrides** (from `mb-stage.yaml.overrides`):
+- `force_ds_gate: true` → DS UPDATE GATE applies even in MVP
+- `force_tdd: true` → TDD applies even in MVP
+- `force_rls_double_check: true` → RLS double-check applies even in MVP
+- `force_atomic_design: true` → Atomic Design applies even in MVP
+
+
+## Run Summary (v2.1 — mandatory)
+
+At the end of every invocation, write a `## Run Summary` block to
+`memory/_session/handoff.md` AND append a structured entry via:
+
+```bash
+python3 -c "
+import sys; sys.path.insert(0, '${MB_DIR:-.claude/mb}/scripts')
+from v2_1 import runs
+runs.append(
+    agent='AGENT_NAME',
+    story='STORY_ID',
+    action='short-verb-phrase',
+    tokens_in=N,
+    tokens_out=N,
+    summary='One sentence describing what was done.',
+)
+"
+```
+
+Your markdown `## Run Summary` block template:
+
+```markdown
+## Run Summary — AGENT_NAME on STORY_ID
+
+Done. Here's what I did:
+- action 1
+- action 2
+
+Next agent should: instruction
+Unknowns: list
+```
+
 
 $ARGUMENTS

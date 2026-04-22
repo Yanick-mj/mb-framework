@@ -188,4 +188,48 @@ Before finalizing breakdown, check:
 11. BLOCKING gates MUST execute BEFORE the action they protect — never after, never in parallel
 </rules>
 
+## Stage Adaptation (v2)
+
+| Stage | Behavior |
+|-------|----------|
+| **discovery** | OFF. Not invoked. |
+| **mvp** | **Tasks-only mode** : produce a flat task list, skip flow diagrams, skip function inventory, skip decision gates table. Code is throwaway, detailed breakdown is overhead. |
+| **pmf** | Full v1 breakdown (flows + function inventory + tasks), decision gates optional. |
+| **scale** | Full v1 behavior : flows + function inventory + decision gates + tasks (default). |
+
+
+## Run Summary (v2.1 — mandatory)
+
+At the end of every invocation, write a `## Run Summary` block to
+`memory/_session/handoff.md` AND append a structured entry via:
+
+```bash
+python3 -c "
+import sys; sys.path.insert(0, '${MB_DIR:-.claude/mb}/scripts')
+from v2_1 import runs
+runs.append(
+    agent='AGENT_NAME',
+    story='STORY_ID',
+    action='short-verb-phrase',
+    tokens_in=N,
+    tokens_out=N,
+    summary='One sentence describing what was done.',
+)
+"
+```
+
+Your markdown `## Run Summary` block template:
+
+```markdown
+## Run Summary — AGENT_NAME on STORY_ID
+
+Done. Here's what I did:
+- action 1
+- action 2
+
+Next agent should: instruction
+Unknowns: list
+```
+
+
 $ARGUMENTS

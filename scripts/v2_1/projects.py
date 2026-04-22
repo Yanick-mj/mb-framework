@@ -1,0 +1,111 @@
+"""Multi-project registry stored at ~/.mb/projects.yaml.
+
+Read/write/render helpers backing /mb:projects and the `mb` shell wrapper.
+"""
+from __future__ import annotations
+
+from pathlib import Path
+from typing import List, Dict, Any
+
+try:
+    import yaml
+except ImportError:  # pragma: no cover — only hit when pyyaml missing
+    import sys
+    print(
+        "⚠️  mb-framework needs PyYAML but it's not installed.\n"
+        "\n"
+        "Fix: pip install pyyaml\n"
+        "\n"
+        "(one-time, system-wide). See docs/v2-migration.md §10 for details.",
+        file=sys.stderr,
+    )
+    sys.exit(2)
+
+
+def registry_path() -> Path:
+    """Return ~/.mb/projects.yaml path (respects $HOME override)."""
+    return Path.home() / ".mb" / "projects.yaml"
+
+
+def load() -> List[Dict[str, Any]]:
+    """Load projects list from the registry. Returns [] if missing or malformed."""
+    path = registry_path()
+    if not path.exists():
+        return []
+    try:
+        data = yaml.safe_load(path.read_text()) or {}
+    except yaml.YAMLError:
+        return []
+    projects = data.get("projects", [])
+    if not isinstance(projects, list):
+        return []
+    return projects
+
+
+def save(projects: List[Dict[str, Any]]) -> None:
+    """Persist projects list to the registry. Creates ~/.mb/ if missing.
+
+    Atomic: writes to a sibling tempfile then os.replace() — so a concurrent
+    reader (or a crashed writer) never sees a partially-written yaml.
+    """
+    import os
+    import tempfile
+    path = registry_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = yaml.safe_dump(
+        {"version": 1, "projects": projects},
+        sort_keys=False,
+    )
+    # Write to tempfile in SAME directory (so os.replace is atomic — rename
+    # across filesystems is not guaranteed atomic).
+    fd, tmp_path = tempfile.mkstemp(
+        dir=str(path.parent), prefix=path.name + ".", suffix=".tmp",
+    )
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(payload)
+        os.replace(tmp_path, path)
+    except Exception:
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+        raise
+
+
+def add(name: str, path: str, stage: str) -> None:
+    """Add or update a project entry (idempotent by name)."""
+    current = load()
+    current = [p for p in current if p.get("name") != name]
+    current.append({"name": name, "path": path, "stage": stage})
+    save(current)
+
+
+def render() -> str:
+    """Render a human-readable listing suitable for /mb:projects output.
+
+    Tolerant of hand-edited registries: entries missing `name` are shown
+    as `<unnamed>` instead of raising KeyError.
+    """
+    items = load()
+    if not items:
+        return (
+            "No mb projects registered.\n"
+            "Run `bash .claude/mb/install.sh` inside a project to register it."
+        )
+
+    def _name(p: Dict[str, Any]) -> str:
+        n = p.get("name")
+        return n if n else "<unnamed>"
+
+    from scripts.v2_1._emoji import tag
+    lines = [f"{tag('projects')} {len(items)} mb project(s)", ""]
+    name_w = max(len(_name(p)) for p in items)
+    for p in items:
+        lines.append(
+            f"  {_name(p):<{name_w}}  stage:{p.get('stage', '?')}  "
+            f"{p.get('path', '?')}"
+        )
+    return "\n".join(lines)
+
+
+if __name__ == "__main__":
+    print(render())

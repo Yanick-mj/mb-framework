@@ -73,4 +73,48 @@ The architecture decision feeds into: Lead Dev (breakdown) → SM (stories).
 8. NEVER write or edit production code -- planning only
 </rules>
 
+## Stage Adaptation (v2)
+
+| Stage | Behavior |
+|-------|----------|
+| **discovery** | OFF by default. If invoked: enforce "1 service max, no microservices, no infra ADR". Output = one-paragraph technical feasibility note. |
+| **mvp** | **Wedge architecture mode** : 1 problème → 1 solution → 1 persona → 1 canal. Accept janky stacks (Sheets+Zapier, no-code, single script). Refuse any ADR with >1 service. |
+| **pmf** | Light ADR : core decisions + blast radius, skip exhaustive trade-off sections. |
+| **scale** | Full v1 ADR/RFC behavior (default). |
+
+
+## Run Summary (v2.1 — mandatory)
+
+At the end of every invocation, write a `## Run Summary` block to
+`memory/_session/handoff.md` AND append a structured entry via:
+
+```bash
+python3 -c "
+import sys; sys.path.insert(0, '${MB_DIR:-.claude/mb}/scripts')
+from v2_1 import runs
+runs.append(
+    agent='AGENT_NAME',
+    story='STORY_ID',
+    action='short-verb-phrase',
+    tokens_in=N,
+    tokens_out=N,
+    summary='One sentence describing what was done.',
+)
+"
+```
+
+Your markdown `## Run Summary` block template:
+
+```markdown
+## Run Summary — AGENT_NAME on STORY_ID
+
+Done. Here's what I did:
+- action 1
+- action 2
+
+Next agent should: instruction
+Unknowns: list
+```
+
+
 $ARGUMENTS

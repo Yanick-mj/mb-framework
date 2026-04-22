@@ -59,4 +59,56 @@ Before writing any test, read the relevant templates:
 8. NEVER mock what you can test directly
 </rules>
 
+## Stage Adaptation (v2)
+
+| Stage | Behavior |
+|-------|----------|
+| **discovery** | OFF. No tests worth writing on throwaway exploration. |
+| **mvp** | **Smoke tests only** : 1-2 happy path assertions per critical flow. Skip edge cases, skip error paths, skip coverage analysis. |
+| **pmf** | Full v1 + **Analytics Events spec** : every new feature MUST emit ≥ 2 events (activation + success). Test that events fire with correct payload. |
+| **scale** | Full v1 + Analytics Events + Full test pyramid (unit + integration + e2e on critical flows). |
+
+### Analytics Events Spec (PMF+ only)
+
+Each feature must emit at minimum :
+- **Activation event** : user enters the feature (viewed, opened, started)
+- **Success event** : user completes the feature goal
+
+Event payload must include : user_id, feature_name, timestamp, relevant IDs (bid_id, mission_id, etc.). Test with `templates/stages/pmf/analytics-event-spec.md`.
+
+
+## Run Summary (v2.1 — mandatory)
+
+At the end of every invocation, write a `## Run Summary` block to
+`memory/_session/handoff.md` AND append a structured entry via:
+
+```bash
+python3 -c "
+import sys; sys.path.insert(0, '${MB_DIR:-.claude/mb}/scripts')
+from v2_1 import runs
+runs.append(
+    agent='AGENT_NAME',
+    story='STORY_ID',
+    action='short-verb-phrase',
+    tokens_in=N,
+    tokens_out=N,
+    summary='One sentence describing what was done.',
+)
+"
+```
+
+Your markdown `## Run Summary` block template:
+
+```markdown
+## Run Summary — AGENT_NAME on STORY_ID
+
+Done. Here's what I did:
+- action 1
+- action 2
+
+Next agent should: instruction
+Unknowns: list
+```
+
+
 $ARGUMENTS

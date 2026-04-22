@@ -1,0 +1,8 @@
+version: 1
+agent: architect
+uses:
+  core:
+  - evidence-rules
+  - stage-adaptation
+  - run-summary
+  - handoff-contract

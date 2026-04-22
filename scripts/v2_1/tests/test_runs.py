@@ -115,3 +115,24 @@ def test_ts_has_microsecond_precision(tmp_project):
     )
     entry = runs.load_recent(limit=1)[0]
     assert "." in entry["ts"], f"expected microseconds in ts, got {entry['ts']}"
+
+
+def test_append_uses_v2_2_path_if_dir_exists(tmp_project):
+    """If memory/agents/_common/ exists (v2.2 layout), write there."""
+    (tmp_project / "memory" / "agents" / "_common").mkdir(parents=True)
+    runs.append(
+        agent="a", story="S", action="x",
+        tokens_in=1, tokens_out=1, summary="s",
+    )
+    assert (tmp_project / "memory" / "agents" / "_common" / "runs.jsonl").exists()
+    assert not (tmp_project / "memory" / "runs.jsonl").exists()
+
+
+def test_append_falls_back_to_v2_1_path_if_no_v2_2_dir(tmp_project):
+    """Without memory/agents/_common/, writes to flat memory/runs.jsonl."""
+    runs.append(
+        agent="a", story="S", action="x",
+        tokens_in=1, tokens_out=1, summary="s",
+    )
+    assert (tmp_project / "memory" / "runs.jsonl").exists()
+    assert not (tmp_project / "memory" / "agents" / "_common" / "runs.jsonl").exists()

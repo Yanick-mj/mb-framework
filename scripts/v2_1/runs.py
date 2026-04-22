@@ -1,4 +1,5 @@
-"""Append-only run log stored at {cwd}/memory/runs.jsonl.
+"""Append-only run log stored at {cwd}/memory/runs.jsonl (v2.1) or
+{cwd}/memory/agents/_common/runs.jsonl (v2.2+).
 
 Each line is a JSON object:
   {"run_id": "...", "ts": "...", "agent": "...", "story": "...",
@@ -14,7 +15,17 @@ from typing import List
 
 
 def _log_path() -> Path:
-    return Path.cwd() / "memory" / "runs.jsonl"
+    """Return path to runs.jsonl.
+
+    v2.2-aware: prefers memory/agents/_common/runs.jsonl if the v2.2
+    layered layout exists (either the directory or an existing file).
+    Falls back to memory/runs.jsonl (v2.1 layout) otherwise.
+    """
+    v2_2 = Path.cwd() / "memory" / "agents" / "_common" / "runs.jsonl"
+    v2_1 = Path.cwd() / "memory" / "runs.jsonl"
+    if v2_2.parent.exists() or v2_2.exists():
+        return v2_2
+    return v2_1
 
 
 def append(

@@ -35,7 +35,20 @@ def _mb_root() -> Path:
 
 
 def _agent_dir(name: str) -> Path:
-    return _mb_root() / "agents" / name
+    """Resolve an agent directory across the two base locations.
+
+    Looks first in agents/, then falls back to agents-early/ (early-stage
+    agents live there). If neither contains the name, returns the agents/
+    path (callers then raise FileNotFoundError with a clear message).
+    """
+    root = _mb_root()
+    primary = root / "agents" / name
+    if primary.exists():
+        return primary
+    early = root / "agents-early" / name
+    if early.exists():
+        return early
+    return primary
 
 
 def _skill_dir(tier: str, name: str) -> Path:

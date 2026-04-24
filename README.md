@@ -112,17 +112,26 @@ Also installs a `mb <name>` shell helper so `mb drivia` = `cd ~/projects/drivia 
 `.claude/skills/mb-{name}/SKILL.md` file Claude Code loads. Legacy
 unmigrated agents keep working via fallback.
 
-### v2.2.1 — Orchestrator auto-invoke (hook)
+### v2.2.1 / v2.2.2 — Orchestrator auto-invoke (hook)
 
-On install, mb now adds a `UserPromptSubmit` hook to `.claude/settings.json`
+On install, mb adds a `UserPromptSubmit` hook to `.claude/settings.json`
 that injects a system-reminder asking Claude to invoke `mb-orchestrator`
-BEFORE any file edit — so free-form prompts ("fix X", "implémente Y")
-automatically route through the orchestrator instead of falling into
-ad-hoc edits. `/mb:*` slash commands, short Q&A, and prompts without
-action verbs are let through unchanged.
+BEFORE any file edit — so free-form prompts ("fix X", "connect to Vercel",
+"implémente Y") route through the orchestrator instead of falling into
+ad-hoc edits.
 
-**Opt-out per prompt:** include `"skip orchestrator"` or `"quick answer"` in
-your message.
+**v2.2.2 change:** the action-verb regex filter was removed. Real prompts
+used verbs the list didn't cover (`connect`, `lier`, `pointer`, `switch`…)
+and got false-negatived. The orchestrator itself now decides if a prompt
+is Q&A (direct answer) or action (pipeline). Four hard guards stay silent:
+
+1. Slash commands (`/mb:feature` etc. — they handle their own routing)
+2. Empty prompt
+3. Fewer than 4 words
+4. Explicit opt-out phrase or env var (below)
+
+**Opt-out per prompt:** include `"skip orchestrator"`, `"quick answer"`,
+`"no orchestrator"`, or `"sans orchestrator"` anywhere in your message.
 **Opt-out per session:** `export MB_ORCHESTRATOR_AUTOINVOKE=off`.
 **Opt-out permanently:** `python3 -m scripts.v2_2.install_hooks $(pwd)/.claude/mb --remove`.
 

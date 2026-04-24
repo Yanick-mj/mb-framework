@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# mb-framework v2.2.1 — UserPromptSubmit hook
+# mb-framework v2.2.2 — UserPromptSubmit hook
 #
 # Purpose: When the user sends a free-form prompt that looks like an
 # implementation/action task, inject a system-reminder telling Claude to
@@ -48,13 +48,12 @@ if [ "$word_count" -lt 4 ]; then
   exit 0
 fi
 
-# Action-verb heuristic — FR + EN. If none match, assume Q&A / read-only and
-# let the prompt through untouched.
-action_pattern='(implémente|implémenter|implement|implementing|corrige|corriger|fix|fixes|fixing|refactor|refactore|refactoring|ajoute|ajouter|add|adds|adding|crée|créer|create|creates|creating|build|builds|building|update|updates|updating|mise à jour|déploie|déployer|deploy|deploys|deploying|teste|tester|test|tests|testing|écris|écrire|write|writes|writing|modifie|modifier|modify|modifies|modifying|supprime|supprimer|remove|removes|removing|delete|deletes|deleting|migrate|migrates|migrating|migre|migrer|rename|renames|renaming|install|installs|installing|configure|configures|configuring|setup|ship|ships|shipping|review)'
-
-if ! printf '%s' "$prompt" | grep -qiE -- "$action_pattern"; then
-  exit 0
-fi
+# v2.2.2: Action-verb filter REMOVED.
+# The orchestrator itself handles Q&A / read-only classification (Step 1).
+# Keeping the filter here caused false negatives for verbs not in the list
+# (e.g. "connect", "lier", "pointer"). Let the orchestrator decide — it is
+# strictly more intelligent than any regex and already knows how to route
+# a pure Q&A prompt to a direct answer without spinning up the pipeline.
 
 # Opt-out phrases the user can drop inline
 case "$prompt" in
@@ -65,7 +64,7 @@ esac
 
 cat <<'EOF'
 <system-reminder>
-mb-framework auto-invoke (v2.2.1):
+mb-framework auto-invoke (v2.2.2):
 
 This prompt looks like an implementation or action task. Before writing or
 editing ANY file, invoke the Skill tool with `mb-orchestrator` so it can

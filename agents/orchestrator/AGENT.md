@@ -138,6 +138,45 @@ artifact = contract violation = no proceed.
 4. Store stage context for injection into downstream agents' context summaries
 5. If stage is `discovery` or `mvp` → check Stage Routing Table (below) BEFORE Step 1
 
+### Step 0.7 -- Pipeline Resume Detection (v2.2)
+
+1. Check if `memory/session/pipeline-state.yaml` exists (use Read tool)
+2. If it does NOT exist → proceed to Step 1 (normal classification)
+3. If it exists, check the pipeline status:
+
+   **Case A — Pipeline is paused** (`paused` field is set):
+   - Display pipeline progress to user (pipeline_id, completed agents, next agent)
+   - Read `resume_context` for key artifacts, decisions, and open unknowns
+   - SKIP Steps 1, 1.5, 2, 2.1, 2.5 — jump directly to Step 3
+   - Resume at `current_step` (the first non-done agent)
+   - Re-read `memory/session/subagent-preamble.md` (it persists across sessions)
+
+   **Case B — A step has `status: in_progress`** (crash recovery):
+   - Display warning: "Pipeline {pipeline_id} was interrupted during {agent} (step {n}/{total})"
+   - Use AskUserQuestion with options:
+     1. "Re-run this agent" → run:
+        ```
+        PYTHONPATH="${MB_DIR:-.claude/mb}" python3 -c \
+          "from scripts.v2_2.pipeline_checkpoint import reset_current_step; reset_current_step()"
+        ```
+        Then continue from Step 3.
+     2. "Skip this agent" → run:
+        ```
+        PYTHONPATH="${MB_DIR:-.claude/mb}" python3 -c \
+          "from scripts.v2_2.pipeline_checkpoint import skip_step; skip_step()"
+        ```
+        Then continue from Step 3.
+     3. "Abandon pipeline" → run:
+        ```
+        PYTHONPATH="${MB_DIR:-.claude/mb}" python3 -c \
+          "from scripts.v2_2.pipeline_checkpoint import abandon; abandon()"
+        ```
+        Then proceed to Step 1.
+
+   **Case C — Pipeline is completed or failed**:
+   - Ignore the state file (it will be archived or is stale)
+   - Proceed to Step 1
+
 ### Stage Routing Table (v2)
 
 Applies ONLY when `mb-stage.yaml` is present AND stage ∈ {discovery, mvp}.
@@ -236,12 +275,85 @@ Select the pipeline from the routing table. For each agent in sequence:
 3. Capture the agent's output
 4. Validate output has required fields (status, evidence)
 
+### Step 2.1 -- Initialize Pipeline State (v2.2)
+
+1. Run via Bash:
+   ```
+   PYTHONPATH="${MB_DIR:-.claude/mb}" python3 -c "
+   from scripts.v2_2.pipeline_checkpoint import init
+   init(
+       task_original='<TASK TEXT>',
+       classified_as='<TASK CLASS>',
+       story_id='<STORY ID or empty>',
+       stage='<CURRENT STAGE>',
+       agents=[('<agent1>', '<role1>'), ('<agent2>', '<role2>'), ...],
+       chunk_size=<FROM CONFIG or 4>
+   )
+   print('Pipeline state initialized')
+   "
+   ```
+2. If `PipelineAlreadyActiveError` is raised:
+   - Report to user: "An active pipeline already exists (id: {id}, task: {task})"
+   - Use AskUserQuestion: "Resume existing pipeline?" / "Abandon it and start fresh?"
+   - If resume → jump to Step 0.7 Case A
+   - If abandon → run `abandon()`, then re-run `init()`
+
+### Step 2.5 -- Subagent Protocol Assembly (v2.2)
+
+1. Run via Bash:
+   ```
+   PYTHONPATH="${MB_DIR:-.claude/mb}" python3 -c \
+     "from scripts.v2_2.subagent_preamble import compose_and_write; compose_and_write()"
+   ```
+2. Read `memory/session/subagent-preamble.md` using the Read tool
+3. Store the content — prepend it to EVERY Task subagent prompt in Step 3
+   This ensures subagents produce runs.jsonl entries and handoff.md blocks
+
 ### Step 3 -- Execute Pipeline
 
-Execute agents in pipeline order. After each agent:
-- If `status: "success"` -> proceed to next agent
-- If `status: "blocked"` -> log blocker, attempt resolution, retry once
-- If `status: "failed"` -> halt pipeline, report failure with evidence
+For each agent in the pipeline sequence:
+
+1. **Budget check** — Run:
+   ```
+   PYTHONPATH="${MB_DIR:-.claude/mb}" python3 -c \
+     "from scripts.v2_2.pipeline_checkpoint import should_pause; print(should_pause())"
+   ```
+   If output is `True`:
+   - Run `pause(reason="chunk_budget", message="Completed {n} agents, pausing for context preservation")`
+   - Display progress to user: "{completed}/{total} agents done. Run /mb:resume to continue."
+   - STOP pipeline execution (do not spawn next agent)
+
+2. **Mark in-progress** — Run:
+   ```
+   PYTHONPATH="${MB_DIR:-.claude/mb}" python3 -c \
+     "from scripts.v2_2.pipeline_checkpoint import mark_in_progress; mark_in_progress()"
+   ```
+
+3. **Spawn agent** — Compose the Task subagent prompt:
+   - Prepend the subagent-preamble.md content (from Step 2.5)
+   - Append the agent-specific context summary (from Step 1.5)
+   - Invoke via the Task tool
+
+4. **Record completion** — After agent returns:
+   - If `status: success` → Run:
+     ```
+     PYTHONPATH="${MB_DIR:-.claude/mb}" python3 -c \
+       "from scripts.v2_2.pipeline_checkpoint import complete_step; complete_step(run_id='<RUN_ID>')"
+     ```
+     Then update resume context for cross-session continuity:
+     ```
+     PYTHONPATH="${MB_DIR:-.claude/mb}" python3 -c \
+       "from scripts.v2_2.pipeline_checkpoint import update_resume_context; \
+        update_resume_context(key_artifacts=['<ARTIFACT_PATH>'], decisions=['<DECISION>'])"
+     ```
+     Proceed to next agent.
+   - If `status: failed` → Run:
+     ```
+     PYTHONPATH="${MB_DIR:-.claude/mb}" python3 -c \
+       "from scripts.v2_2.pipeline_checkpoint import fail_step; fail_step(error='<ERROR MSG>')"
+     ```
+     Pause pipeline with `reason: "agent_failure"`. Report to user. STOP.
+   - If `status: blocked` → Log blocker, attempt resolution, retry once. If still blocked → fail_step.
 
 ### Step 3.5 -- Handoff Protocol
 
@@ -250,6 +362,21 @@ Between agents, create a handoff context:
 2. List open questions or risks
 3. Pass relevant file paths and excerpts
 4. Include any UNKNOWN items from previous agent
+
+### Step 3.7 -- Pipeline Completion (v2.2)
+
+When all agents in the pipeline have `status: done` (or `skipped`):
+
+1. Run via Bash:
+   ```
+   PYTHONPATH="${MB_DIR:-.claude/mb}" python3 -c \
+     "from scripts.v2_2.pipeline_checkpoint import archive; archive()"
+   ```
+   This moves `memory/session/pipeline-state.yaml` to
+   `memory/session/pipeline-state-{pipeline_id}-{timestamp}.yaml`
+   and deletes `memory/session/subagent-preamble.md`.
+
+2. Proceed to Step 4 (Cost Tracking) as normal.
 
 ### Step 4 -- Cost Tracking
 
@@ -293,4 +420,6 @@ After pipeline completion, append to `cost-log.md`:
 10. ALWAYS execute design system updates as a separate sub-task, committed before fe-dev starts
 11. (v2) NEVER override `mb-stage.yaml` without explicit user confirmation
 12. (v2) ALWAYS pass current stage in context summary to downstream agents
+13. (v2.2) ALWAYS run `should_pause()` before spawning the next agent — never skip the budget check
+14. (v2.2) ALWAYS run `mark_in_progress()` before spawning an agent — enables crash recovery
 </rules>

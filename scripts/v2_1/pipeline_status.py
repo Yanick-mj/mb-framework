@@ -113,6 +113,39 @@ def _ux_gate_status(feature: dict, stage: str) -> tuple[bool, List[str]]:
     return (len(missing) == 0, missing)
 
 
+def _load_active_pipeline() -> Optional[str]:
+    """Load active pipeline status from memory/session/pipeline-state.yaml."""
+    from scripts.v2_2.pipeline_checkpoint import STATE_FILENAME
+    from scripts.v2_2.memory import session_path as _session_path
+
+    state_path = _session_path(STATE_FILENAME)
+    if not state_path.exists():
+        return None
+    try:
+        data = yaml.safe_load(state_path.read_text()) or {}
+    except yaml.YAMLError:
+        return None
+    status = data.get("status", "")
+    if status in ("completed", "failed"):
+        return None
+    # Active or paused pipeline
+    pid = data.get("pipeline_id", "?")
+    task = data.get("task", {}).get("original", "?")
+    completed = data.get("completed_count", 0)
+    total = data.get("total_count", 0)
+    paused = data.get("paused")
+    if paused:
+        return (
+            f"  PAUSED pipeline {pid}: {task}\n"
+            f"  Progress: {completed}/{total} agents | Reason: {paused.get('reason', '?')}\n"
+            f"  → Run /mb:resume to continue"
+        )
+    return (
+        f"  ACTIVE pipeline {pid}: {task}\n"
+        f"  Progress: {completed}/{total} agents"
+    )
+
+
 def render() -> str:
     from scripts.v2_1._emoji import tag
     t = tag("projects")
@@ -126,6 +159,13 @@ def render() -> str:
     lines.append(f"  Runs log:   {len(runs)} recent entries")
     lines.append(f"  Features:   {len(features)} in _discovery/")
     lines.append("")
+
+    # Active pipeline detection (v2.2)
+    active = _load_active_pipeline()
+    if active:
+        lines.append("⚡ Active pipeline:")
+        lines.append(active)
+        lines.append("")
 
     if runs:
         lines.append("🏃 Recent agent activity (last 5):")

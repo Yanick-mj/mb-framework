@@ -23,6 +23,7 @@ pipeline:
   auto_commit: false             # commit after successful verification
   max_retries: 2                 # max retries on agent failure
   context_summary: true          # pass summaries between agents
+  chunk_size: 4                  # (v2.2) pause pipeline after N agents for context preservation
 
 tracking:
   cost_log: true

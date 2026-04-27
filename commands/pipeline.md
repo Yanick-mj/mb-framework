@@ -26,6 +26,8 @@ Show the output verbatim.
 
 ## What it reports
 
+- **Active pipeline** (v2.2): detects `memory/session/pipeline-state.yaml` — shows
+  pipeline ID, task, progress, and paused status. Suggests `/mb:resume` if paused.
 - **Stage**: from `mb-stage.yaml`
 - **Recent runs**: last 5 entries from `memory/runs.jsonl` (who did what)
 - **UX GATE status per feature**: checks `_discovery/{feature}/` for
@@ -38,5 +40,6 @@ Show the output verbatim.
 - You want to know what agent should come next
 - Before starting a new task — confirm you're at the right starting point
 - After a pipeline run — verify all agents produced their artifacts
+- After a session interruption — check if a pipeline was left in-progress
 
 $ARGUMENTS

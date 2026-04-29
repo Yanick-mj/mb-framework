@@ -2,7 +2,7 @@
 name: 'mb-orchestrator'
 description: 'Cognitive orchestrator that classifies tasks, routes to agent pipelines, and manages handoff/cost tracking'
 when_to_use: 'Entry point for ALL mb:* tasks. Invoked by /mb:feature, /mb:sprint, or direct task requests'
-allowed-tools: ['Read', 'Edit', 'Write', 'Glob', 'Grep', 'Bash', 'Agent']
+allowed-tools: ['Read', 'Glob', 'Grep', 'Bash', 'Agent']
 ---
 
 ## Interface

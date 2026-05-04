@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>mb-dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FAFAF8;
+    --bg-card: #FFFFFF;
+    --bg-elevated: #FFFFFF;
+    --bg-inset: #F3F2EE;
+    --bg-hover: #F7F6F3;
+    --bg-sidebar: #FBFBF9;
+
+    --border: #E8E5DE;
+    --border-strong: #D6D3CC;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 2px 8px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
+    --shadow-xl: 0 16px 64px rgba(0,0,0,0.12), 0 4px 16px rgba(0,0,0,0.06);
+
+    --text-primary: #1A1A1A;
+    --text-secondary: #6B6B6B;
+    --text-tertiary: #9B9B9B;
+    --text-quaternary: #BFBFBF;
+
+    --accent: #0066FF;
+    --accent-light: #E8F0FF;
+    --accent-hover: #0052CC;
+
+    --teal: #00A67E;
+    --teal-light: #E6F7F2;
+    --orange: #F5A623;
+    --orange-light: #FFF4E0;
+    --red: #E53935;
+    --red-light: #FFEAEA;
+    --purple: #7C5CFC;
+    --purple-light: #F0ECFF;
+    --blue: #0066FF;
+    --blue-light: #E8F0FF;
+
+    --discovery: #7C5CFC;
+    --discovery-bg: #F0ECFF;
+    --mvp: #F5A623;
+    --mvp-bg: #FFF4E0;
+    --pmf: #0066FF;
+    --pmf-bg: #E8F0FF;
+    --scale: #00A67E;
+    --scale-bg: #E6F7F2;
+
+    --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'SF Mono', monospace;
+
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    --radius-full: 100px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.55;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: var(--accent-light);
+    color: var(--accent);
+  }
+
+  /* ═══ LAYOUT ═══ */
+  .shell {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    min-height: 100vh;
+  }
+
+  /* ═══ SIDEBAR (Notion-style) ═══ */
+  aside {
+    background: var(--bg-sidebar);
+    border-right: 1px solid var(--border);
+    padding: 20px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .sidebar-logo {
+    padding: 8px 12px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo-mark {
+    width: 28px; height: 28px;
+    background: var(--text-primary);
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: -0.5px;
+  }
+  .logo-text {
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: -0.3px;
+    color: var(--text-primary);
+  }
+
+  .sidebar-section-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 16px 12px 6px;
+  }
+
+  .sidebar-item {
+    padding: 7px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: all 0.12s ease;
+    user-select: none;
+  }
+  .sidebar-item:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+  .sidebar-item.active {
+    background: var(--bg-inset);
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+  .sidebar-item .icon {
+    font-size: 16px;
+    width: 22px;
+    text-align: center;
+    opacity: 0.7;
+  }
+  .sidebar-item.active .icon { opacity: 1; }
+  .sidebar-item .badge {
+    margin-left: auto;
+    background: var(--red);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5px;
+  }
+
+  /* Project switcher in sidebar */
+  .project-switcher {
+    margin: 0 0 4px;
+    position: relative;
+  }
+  .project-current {
+    padding: 10px 12px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background 0.12s;
+    border: 1px solid transparent;
+  }
+  .project-current:hover {
+    background: var(--bg-hover);
+    border-color: var(--border);
+  }
+  .project-avatar {
+    width: 32px; height: 32px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: -0.3px;
+    flex-shrink: 0;
+  }
+  .project-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .project-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .project-stage-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .project-chevron {
+    color: var(--text-tertiary);
+    font-size: 11px;
+    transition: transform 0.15s;
+  }
+
+  .project-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+    z-index: 200;
+  }
+  .project-dropdown.open { display: block; animation: dropIn 0.15s ease; }
+  @keyframes dropIn { from { opacity: 0; transform: translateY(-4px); } }
+
+  .project-option {
+    padding: 10px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background 0.08s;
+  }
+  .project-option:hover { background: var(--bg-hover); }
+  .project-option.active { background: var(--accent-light); }
+
+  .sidebar-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 8px 12px;
+  }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .live-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+  .live-dot {
+    width: 7px; height: 7px;
+    background: var(--teal);
+    border-radius: 50%;
+    animation: livePulse 2s ease-in-out infinite;
+  }
+  @keyframes livePulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0,166,126,0.3); }
+    50% { opacity: 0.7; box-shadow: 0 0 0 4px rgba(0,166,126,0); }
+  }
+
+  /* ═══ MAIN ═══ */
+  .main-area {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  .topbar {
+    padding: 20px 40px 0;
+  }
+  .topbar h1 {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+  .topbar p {
+    color: var(--text-tertiary);
+    font-size: 14px;
+  }
+
+  main {
+    padding: 24px 40px 48px;
+    flex: 1;
+  }
+
+  .page { display: none; }
+  .page.active { display: block; animation: pageIn 0.25s ease; }
+  @keyframes pageIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ═══ OVERVIEW ═══ */
+  .stage-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+  .stage-pill {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 6px 14px;
+    border-radius: var(--radius-full);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .stage-pill.discovery { color: var(--discovery); background: var(--discovery-bg); }
+  .stage-pill.mvp { color: var(--mvp); background: var(--mvp-bg); }
+  .stage-pill.pmf { color: var(--pmf); background: var(--pmf-bg); }
+  .stage-pill.scale { color: var(--scale); background: var(--scale-bg); }
+  .stage-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  .stage-next {
+    font-size: 13px;
+    color: var(--text-tertiary);
+  }
+  .stage-next strong { color: var(--text-secondary); font-weight: 600; }
+
+  /* Stats */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+  .stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    transition: all 0.15s ease;
+    box-shadow: var(--shadow-sm);
+  }
+  .stat-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+  .stat-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .stat-number {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -1.5px;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-sub {
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+
+  /* Sections */
+  .section-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 14px;
+  }
+
+  /* Progress */
+  .progress-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px 24px;
+    margin-bottom: 28px;
+    box-shadow: var(--shadow-sm);
+  }
+  .progress-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .progress-top .label {
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .progress-top .pct {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+  .progress-track {
+    height: 8px;
+    background: var(--bg-inset);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 18px;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .criteria-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .criteria-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+  }
+  .criteria-icon {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  .criteria-icon.done {
+    background: var(--teal);
+    color: white;
+  }
+  .criteria-icon.pending {
+    background: var(--bg-inset);
+    border: 1.5px solid var(--border-strong);
+    color: transparent;
+  }
+  .criteria-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    flex: 1;
+  }
+  .criteria-val {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+
+  /* Runs */
+  .runs-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+  .runs-card table { width: 100%; border-collapse: collapse; }
+  .runs-card th {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding: 12px 16px;
+    text-align: left;
+    background: var(--bg-inset);
+    border-bottom: 1px solid var(--border);
+  }
+  .runs-card td {
+    padding: 11px 16px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border);
+  }
+  .runs-card tr:last-child td { border-bottom: none; }
+  .runs-card tr:hover td { background: var(--bg-hover); }
+  .runs-card .mono {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+  .agent-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: var(--radius-full);
+    background: var(--bg-inset);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+  }
+  .agent-chip .agent-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+  }
+
+  /* ═══ BOARD ═══ */
+  .board-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .board-column {
+    min-height: 200px;
+  }
+  .board-col-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding: 0 4px;
+  }
+  .board-col-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .board-col-name .col-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+  .board-col-count {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-tertiary);
+  }
+  .board-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    box-shadow: var(--shadow-sm);
+  }
+  .card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+    border-color: var(--border-strong);
+  }
+  .card-id {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-bottom: 5px;
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.4;
+    margin-bottom: 10px;
+  }
+  .card-footer {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .card-priority {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+    background: var(--bg-inset);
+    color: var(--text-tertiary);
+    letter-spacing: 0.2px;
+  }
+
+  /* ═══ ROADMAP ═══ */
+  .mission-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px 28px;
+    margin-bottom: 28px;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+  }
+  .mission-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--accent);
+    border-radius: 0 2px 2px 0;
+  }
+  .mission-overline {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 8px;
+  }
+  .mission-text {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.5;
+    letter-spacing: -0.2px;
+  }
+
+  .milestone-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px 28px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.15s;
+  }
+  .milestone-card.current-ms {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-light), var(--shadow-sm);
+  }
+  .milestone-card.next-ms {
+    opacity: 0.55;
+  }
+  .milestone-tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 3px 10px;
+    border-radius: var(--radius-full);
+    display: inline-flex;
+    margin-bottom: 12px;
+  }
+  .milestone-tag.curr { background: var(--accent-light); color: var(--accent); }
+  .milestone-tag.nxt { background: var(--bg-inset); color: var(--text-tertiary); }
+  .milestone-card h3 {
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+    margin-bottom: 6px;
+  }
+  .milestone-card > p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+  .tracks-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .tracks-table th {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .tracks-table td {
+    font-size: 13px;
+    color: var(--text-secondary);
+    padding: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .tracks-table tr:last-child td { border-bottom: none; }
+
+  .ms-connector {
+    display: flex;
+    justify-content: center;
+    padding: 2px 0;
+  }
+  .ms-connector .vline {
+    width: 2px;
+    height: 20px;
+    background: var(--border);
+    border-radius: 1px;
+  }
+
+  /* ═══ INBOX ═══ */
+  .inbox-group {
+    margin-bottom: 28px;
+  }
+  .inbox-group-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .inbox-group-head .gh-icon {
+    width: 28px; height: 28px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+  .inbox-group-head h2 {
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .inbox-group-head .gh-count {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-tertiary);
+    background: var(--bg-inset);
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+  }
+
+  .inbox-row {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 18px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    transition: all 0.12s ease;
+    box-shadow: var(--shadow-sm);
+  }
+  .inbox-row:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+    border-color: var(--border-strong);
+  }
+  .inbox-row .row-id {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-tertiary);
+    min-width: 64px;
+  }
+  .inbox-row .row-title {
+    flex: 1;
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .inbox-row .row-badge {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: var(--radius-full);
+  }
+  .inbox-row .row-source {
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+
+  .inbox-empty-state {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 48px;
+    text-align: center;
+  }
+  .inbox-empty-state .empty-icon { font-size: 32px; margin-bottom: 12px; }
+  .inbox-empty-state p { color: var(--text-tertiary); font-size: 14px; }
+
+  /* ═══ MODAL (Apple sheet) ═══ */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.25);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    z-index: 500;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-sheet {
+    background: var(--bg-elevated);
+    border-radius: var(--radius-xl);
+    width: 92%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-xl);
+    animation: sheetIn 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @keyframes sheetIn {
+    from { opacity: 0; transform: scale(0.95) translateY(12px); }
+  }
+  .modal-sheet-header {
+    padding: 24px 28px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .modal-sheet-header h2 {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+  .modal-sheet-header .sheet-id {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-tertiary);
+    margin-bottom: 4px;
+  }
+  .sheet-close {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--bg-inset);
+    border: none;
+    color: var(--text-secondary);
+    font-size: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.1s;
+    flex-shrink: 0;
+  }
+  .sheet-close:hover { background: var(--border); }
+
+  .sheet-body { padding: 20px 28px 28px; }
+  .sheet-meta {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+  .sheet-meta-item {
+    flex: 1;
+    background: var(--bg-inset);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+  }
+  .sheet-meta-item .ml {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+  }
+  .sheet-meta-item .mv {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .sheet-section {
+    margin-bottom: 18px;
+  }
+  .sheet-section h3 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .sheet-section p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.65;
+  }
+  .sheet-section ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .sheet-section li {
+    font-size: 13px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+  }
+  .sheet-section li .check {
+    width: 18px; height: 18px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    flex-shrink: 0;
+  }
+  .sheet-section li .check.done {
+    background: var(--teal);
+    color: white;
+  }
+  .sheet-section li .check.todo {
+    background: var(--bg-inset);
+    border: 1.5px solid var(--border-strong);
+  }
+
+  /* ═══ RESPONSIVE ═══ */
+  @media (max-width: 1100px) {
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .board-grid { grid-template-columns: repeat(3, 1fr); }
+    .criteria-list { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 768px) {
+    .shell { grid-template-columns: 1fr; }
+    aside { display: none; }
+    main { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside>
+    <div class="sidebar-logo">
+      <div class="logo-mark">mb</div>
+      <span class="logo-text">dashboard</span>
+    </div>
+
+    <div class="project-switcher">
+      <div class="project-current" onclick="toggleDropdown()">
+        <div class="project-avatar" id="proj-avatar" style="background:var(--scale-bg);color:var(--scale)">D</div>
+        <div class="project-info">
+          <div class="project-name" id="proj-name-display">drivia</div>
+          <div class="project-stage-label" id="proj-stage-display" style="color:var(--scale)">scale</div>
+        </div>
+        <span class="project-chevron">&#9662;</span>
+      </div>
+      <div class="project-dropdown" id="project-dropdown">
+        <div class="project-option active" onclick="switchProject('drivia')">
+          <div class="project-avatar" style="background:var(--scale-bg);color:var(--scale);width:28px;height:28px;font-size:12px;border-radius:6px">D</div>
+          <div>
+            <div style="font-weight:600;font-size:13px">drivia</div>
+            <div style="font-family:var(--font-mono);font-size:11px;color:var(--scale)">scale</div>
+          </div>
+        </div>
+        <div class="project-option" onclick="switchProject('studio-iris')">
+          <div class="project-avatar" style="background:var(--mvp-bg);color:var(--mvp);width:28px;height:28px;font-size:12px;border-radius:6px">S</div>
+          <div>
+            <div style="font-weight:600;font-size:13px">studio-iris</div>
+            <div style="font-family:var(--font-mono);font-size:11px;color:var(--mvp)">mvp</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-item active" onclick="showPage('overview', this)">
+      <span class="icon">&#9673;</span> Overview
+    </div>
+    <div class="sidebar-item" onclick="showPage('board', this)">
+      <span class="icon">&#9638;</span> Board
+    </div>
+    <div class="sidebar-item" onclick="showPage('roadmap', this)">
+      <span class="icon">&#9656;</span> Roadmap
+    </div>
+    <div class="sidebar-item" onclick="showPage('inbox', this)">
+      <span class="icon">&#9993;</span> Inbox
+      <span class="badge" id="inbox-badge">3</span>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="live-indicator">
+        <span class="live-dot"></span>
+        Auto-refresh 5s
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN ═══ -->
+  <div class="main-area">
+    <div class="topbar">
+      <h1 id="page-title">Overview</h1>
+      <p id="page-subtitle">Project health at a glance</p>
+    </div>
+
+    <main>
+
+      <!-- ═══ OVERVIEW ═══ -->
+      <div class="page active" id="page-overview">
+        <div class="stage-header">
+          <div class="stage-pill scale" id="stage-pill"><span class="dot"></span> scale</div>
+          <div class="stage-next">Next gate: <strong id="next-gate-text">all criteria met</strong></div>
+        </div>
+
+        <div class="stats-row" id="stats-row">
+          <div class="stat-card">
+            <div class="stat-label">Total stories</div>
+            <div class="stat-number">14</div>
+            <div class="stat-sub">across 5 statuses</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">In progress</div>
+            <div class="stat-number" style="color:var(--orange)">3</div>
+            <div class="stat-sub">active right now</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Blocked</div>
+            <div class="stat-number" style="color:var(--red)">1</div>
+            <div class="stat-sub">needs attention</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Done this week</div>
+            <div class="stat-number" style="color:var(--teal)">5</div>
+            <div class="stat-sub">velocity: 4.2 / wk</div>
+          </div>
+        </div>
+
+        <div class="section-label">Upgrade criteria</div>
+        <div class="progress-card" id="progress-card">
+          <div class="progress-top">
+            <span class="label" id="readiness-label">Scale readiness</span>
+            <span class="pct" id="readiness-pct">5 / 6 — 83%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="progress-fill" style="width:83%;background:var(--scale)"></div>
+          </div>
+          <div class="criteria-list" id="criteria-list">
+            <div class="criteria-row"><div class="criteria-icon done">&#10003;</div><div class="criteria-label">MRR stable &ge; 3 months</div><div class="criteria-val">4 mo</div></div>
+            <div class="criteria-row"><div class="criteria-icon done">&#10003;</div><div class="criteria-label">Compliance required</div><div class="criteria-val">RGPD</div></div>
+            <div class="criteria-row"><div class="criteria-icon done">&#10003;</div><div class="criteria-label">Team size &ge; 2</div><div class="criteria-val">3</div></div>
+            <div class="criteria-row"><div class="criteria-icon done">&#10003;</div><div class="criteria-label">CI/CD in place</div><div class="criteria-val">GitHub Actions</div></div>
+            <div class="criteria-row"><div class="criteria-icon done">&#10003;</div><div class="criteria-label">TDD enforced</div><div class="criteria-val">jest + vitest</div></div>
+            <div class="criteria-row"><div class="criteria-icon pending"></div><div class="criteria-label">RLS double-check</div><div class="criteria-val">pending</div></div>
+          </div>
+        </div>
+
+        <div class="section-label">Recent agent runs</div>
+        <div class="runs-card" id="runs-card">
+          <table>
+            <thead><tr><th>Time</th><th>Agent</th><th>Story</th><th>Action</th><th>Summary</th></tr></thead>
+            <tbody id="runs-tbody">
+              <tr><td class="mono">18:42</td><td><span class="agent-chip"><span class="agent-dot" style="background:var(--teal)"></span>verifier</span></td><td class="mono">STU-12</td><td>verify</td><td>All tests green, lint clean. Approved.</td></tr>
+              <tr><td class="mono">18:35</td><td><span class="agent-chip"><span class="agent-dot" style="background:var(--blue)"></span>fe-dev</span></td><td class="mono">STU-12</td><td>implement</td><td>Driver cancellation modal &mdash; Expo bottom sheet</td></tr>
+              <tr><td class="mono">17:58</td><td><span class="agent-chip"><span class="agent-dot" style="background:var(--purple)"></span>architect</span></td><td class="mono">STU-12</td><td>plan</td><td>Cancellation flow: 3 tiers, edge function + RLS</td></tr>
+              <tr><td class="mono">16:20</td><td><span class="agent-chip"><span class="agent-dot" style="background:var(--orange)"></span>be-dev</span></td><td class="mono">STU-11</td><td>implement</td><td>Refund tier calculation edge function + tests</td></tr>
+              <tr><td class="mono">15:01</td><td><span class="agent-chip"><span class="agent-dot" style="background:var(--red)"></span>orchestrator</span></td><td class="mono">STU-12</td><td>classify</td><td>feature_fullstack, high &rarr; architect &rarr; be-dev &rarr; fe-dev</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ═══ BOARD ═══ -->
+      <div class="page" id="page-board">
+        <div class="board-grid" id="board-grid">
+          <!-- Backlog -->
+          <div class="board-column">
+            <div class="board-col-head">
+              <div class="board-col-name"><span class="col-dot" style="background:var(--text-quaternary)"></span>Backlog</div>
+              <span class="board-col-count">3</span>
+            </div>
+            <div class="board-cards">
+              <div class="card" onclick="openModal('STU-14')"><div class="card-id">STU-14</div><div class="card-title">Add driver rating history export</div><div class="card-footer"><span class="card-priority" style="background:var(--text-tertiary)"></span><span class="tag">be</span></div></div>
+              <div class="card" onclick="openModal('STU-15')"><div class="card-id">STU-15</div><div class="card-title">Dark mode for driver app</div><div class="card-footer"><span class="card-priority" style="background:var(--text-tertiary)"></span><span class="tag">fe</span><span class="tag">mobile</span></div></div>
+              <div class="card" onclick="openModal('STU-16')"><div class="card-id">STU-16</div><div class="card-title">Migrate push notifications to FCM v2</div><div class="card-footer"><span class="card-priority" style="background:var(--blue)"></span><span class="tag">devops</span></div></div>
+            </div>
+          </div>
+          <!-- Todo -->
+          <div class="board-column">
+            <div class="board-col-head">
+              <div class="board-col-name"><span class="col-dot" style="background:var(--blue)"></span>Todo</div>
+              <span class="board-col-count">2</span>
+            </div>
+            <div class="board-cards">
+              <div class="card" onclick="openModal('STU-13')"><div class="card-id">STU-13</div><div class="card-title">Mission assignment &mdash; batch mode for fleets</div><div class="card-footer"><span class="card-priority" style="background:var(--orange)"></span><span class="tag">be</span><span class="tag">fe</span></div></div>
+              <div class="card" onclick="openModal('STU-17')"><div class="card-id">STU-17</div><div class="card-title">RLS policy audit for multi-tenant</div><div class="card-footer"><span class="card-priority" style="background:var(--blue)"></span><span class="tag">security</span></div></div>
+            </div>
+          </div>
+          <!-- In Progress -->
+          <div class="board-column">
+            <div class="board-col-head">
+              <div class="board-col-name"><span class="col-dot" style="background:var(--orange)"></span>In Progress</div>
+              <span class="board-col-count">3</span>
+            </div>
+            <div class="board-cards">
+              <div class="card" onclick="openModal('STU-12')"><div class="card-id">STU-12</div><div class="card-title">Driver cancellation + refund tiers</div><div class="card-footer"><span class="card-priority" style="background:var(--red)"></span><span class="tag">fullstack</span><span class="tag">billing</span></div></div>
+              <div class="card" onclick="openModal('STU-11')"><div class="card-id">STU-11</div><div class="card-title">Refund edge function + unit tests</div><div class="card-footer"><span class="card-priority" style="background:var(--orange)"></span><span class="tag">be</span></div></div>
+              <div class="card" onclick="openModal('STU-10')"><div class="card-id">STU-10</div><div class="card-title">Mission status progression redesign</div><div class="card-footer"><span class="card-priority" style="background:var(--blue)"></span><span class="tag">fe</span><span class="tag">ux</span></div></div>
+            </div>
+          </div>
+          <!-- Review -->
+          <div class="board-column">
+            <div class="board-col-head">
+              <div class="board-col-name"><span class="col-dot" style="background:var(--purple)"></span>Review</div>
+              <span class="board-col-count">1</span>
+            </div>
+            <div class="board-cards">
+              <div class="card" onclick="openModal('STU-9')"><div class="card-id">STU-9</div><div class="card-title">Fleet manager invitation flow</div><div class="card-footer"><span class="card-priority" style="background:var(--orange)"></span><span class="tag">fe</span><span class="tag">auth</span></div></div>
+            </div>
+          </div>
+          <!-- Done -->
+          <div class="board-column">
+            <div class="board-col-head">
+              <div class="board-col-name"><span class="col-dot" style="background:var(--teal)"></span>Done</div>
+              <span class="board-col-count">5</span>
+            </div>
+            <div class="board-cards">
+              <div class="card"><div class="card-id">STU-8</div><div class="card-title">Supabase RLS for driver profiles</div><div class="card-footer"><span class="card-priority" style="background:var(--orange)"></span><span class="tag">be</span><span class="tag">security</span></div></div>
+              <div class="card"><div class="card-id">STU-7</div><div class="card-title">CI pipeline &mdash; lint + tsc + test</div><div class="card-footer"><span class="card-priority" style="background:var(--blue)"></span><span class="tag">devops</span></div></div>
+              <div class="card"><div class="card-id">STU-6</div><div class="card-title">Design system tokens v2</div><div class="card-footer"><span class="card-priority" style="background:var(--blue)"></span><span class="tag">fe</span><span class="tag">ds</span></div></div>
+              <div class="card"><div class="card-id">STU-5</div><div class="card-title">Real-time mission tracking (maps)</div><div class="card-footer"><span class="card-priority" style="background:var(--orange)"></span><span class="tag">fe</span><span class="tag">mobile</span></div></div>
+              <div class="card"><div class="card-id">STU-4</div><div class="card-title">Payment integration Stripe Connect</div><div class="card-footer"><span class="card-priority" style="background:var(--red)"></span><span class="tag">be</span><span class="tag">billing</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ ROADMAP ═══ -->
+      <div class="page" id="page-roadmap">
+        <div class="mission-card">
+          <div class="mission-overline">Mission</div>
+          <div class="mission-text" id="mission-text">Devenir la plateforme de r&eacute;f&eacute;rence pour la gestion et le dispatch de missions de convoyage automobile en France.</div>
+        </div>
+
+        <div class="section-label">Milestones</div>
+
+        <div class="milestone-card current-ms" id="milestone-current">
+          <div class="milestone-tag curr">Current</div>
+          <h3>V3 &mdash; Multi-fleet &amp; cancellation</h3>
+          <p>Support fleet managers, batch assignment, and driver cancellation with tiered refunds. Target: end of May 2026.</p>
+          <table class="tracks-table"><thead><tr><th>Track</th><th>Work</th><th>Owner</th></tr></thead>
+            <tbody>
+              <tr><td>Backend</td><td>Refund tiers edge function + RLS audit</td><td>Claude (be-dev)</td></tr>
+              <tr><td>Frontend</td><td>Cancellation modal + fleet manager dashboard</td><td>Claude (fe-dev)</td></tr>
+              <tr><td>Product</td><td>Validate refund tiers with 3 fleet managers</td><td>Yanick</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="ms-connector"><div class="vline"></div></div>
+        <div class="milestone-card next-ms" id="milestone-next">
+          <div class="milestone-tag nxt">Next</div>
+          <h3>V4 &mdash; Analytics &amp; driver retention</h3>
+          <p>Driver performance dashboard, retention scoring, and automated re-engagement. Q3 2026.</p>
+          <table class="tracks-table"><thead><tr><th>Track</th><th>Work</th><th>Owner</th></tr></thead>
+            <tbody>
+              <tr><td>Data</td><td>Analytics pipeline (Supabase &rarr; PostHog)</td><td>TBD</td></tr>
+              <tr><td>Backend</td><td>Retention scoring model</td><td>TBD</td></tr>
+              <tr><td>Frontend</td><td>Driver performance dashboard</td><td>TBD</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ═══ INBOX ═══ -->
+      <div class="page" id="page-inbox">
+        <div class="inbox-group">
+          <div class="inbox-group-head">
+            <div class="gh-icon" style="background:var(--orange-light);color:var(--orange)">&#9679;</div>
+            <h2>In Review</h2>
+            <span class="gh-count">1</span>
+          </div>
+          <div class="inbox-row" onclick="openModal('STU-9')">
+            <span class="row-id">STU-9</span>
+            <span class="row-title">Fleet manager invitation flow</span>
+            <span class="row-badge" style="background:var(--orange-light);color:var(--orange)">high</span>
+            <span class="row-source">verifier flagged</span>
+          </div>
+        </div>
+
+        <div class="inbox-group">
+          <div class="inbox-group-head">
+            <div class="gh-icon" style="background:var(--red-light);color:var(--red)">&#9632;</div>
+            <h2>Blocked</h2>
+            <span class="gh-count">1</span>
+          </div>
+          <div class="inbox-row" onclick="openModal('STU-17')">
+            <span class="row-id">STU-17</span>
+            <span class="row-title">RLS policy audit for multi-tenant</span>
+            <span class="row-badge" style="background:var(--blue-light);color:var(--blue)">medium</span>
+            <span class="row-source">blocked by STU-8</span>
+          </div>
+        </div>
+
+        <div class="inbox-group">
+          <div class="inbox-group-head">
+            <div class="gh-icon" style="background:var(--teal-light);color:var(--teal)">&#9201;</div>
+            <h2>Approvals pending</h2>
+            <span class="gh-count">1</span>
+          </div>
+          <div class="inbox-row">
+            <span class="row-id">approve</span>
+            <span class="row-title">Stage upgrade request: pmf &rarr; scale</span>
+            <span class="row-badge" style="background:var(--teal-light);color:var(--teal)">ready</span>
+            <span class="row-source">stage-advisor</span>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ═══ MODAL ═══ -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-sheet-header">
+      <div>
+        <div class="sheet-id" id="modal-story-id">STU-12</div>
+        <h2 id="modal-title">Driver cancellation + refund tiers</h2>
+      </div>
+      <button class="sheet-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="sheet-body">
+      <div class="sheet-meta">
+        <div class="sheet-meta-item"><div class="ml">Priority</div><div class="mv" id="modal-priority">critical</div></div>
+        <div class="sheet-meta-item"><div class="ml">Status</div><div class="mv" id="modal-status">in_progress</div></div>
+        <div class="sheet-meta-item"><div class="ml">Created</div><div class="mv" id="modal-created">2026-05-01</div></div>
+      </div>
+      <div class="sheet-section"><h3>Why</h3><p id="modal-why">Drivers need the ability to cancel assigned missions with appropriate refund calculations based on timing.</p></div>
+      <div class="sheet-section"><h3>Scope</h3><p id="modal-scope">3-tier refund model. Supabase edge function. Expo bottom sheet. Next.js admin view.</p></div>
+      <div class="sheet-section"><h3>Acceptance criteria</h3><ul id="modal-criteria"></ul></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const titles = { overview:'Overview', board:'Board', roadmap:'Roadmap', inbox:'Inbox' };
+const subtitles = { overview:'Project health at a glance', board:'Stories by status', roadmap:'Mission & milestones', inbox:'Items that need attention' };
+
+function showPage(page, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.sidebar-item').forEach(a => a.classList.remove('active'));
+  if (el) el.classList.add('active');
+  document.getElementById('page-title').textContent = titles[page] || page;
+  document.getElementById('page-subtitle').textContent = subtitles[page] || '';
+}
+
+function toggleDropdown() {
+  document.getElementById('project-dropdown').classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.project-switcher')) document.getElementById('project-dropdown').classList.remove('open');
+});
+
+const storyDB = {
+  'STU-12':{ id:'STU-12', title:'Driver cancellation + refund tiers', priority:'critical', status:'in_progress', created:'2026-05-01', why:'Drivers need the ability to cancel assigned missions with appropriate refund calculations. Fleet managers requesting this before scaling.', scope:'3-tier refund model (free >24h, 50% 2-24h, 0% <2h). Supabase edge function. Expo bottom sheet. Next.js admin.', criteria:[{t:'Edge function calculates correct tier',d:true},{t:'RLS prevents cross-driver cancellation',d:true},{t:'Unit tests cover all 3 tiers',d:true},{t:'Bottom sheet shows tier + amount',d:false},{t:'Fleet manager dashboard shows history',d:false},{t:'Stripe refund triggered automatically',d:false}]},
+  'STU-11':{ id:'STU-11', title:'Refund edge function + unit tests', priority:'high', status:'in_progress', created:'2026-04-28', why:'Core business logic for cancellation. Must be bullet-proof before FE integration.', scope:'Supabase edge function calculating refund tier. 100% unit test coverage.', criteria:[{t:'Edge function deployed',d:true},{t:'All 3 tiers calculated correctly',d:true},{t:'Edge cases handled',d:false}]},
+  'STU-10':{ id:'STU-10', title:'Mission status progression redesign', priority:'medium', status:'in_progress', created:'2026-04-25', why:'Current status display confuses drivers. They miss changes and call support.', scope:'Redesign mission detail screen status section with visual progression.', criteria:[{t:'Visual stepper component',d:true},{t:'Real-time status updates',d:false},{t:'Push notification on change',d:false}]},
+  'STU-9':{ id:'STU-9', title:'Fleet manager invitation flow', priority:'high', status:'in_review', created:'2026-04-20', why:'Fleet managers need to invite drivers. Currently manual via Supabase dashboard.', scope:'Invitation email + magic link + role assignment on Next.js admin.', criteria:[{t:'Invitation email via Resend',d:true},{t:'Magic link creates account',d:true},{t:'Pending invitations visible',d:true},{t:'Rate limiting on endpoint',d:true}]},
+  'STU-17':{ id:'STU-17', title:'RLS policy audit for multi-tenant', priority:'medium', status:'blocked', created:'2026-05-02', why:'Before onboarding more fleet managers, verify RLS policies isolate data.', scope:'Audit all 23 tables. Write integration tests. Fix gaps.', criteria:[{t:'All tables audited',d:false},{t:'Cross-tenant access tests',d:false},{t:'Gaps fixed',d:false}]},
+  'STU-13':{ id:'STU-13', title:'Mission assignment — batch mode', priority:'high', status:'todo', created:'2026-05-03', why:'Fleet managers want to assign 10-50 missions at once.', scope:'CSV upload + preview + batch assignment endpoint.', criteria:[{t:'CSV parser with validation',d:false},{t:'Preview screen',d:false},{t:'Batch edge function',d:false}]},
+};
+
+function openModal(id) {
+  const s = storyDB[id]; if (!s) return;
+  document.getElementById('modal-story-id').textContent = s.id;
+  document.getElementById('modal-title').textContent = s.title;
+  document.getElementById('modal-priority').textContent = s.priority;
+  document.getElementById('modal-status').textContent = s.status;
+  document.getElementById('modal-created').textContent = s.created;
+  document.getElementById('modal-why').textContent = s.why;
+  document.getElementById('modal-scope').textContent = s.scope;
+  document.getElementById('modal-criteria').innerHTML = s.criteria.map(c =>
+    `<li><span class="check ${c.d?'done':'todo'}">${c.d?'&#10003;':''}</span>${c.t}</li>`
+  ).join('');
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('modal-overlay'))
+    document.getElementById('modal-overlay').classList.remove('open');
+}
+document.addEventListener('keydown', e => { if (e.key==='Escape') closeModal(); });
+
+// ═══ PROJECT SWITCH ═══
+function switchProject(name) {
+  document.getElementById('project-dropdown').classList.remove('open');
+  document.querySelectorAll('.project-option').forEach(el => el.classList.toggle('active', el.textContent.trim().startsWith(name.charAt(0).toUpperCase())));
+
+  if (name==='drivia') {
+    document.getElementById('proj-avatar').style.background='var(--scale-bg)';
+    document.getElementById('proj-avatar').style.color='var(--scale)';
+    document.getElementById('proj-avatar').textContent='D';
+    document.getElementById('proj-name-display').textContent='drivia';
+    document.getElementById('proj-stage-display').textContent='scale';
+    document.getElementById('proj-stage-display').style.color='var(--scale)';
+    document.getElementById('stage-pill').className='stage-pill scale';
+    document.getElementById('stage-pill').innerHTML='<span class="dot"></span> scale';
+    document.getElementById('inbox-badge').textContent='3';
+    document.getElementById('next-gate-text').textContent='all criteria met';
+    document.getElementById('readiness-label').textContent='Scale readiness';
+    document.getElementById('readiness-pct').textContent='5 / 6 — 83%';
+    document.getElementById('progress-fill').style.width='83%';
+    document.getElementById('progress-fill').style.background='var(--scale)';
+    document.getElementById('stats-row').innerHTML=`
+      <div class="stat-card"><div class="stat-label">Total stories</div><div class="stat-number">14</div><div class="stat-sub">across 5 statuses</div></div>
+      <div class="stat-card"><div class="stat-label">In progress</div><div class="stat-number" style="color:var(--orange)">3</div><div class="stat-sub">active right now</div></div>
+      <div class="stat-card"><div class="stat-label">Blocked</div><div class="stat-number" style="color:var(--red)">1</div><div class="stat-sub">needs attention</div></div>
+      <div class="stat-card"><div class="stat-label">Done this week</div><div class="stat-number" style="color:var(--teal)">5</div><div class="stat-sub">velocity: 4.2 / wk</div></div>`;
+    document.getElementById('criteria-list').innerHTML=`
+      <div class="criteria-row"><div class="criteria-icon done">&#10003;</div><div class="criteria-label">MRR stable &ge; 3 months</div><div class="criteria-val">4 mo</div></div>
+      <div class="criteria-row"><div class="criteria-icon done">&#10003;</div><div class="criteria-label">Compliance required</div><div class="criteria-val">RGPD</div></div>
+      <div class="criteria-row"><div class="criteria-icon done">&#10003;</div><div class="criteria-label">Team size &ge; 2</div><div class="criteria-val">3</div></div>
+      <div class="criteria-row"><div class="criteria-icon done">&#10003;</div><div class="criteria-label">CI/CD in place</div><div class="criteria-val">GitHub Actions</div></div>
+      <div class="criteria-row"><div class="criteria-icon done">&#10003;</div><div class="criteria-label">TDD enforced</div><div class="criteria-val">jest + vitest</div></div>
+      <div class="criteria-row"><div class="criteria-icon pending"></div><div class="criteria-label">RLS double-check</div><div class="criteria-val">pending</div></div>`;
+    document.getElementById('runs-tbody').innerHTML=`
+      <tr><td class="mono">18:42</td><td><span class="agent-chip"><span class="agent-dot" style="background:var(--teal)"></span>verifier</span></td><td class="mono">STU-12</td><td>verify</td><td>All tests green, lint clean. Approved.</td></tr>
+      <tr><td class="mono">18:35</td><td><span class="agent-chip"><span class="agent-dot" style="background:var(--blue)"></span>fe-dev</span></td><td class="mono">STU-12</td><td>implement</td><td>Driver cancellation modal &mdash; Expo bottom sheet</td></tr>
+      <tr><td class="mono">17:58</td><td><span class="agent-chip"><span class="agent-dot" style="background:var(--purple)"></span>architect</span></td><td class="mono">STU-12</td><td>plan</td><td>Cancellation flow: 3 tiers, edge function + RLS</td></tr>
+      <tr><td class="mono">16:20</td><td><span class="agent-chip"><span class="agent-dot" style="background:var(--orange)"></span>be-dev</span></td><td class="mono">STU-11</td><td>implement</td><td>Refund tier calculation edge function + tests</td></tr>
+      <tr><td class="mono">15:01</td><td><span class="agent-chip"><span class="agent-dot" style="background:var(--red)"></span>orchestrator</span></td><td class="mono">STU-12</td><td>classify</td><td>feature_fullstack, high &rarr; architect &rarr; be-dev &rarr; fe-dev</td></tr>`;
+    document.getElementById('mission-text').innerHTML='Devenir la plateforme de r&eacute;f&eacute;rence pour la gestion et le dispatch de missions de convoyage automobile en France.';
+    document.getElementById('milestone-current').querySelector('h3').innerHTML='V3 &mdash; Multi-fleet &amp; cancellation';
+    document.getElementById('milestone-current').querySelector('p').textContent='Support fleet managers, batch assignment, and driver cancellation with tiered refunds. Target: end of May 2026.';
+    document.getElementById('milestone-current').querySelector('tbody').innerHTML='<tr><td>Backend</td><td>Refund tiers edge function + RLS audit</td><td>Claude (be-dev)</td></tr><tr><td>Frontend</td><td>Cancellation modal + fleet manager dashboard</td><td>Claude (fe-dev)</td></tr><tr><td>Product</td><td>Validate refund tiers with 3 fleet managers</td><td>Yanick</td></tr>';
+    document.getElementById('milestone-next').querySelector('h3').innerHTML='V4 &mdash; Analytics &amp; driver retention';
+    document.getElementById('milestone-next').querySelector('p').textContent='Driver performance dashboard, retention scoring, and automated re-engagement. Q3 2026.';
+    document.getElementById('milestone-next').querySelector('tbody').innerHTML='<tr><td>Data</td><td>Analytics pipeline (Supabase &rarr; PostHog)</td><td>TBD</td></tr><tr><td>Backend</td><td>Retention scoring model</td><td>TBD</td></tr><tr><td>Frontend</td><td>Driver performance dashboard</td><td>TBD</td></tr>';
+    // restore inbox & board via reload-like approach
+    location.reload();
+  } else {
+    // studio-iris
+    document.getElementById('proj-avatar').style.background='var(--mvp-bg)';
+    document.getElementById('proj-avatar').style.color='var(--mvp)';
+    document.getElementById('proj-avatar').textContent='S';
+    document.getElementById('proj-name-display').textContent='studio-iris';
+    document.getElementById('proj-stage-display').textContent='mvp';
+    document.getElementById('proj-stage-display').style.color='var(--mvp)';
+    document.getElementById('stage-pill').className='stage-pill mvp';
+    document.getElementById('stage-pill').innerHTML='<span class="dot"></span> mvp';
+    document.getElementById('inbox-badge').textContent='0';
+    document.getElementById('next-gate-text').textContent='2 criteria remaining';
+    document.getElementById('readiness-label').textContent='MVP readiness';
+    document.getElementById('readiness-pct').textContent='2 / 4 — 50%';
+    document.getElementById('progress-fill').style.width='50%';
+    document.getElementById('progress-fill').style.background='var(--mvp)';
+    document.getElementById('stats-row').innerHTML=`
+      <div class="stat-card"><div class="stat-label">Total stories</div><div class="stat-number">6</div><div class="stat-sub">across 4 statuses</div></div>
+      <div class="stat-card"><div class="stat-label">In progress</div><div class="stat-number" style="color:var(--orange)">2</div><div class="stat-sub">active right now</div></div>
+      <div class="stat-card"><div class="stat-label">Blocked</div><div class="stat-number" style="color:var(--teal)">0</div><div class="stat-sub">all clear</div></div>
+      <div class="stat-card"><div class="stat-label">Done this week</div><div class="stat-number" style="color:var(--teal)">2</div><div class="stat-sub">velocity: 3 / wk</div></div>`;
+    document.getElementById('criteria-list').innerHTML=`
+      <div class="criteria-row"><div class="criteria-icon done">&#10003;</div><div class="criteria-label">Wedge plan written</div><div class="criteria-val">done</div></div>
+      <div class="criteria-row"><div class="criteria-icon done">&#10003;</div><div class="criteria-label">Deployed (Vercel)</div><div class="criteria-val">live</div></div>
+      <div class="criteria-row"><div class="criteria-icon pending"></div><div class="criteria-label">1 real user</div><div class="criteria-val">0 / 1</div></div>
+      <div class="criteria-row"><div class="criteria-icon pending"></div><div class="criteria-label">Analytics in place</div><div class="criteria-val">pending</div></div>`;
+    document.getElementById('runs-tbody').innerHTML=`
+      <tr><td class="mono">14:12</td><td><span class="agent-chip"><span class="agent-dot" style="background:var(--blue)"></span>fe-dev</span></td><td class="mono">STU-3</td><td>implement</td><td>Hero section &mdash; responsive grid + scroll animation</td></tr>
+      <tr><td class="mono">13:40</td><td><span class="agent-chip"><span class="agent-dot" style="background:var(--purple)"></span>ux-designer</span></td><td class="mono">STU-3</td><td>review</td><td>Approved hero layout, suggested CTA color change</td></tr>
+      <tr><td class="mono">11:05</td><td><span class="agent-chip"><span class="agent-dot" style="background:var(--red)"></span>orchestrator</span></td><td class="mono">STU-3</td><td>classify</td><td>feature_frontend, medium &rarr; ux-designer &rarr; fe-dev &rarr; verifier</td></tr>`;
+    document.getElementById('mission-text').innerHTML='Cr&eacute;er une pr&eacute;sence en ligne professionnelle pour Studio IRIS &mdash; photographe et vid&eacute;aste &agrave; Montr&eacute;al.';
+    document.getElementById('milestone-current').querySelector('h3').innerHTML='V1 &mdash; Landing page live';
+    document.getElementById('milestone-current').querySelector('p').textContent='Hero, portfolio preview, contact. Deploy on Vercel. Target: mid-May 2026.';
+    document.getElementById('milestone-current').querySelector('tbody').innerHTML='<tr><td>Design</td><td>Hero section + nav + footer</td><td>Claude (ux-designer)</td></tr><tr><td>Frontend</td><td>Responsive HTML/CSS, scroll animations</td><td>Claude (fe-dev)</td></tr><tr><td>Content</td><td>Copy + portfolio images selection</td><td>Yanick</td></tr>';
+    document.getElementById('milestone-next').querySelector('h3').innerHTML='V2 &mdash; Portfolio + booking';
+    document.getElementById('milestone-next').querySelector('p').textContent='Full portfolio gallery, client booking form, testimonials. June 2026.';
+    document.getElementById('milestone-next').querySelector('tbody').innerHTML='<tr><td>Frontend</td><td>Gallery lightbox + filter by category</td><td>TBD</td></tr><tr><td>Backend</td><td>Contact form &rarr; email + calendar</td><td>TBD</td></tr><tr><td>Content</td><td>Client testimonials collection</td><td>Yanick</td></tr>';
+    // Board
+    document.getElementById('board-grid').innerHTML=`
+      <div class="board-column"><div class="board-col-head"><div class="board-col-name"><span class="col-dot" style="background:var(--text-quaternary)"></span>Backlog</div><span class="board-col-count">2</span></div><div class="board-cards">
+        <div class="card"><div class="card-id">STU-5</div><div class="card-title">SEO metadata + Open Graph</div><div class="card-footer"><span class="card-priority" style="background:var(--text-tertiary)"></span><span class="tag">seo</span></div></div>
+        <div class="card"><div class="card-id">STU-6</div><div class="card-title">Contact form + email integration</div><div class="card-footer"><span class="card-priority" style="background:var(--blue)"></span><span class="tag">be</span><span class="tag">fe</span></div></div>
+      </div></div>
+      <div class="board-column"><div class="board-col-head"><div class="board-col-name"><span class="col-dot" style="background:var(--blue)"></span>Todo</div><span class="board-col-count">1</span></div><div class="board-cards">
+        <div class="card"><div class="card-id">STU-4</div><div class="card-title">Portfolio gallery with lightbox</div><div class="card-footer"><span class="card-priority" style="background:var(--blue)"></span><span class="tag">fe</span><span class="tag">ux</span></div></div>
+      </div></div>
+      <div class="board-column"><div class="board-col-head"><div class="board-col-name"><span class="col-dot" style="background:var(--orange)"></span>In Progress</div><span class="board-col-count">2</span></div><div class="board-cards">
+        <div class="card"><div class="card-id">STU-3</div><div class="card-title">Hero section + navigation</div><div class="card-footer"><span class="card-priority" style="background:var(--orange)"></span><span class="tag">fe</span></div></div>
+        <div class="card"><div class="card-id">STU-2</div><div class="card-title">Design system tokens</div><div class="card-footer"><span class="card-priority" style="background:var(--blue)"></span><span class="tag">fe</span><span class="tag">ds</span></div></div>
+      </div></div>
+      <div class="board-column"><div class="board-col-head"><div class="board-col-name"><span class="col-dot" style="background:var(--purple)"></span>Review</div><span class="board-col-count">0</span></div><div class="board-cards"></div></div>
+      <div class="board-column"><div class="board-col-head"><div class="board-col-name"><span class="col-dot" style="background:var(--teal)"></span>Done</div><span class="board-col-count">1</span></div><div class="board-cards">
+        <div class="card"><div class="card-id">STU-1</div><div class="card-title">Initial setup + Vercel deploy</div><div class="card-footer"><span class="card-priority" style="background:var(--orange)"></span><span class="tag">devops</span></div></div>
+      </div></div>`;
+    // Inbox
+    document.getElementById('page-inbox').innerHTML='<div class="inbox-empty-state"><div class="empty-icon">&#9745;</div><p>Inbox clear &mdash; nothing needs your attention right now.</p></div>';
+  }
+}
+</script>
+</body>
+</html>

@@ -106,20 +106,27 @@ def _scan_all_stories(path: Path) -> list[dict]:
     return stories
 
 
-def get_board_data(path: Path) -> dict[str, list[dict]]:
+def get_board_data(path: Path, priority_filter: str | None = None) -> dict[str, list[dict]]:
     """Group stories into kanban columns with enriched card data."""
     from scripts.v2_2.board import COLUMNS
     groups: dict[str, list[dict]] = {c: [] for c in COLUMNS}
     for story in _scan_all_stories(path):
         status = story.get("status")
-        if status in groups:
-            groups[status].append({
-                "story_id": story.get("story_id", "?"),
-                "title": story.get("title", ""),
-                "status": status,
-                "priority": story.get("priority", "medium"),
-                "labels": story.get("labels") or [],
-            })
+        if status not in groups:
+            continue
+        if priority_filter and story.get("priority") != priority_filter:
+            continue
+        groups[status].append({
+            "story_id": story.get("story_id", "?"),
+            "title": story.get("title", ""),
+            "status": status,
+            "priority": story.get("priority", "medium"),
+            "labels": story.get("labels") or [],
+            "sort_order": story.get("sort_order", 999999),
+        })
+    # Sort each column by sort_order (lower first)
+    for col in groups:
+        groups[col].sort(key=lambda s: s["sort_order"])
     return groups
 
 
@@ -256,6 +263,32 @@ def _extract_roadmap_phases(text: str) -> list[dict[str, Any]]:
         })
 
     return phases
+
+
+DELIVERABLES_SUBPATH = Path("_bmad-output") / "deliverables"
+
+
+def get_deliverables_list(path: Path, story_id: str) -> list[dict[str, str]]:
+    """List deliverable files for a story."""
+    d = path / DELIVERABLES_SUBPATH / story_id
+    if not d.exists():
+        return []
+    files = sorted(f for f in d.iterdir() if f.is_file())
+    return [{"filename": f.name} for f in files]
+
+
+def get_deliverable_content(path: Path, story_id: str, filename: str) -> dict[str, str] | None:
+    """Read a deliverable file and return raw + rendered HTML."""
+    f = path / DELIVERABLES_SUBPATH / story_id / filename
+    if not f.exists():
+        return None
+    raw = f.read_text()
+    try:
+        import markdown
+        html = markdown.markdown(raw, extensions=["fenced_code", "tables"])
+    except ImportError:
+        html = f"<pre>{raw}</pre>"
+    return {"filename": filename, "raw": raw, "html": html}
 
 
 def get_inbox_data(path: Path) -> dict[str, Any]:

@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from typing import Literal
+
 from fastapi import FastAPI, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -60,17 +62,18 @@ def overview(request: Request, name: str):
 
 
 @app.get("/projects/{name}/board", response_class=HTMLResponse)
-def board(request: Request, name: str):
+def board(request: Request, name: str, priority: str | None = None):
     project = _resolve_project(name)
     if not project:
         raise HTTPException(404, f"Project '{name}' not found")
     path = Path(project["path"])
     return templates.TemplateResponse(request, "board.html", context={
         "project": project,
-        "columns": parsers.get_board_data(path),
+        "columns": parsers.get_board_data(path, priority_filter=priority),
         "projects": parsers.load_projects(),
         "current_page": "board",
         "inbox_count": parsers.get_inbox_data(path)["total"],
+        "priority_filter": priority or "",
     })
 
 
@@ -133,10 +136,10 @@ def partial_runs(request: Request, name: str):
 
 
 @app.get("/partials/{name}/board", response_class=HTMLResponse)
-def partial_board(request: Request, name: str):
+def partial_board(request: Request, name: str, priority: str | None = None):
     path = _get_project_path(name)
     return templates.TemplateResponse(request, "partials/board_columns.html", context={
-        "columns": parsers.get_board_data(path),
+        "columns": parsers.get_board_data(path, priority_filter=priority),
         "project": {"name": name},
     })
 
@@ -184,9 +187,11 @@ def partial_story_modal(request: Request, name: str, story_id: str):
     detail = parsers.get_story_detail(path, story_id)
     if not detail:
         raise HTTPException(404, f"Story '{story_id}' not found")
+    deliverables = parsers.get_deliverables_list(path, story_id)
     return templates.TemplateResponse(request, "partials/story_modal.html", context={
         "story": detail,
         "project_name": name,
+        "deliverables": deliverables,
     })
 
 
@@ -225,6 +230,13 @@ class UpdateStoryRequest(BaseModel):
     description: str | None = None
     priority: str | None = None
     status: str | None = None
+
+
+AllowedStatus = Literal["backlog", "todo", "in_progress", "in_review", "done"]
+
+
+class PatchStatusRequest(BaseModel):
+    status: AllowedStatus
 
 
 def _do_create(name: str, title: str, description: str, priority: str, status: str) -> dict:
@@ -276,6 +288,65 @@ def api_update_story_form(
                "priority": priority, "status": status}.items() if v is not None}
     _do_update(name, story_id, updates)
     return HTMLResponse("")
+
+
+@app.get("/api/stories/{name}/{story_id}/deliverables")
+def api_list_deliverables(name: str, story_id: str):
+    path = _get_project_path(name)
+    detail = parsers.get_story_detail(path, story_id)
+    if not detail:
+        raise HTTPException(404, f"Story '{story_id}' not found")
+    return parsers.get_deliverables_list(path, story_id)
+
+
+@app.get("/api/stories/{name}/{story_id}/deliverables/{filename}")
+def api_get_deliverable(name: str, story_id: str, filename: str):
+    path = _get_project_path(name)
+    result = parsers.get_deliverable_content(path, story_id, filename)
+    if result is None:
+        raise HTTPException(404, f"Deliverable '{filename}' not found")
+    return result
+
+
+class CommentRequest(BaseModel):
+    text: str
+
+    @property
+    def is_valid(self) -> bool:
+        return bool(self.text.strip())
+
+
+@app.post("/api/stories/{name}/{story_id}/comment")
+def api_add_comment(name: str, story_id: str, body: CommentRequest):
+    if not body.is_valid:
+        raise HTTPException(422, "Comment text cannot be empty")
+    path = _get_project_path(name)
+    result = crud.add_comment(path, story_id, body.text)
+    if result is None:
+        raise HTTPException(404, f"Story '{story_id}' not found")
+    return result
+
+
+class ReorderRequest(BaseModel):
+    sort_order: int
+
+
+@app.patch("/api/stories/{name}/{story_id}/reorder")
+def api_reorder_story(name: str, story_id: str, body: ReorderRequest):
+    path = _get_project_path(name)
+    result = crud.reorder_story(path, story_id, body.sort_order)
+    if result is None:
+        raise HTTPException(404, f"Story '{story_id}' not found")
+    return result
+
+
+@app.patch("/api/stories/{name}/{story_id}/status")
+def api_patch_status(name: str, story_id: str, body: PatchStatusRequest):
+    path = _get_project_path(name)
+    result = crud.patch_status(path, story_id, body.status)
+    if result is None:
+        raise HTTPException(404, f"Story '{story_id}' not found")
+    return result
 
 
 @app.delete("/api/stories/{name}/{story_id}")

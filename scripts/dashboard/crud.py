@@ -1,9 +1,11 @@
 """CRUD operations for stories with atomic writes."""
 from __future__ import annotations
 
+import json
 import os
 import tempfile
 import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -124,6 +126,8 @@ def _clean_fm(fm: dict, story_id: str) -> dict:
     }
     if fm.get("labels"):
         clean["labels"] = fm["labels"]
+    if "sort_order" in fm:
+        clean["sort_order"] = fm["sort_order"]
     return clean
 
 
@@ -148,6 +152,104 @@ def update_story(
 
     if "description" in updates:
         body = _to_description_body(updates["description"])
+
+    clean = _clean_fm(fm, story_id)
+    _atomic_write(story_file, _build_story_content(clean, body))
+
+    return {k: clean[k] for k in ("story_id", "title", "status", "priority")}
+
+
+def patch_status(
+    project_path: Path,
+    story_id: str,
+    new_status: str,
+) -> dict[str, Any] | None:
+    """Update only the status field of a story. Returns updated data or None."""
+    story_file = _find_story_file(project_path, story_id)
+    if not story_file:
+        return None
+
+    result = _read_story(story_file)
+    if not result:
+        return None
+    fm, body = result
+
+    old_status = fm.get("status", "unknown")
+    fm["status"] = new_status
+
+    clean = _clean_fm(fm, story_id)
+    _atomic_write(story_file, _build_story_content(clean, body))
+
+    # Log the transition
+    _log_status_change(project_path, story_id, old_status, new_status)
+
+    return {k: clean[k] for k in ("story_id", "title", "status", "priority")}
+
+
+def _log_status_change(
+    project_path: Path, story_id: str, from_status: str, to_status: str
+) -> None:
+    """Append a status_change entry to runs.jsonl."""
+    log_dir = project_path / "memory" / "agents" / "_common"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_file = log_dir / "runs.jsonl"
+    entry = {
+        "action": "status_change",
+        "story": story_id,
+        "from_status": from_status,
+        "to_status": to_status,
+        "ts": datetime.now(timezone.utc).isoformat(),
+    }
+    with log_file.open("a") as f:
+        f.write(json.dumps(entry) + "\n")
+
+
+def reorder_story(
+    project_path: Path,
+    story_id: str,
+    sort_order: int,
+) -> dict[str, Any] | None:
+    """Set sort_order on a story for intra-column ordering."""
+    story_file = _find_story_file(project_path, story_id)
+    if not story_file:
+        return None
+
+    result = _read_story(story_file)
+    if not result:
+        return None
+    fm, body = result
+
+    fm["sort_order"] = sort_order
+    clean = _clean_fm(fm, story_id)
+    _atomic_write(story_file, _build_story_content(clean, body))
+
+    return {
+        "story_id": clean["story_id"],
+        "title": clean["title"],
+        "status": clean["status"],
+        "priority": clean["priority"],
+        "sort_order": sort_order,
+    }
+
+
+def add_comment(
+    project_path: Path,
+    story_id: str,
+    text: str,
+) -> dict[str, Any] | None:
+    """Append a review comment to a story's body. Returns story data or None."""
+    story_file = _find_story_file(project_path, story_id)
+    if not story_file:
+        return None
+
+    result = _read_story(story_file)
+    if not result:
+        return None
+    fm, body = result
+
+    date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    review_section = f"\n\n## Review — {date_str}\n\n{text}"
+    body = body + review_section
 
     clean = _clean_fm(fm, story_id)
     _atomic_write(story_file, _build_story_content(clean, body))

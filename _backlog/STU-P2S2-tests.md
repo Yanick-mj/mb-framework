@@ -2,7 +2,7 @@
 story_id: STU-P2S2.5
 title: Sprint 2 integration tests (drag-drop + validation)
 priority: high
-status: todo
+status: in_review
 created: 2026-05-05
 assignee: be-dev
 sprint: phase2-sprint2

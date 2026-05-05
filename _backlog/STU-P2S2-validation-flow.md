@@ -2,7 +2,7 @@
 story_id: STU-P2S2.3
 title: Validation flow (Approve / Request changes)
 priority: high
-status: todo
+status: in_review
 created: 2026-05-05
 assignee: fe-dev
 sprint: phase2-sprint2

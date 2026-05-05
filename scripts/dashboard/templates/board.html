@@ -8,11 +8,78 @@
           hx-get="/partials/{{ project.name }}/create-story"
           hx-target="#modal-container"
           hx-swap="innerHTML">+ New Story</button>
+  <div class="filter-group">
+    <span class="filter-label">Priority:</span>
+    <a class="filter-pill {{ 'active' if not priority_filter else '' }}"
+       href="/projects/{{ project.name }}/board">All</a>
+    <a class="filter-pill filter-critical {{ 'active' if priority_filter == 'critical' else '' }}"
+       href="/projects/{{ project.name }}/board?priority=critical">Critical</a>
+    <a class="filter-pill filter-high {{ 'active' if priority_filter == 'high' else '' }}"
+       href="/projects/{{ project.name }}/board?priority=high">High</a>
+    <a class="filter-pill filter-medium {{ 'active' if priority_filter == 'medium' else '' }}"
+       href="/projects/{{ project.name }}/board?priority=medium">Medium</a>
+    <a class="filter-pill filter-low {{ 'active' if priority_filter == 'low' else '' }}"
+       href="/projects/{{ project.name }}/board?priority=low">Low</a>
+  </div>
 </div>
 <div class="board-grid"
+     id="board-grid"
      hx-get="/partials/{{ project.name }}/board"
      hx-trigger="every 5s, story-changed from:body"
      hx-swap="innerHTML">
   {% include "partials/board_columns.html" %}
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
+<script>
+function initSortable() {
+  var projectName = '{{ project.name }}';
+  document.querySelectorAll('.sortable-group').forEach(function(el) {
+    if (el._sortable) el._sortable.destroy();
+    el._sortable = new Sortable(el, {
+      group: 'board',
+      animation: 200,
+      ghostClass: 'card-ghost',
+      dragClass: 'card-dragging',
+      onEnd: function(evt) {
+        var card = evt.item;
+        var storyId = card.dataset.storyId;
+        var oldStatus = evt.from.closest('.board-column').dataset.status;
+        var newStatus = evt.to.closest('.board-column').dataset.status;
+        var promises = [];
+        // Cross-column: update status
+        if (oldStatus !== newStatus) {
+          promises.push(fetch('/api/stories/' + projectName + '/' + storyId + '/status', {
+            method: 'PATCH',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({status: newStatus})
+          }));
+        }
+        // Always persist new sort order for all cards in target column
+        var cards = evt.to.querySelectorAll('.card');
+        cards.forEach(function(c, i) {
+          promises.push(fetch('/api/stories/' + projectName + '/' + c.dataset.storyId + '/reorder', {
+            method: 'PATCH',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({sort_order: i})
+          }));
+        });
+        Promise.all(promises).then(function(results) {
+          var failed = results.some(function(r) { return !r.ok; });
+          if (failed) {
+            evt.from.insertBefore(card, evt.from.children[evt.oldIndex] || null);
+          }
+          htmx.trigger(document.body, 'story-changed');
+        }).catch(function() {
+          evt.from.insertBefore(card, evt.from.children[evt.oldIndex] || null);
+        });
+      }
+    });
+  });
+}
+initSortable();
+document.body.addEventListener('htmx:afterSwap', function(e) {
+  if (e.detail.target.id === 'board-grid') initSortable();
+});
+</script>
 {% endblock %}

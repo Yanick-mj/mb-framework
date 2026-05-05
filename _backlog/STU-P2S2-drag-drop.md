@@ -2,7 +2,7 @@
 story_id: STU-P2S2.1
 title: Kanban drag-and-drop between columns
 priority: critical
-status: todo
+status: in_review
 created: 2026-05-05
 assignee: fe-dev
 sprint: phase2-sprint2

@@ -2,14 +2,15 @@
 {% set col_labels = {'backlog': 'Backlog', 'todo': 'Todo', 'in_progress': 'In Progress', 'in_review': 'Review', 'done': 'Done'} %}
 
 {% for col, stories in columns.items() %}
-<div class="board-column">
+<div class="board-column" data-status="{{ col }}">
   <div class="board-col-head">
     <div class="board-col-name"><span class="col-dot" style="background:{{ col_colors[col] }}"></span>{{ col_labels[col] }}</div>
     <span class="board-col-count">{{ stories | length }}</span>
   </div>
-  <div class="board-cards">
+  <div class="board-cards sortable-group">
     {% for s in stories %}
     <div class="card"
+         data-story-id="{{ s.story_id }}"
          hx-get="/partials/{{ project.name }}/story/{{ s.story_id }}"
          hx-target="#modal-container"
          hx-swap="innerHTML">

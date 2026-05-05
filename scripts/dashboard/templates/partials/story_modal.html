@@ -1,6 +1,14 @@
 {% from "partials/modal_shell.html" import modal %}
 {% call modal(story.story_id, story.title) %}
       <div class="sheet-actions">
+        {% if story.status == 'in_review' %}
+        <button class="btn btn-approve"
+                hx-patch="/api/stories/{{ project_name }}/{{ story.story_id }}/status"
+                hx-vals='{"status":"done"}'
+                hx-on::after-request="if(event.detail.successful){document.querySelector('.modal-overlay').remove(); htmx.trigger(document.body, 'story-changed')}">Approve</button>
+        <button class="btn btn-warn"
+                onclick="document.getElementById('review-comment-{{ story.story_id }}').style.display='block'">Request Changes</button>
+        {% endif %}
         <button class="btn btn-secondary"
                 hx-get="/partials/{{ project_name }}/edit-story/{{ story.story_id }}"
                 hx-target="#modal-container"
@@ -10,6 +18,19 @@
                 hx-confirm="Delete story {{ story.story_id }}?"
                 hx-on::after-request="if(event.detail.successful){document.querySelector('.modal-overlay').remove(); htmx.trigger(document.body, 'story-changed')}">Delete</button>
       </div>
+      {% if story.status == 'in_review' %}
+      <div id="review-comment-{{ story.story_id }}" class="review-comment-form" style="display:none">
+        <textarea id="review-text-{{ story.story_id }}" placeholder="What needs to change?" rows="3" style="width:100%;margin-bottom:8px;padding:8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;resize:vertical"></textarea>
+        <button class="btn btn-warn"
+                onclick="
+                  var text = document.getElementById('review-text-{{ story.story_id }}').value;
+                  if (!text.trim()) { alert('Please add a comment.'); return; }
+                  fetch('/api/stories/{{ project_name }}/{{ story.story_id }}/comment', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text:text})})
+                  .then(function(){return fetch('/api/stories/{{ project_name }}/{{ story.story_id }}/status', {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status:'in_progress'})})})
+                  .then(function(){document.querySelector('.modal-overlay').remove(); htmx.trigger(document.body, 'story-changed')});
+                ">Submit &amp; Request Changes</button>
+      </div>
+      {% endif %}
       <div class="sheet-meta">
         <div class="sheet-meta-item">
           <div class="ml">Priority</div>
@@ -61,4 +82,23 @@
         </ul>
       </div>
       {% endif %}
+
+      <div class="sheet-section">
+        <h3>Deliverables</h3>
+        {% if deliverables %}
+        <div class="deliverables-list">
+          {% for d in deliverables %}
+          <div class="deliverable-item"
+               hx-get="/api/stories/{{ project_name }}/{{ story.story_id }}/deliverables/{{ d.filename }}"
+               hx-target="#deliverable-content"
+               hx-swap="innerHTML">
+            <span class="deliverable-name">{{ d.filename }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        <div id="deliverable-content" class="deliverable-content"></div>
+        {% else %}
+        <p style="color:var(--text-tertiary);font-size:13px">No deliverables yet.</p>
+        {% endif %}
+      </div>
 {% endcall %}

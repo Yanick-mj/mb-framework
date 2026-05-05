@@ -2,7 +2,7 @@
 story_id: STU-P2S2.2
 title: PATCH status endpoint
 priority: critical
-status: todo
+status: in_review
 created: 2026-05-05
 assignee: be-dev
 sprint: phase2-sprint2

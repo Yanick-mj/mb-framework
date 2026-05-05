@@ -5,7 +5,7 @@ import pytest
 
 from scripts.dashboard import parsers
 from scripts.dashboard.tests.conftest import (
-    register_projects, write_story, write_backlog_story, write_runs,
+    register_projects, write_story, write_backlog_story, write_runs, write_roadmap,
 )
 
 
@@ -162,3 +162,50 @@ class TestGetInboxData:
     def test_empty_inbox(self, tmp_project):
         result = parsers.get_inbox_data(tmp_project)
         assert result["total"] == 0
+
+
+class TestGetRoadmapData:
+    def test_parses_mission(self, tmp_project):
+        write_roadmap(tmp_project, mission="Build the best thing ever.")
+        result = parsers.get_roadmap_data(tmp_project)
+        assert result["mission"] == "Build the best thing ever."
+
+    def test_parses_phases(self, tmp_project):
+        write_roadmap(tmp_project, mission="Ship it.", phases=[
+            {
+                "num": 1, "name": "Foundation", "timeframe": "weeks 1-2",
+                "goal": "Get the basics working",
+                "tracks": [["Backend", "API endpoints", "Alice"], ["Frontend", "UI components", "Bob"]],
+                "exit": "All tests green",
+            },
+            {
+                "num": 2, "name": "Polish", "timeframe": "weeks 3-4",
+                "goal": "Make it beautiful",
+                "tracks": [["Design", "Visual polish", "Carol"]],
+                "exit": "User approval",
+            },
+        ])
+        result = parsers.get_roadmap_data(tmp_project)
+        assert len(result["phases"]) == 2
+        p1 = result["phases"][0]
+        assert p1["name"] == "Foundation"
+        assert p1["goal"] == "Get the basics working"
+        assert len(p1["tracks"]) == 2
+        assert p1["tracks"][0] == {"track": "Backend", "work": "API endpoints", "owner": "Alice"}
+        assert p1["exit"] == "All tests green"
+        assert p1["current"] is True
+        p2 = result["phases"][1]
+        assert p2["current"] is False
+
+    def test_missing_roadmap_returns_empty(self, tmp_project):
+        result = parsers.get_roadmap_data(tmp_project)
+        assert result["mission"] == ""
+        assert result["phases"] == []
+        assert result["raw"] == ""
+
+    def test_fallback_raw_for_non_standard_format(self, tmp_project):
+        (tmp_project / "_roadmap.md").write_text("# My Custom Roadmap\n\nJust some freeform text.\n")
+        result = parsers.get_roadmap_data(tmp_project)
+        assert result["mission"] == ""
+        assert result["phases"] == []
+        assert "freeform text" in result["raw"]

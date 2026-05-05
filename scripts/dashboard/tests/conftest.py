@@ -89,3 +89,28 @@ def register_projects(tmp_home: Path, projects: list[dict]) -> None:
     (mb_dir / "projects.yaml").write_text(
         yaml.safe_dump({"version": 1, "projects": projects}, sort_keys=False)
     )
+
+
+def write_roadmap(root: Path, mission: str = "", phases: list[dict] | None = None) -> None:
+    """Helper: write a _roadmap.md file."""
+    lines = ["# Roadmap — Test Project", ""]
+    if mission:
+        lines += ["## Mission", "", mission, ""]
+    if phases:
+        lines += ["---", "", "## Phases", ""]
+        for p in phases:
+            lines.append(f"### Phase {p.get('num', '?')} — {p.get('name', 'Unnamed')} ({p.get('timeframe', 'TBD')})")
+            lines.append("")
+            if p.get("goal"):
+                lines.append(f"**Goal:** {p['goal']}")
+                lines.append("")
+            if p.get("tracks"):
+                lines.append("| Track | Work | Owner |")
+                lines.append("|---|---|---|")
+                for t in p["tracks"]:
+                    lines.append(f"| {t[0]} | {t[1]} | {t[2]} |")
+                lines.append("")
+            if p.get("exit"):
+                lines.append(f"**Exit criteria:** {p['exit']}")
+                lines.append("")
+    (root / "_roadmap.md").write_text("\n".join(lines))

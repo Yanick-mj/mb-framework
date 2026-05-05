@@ -187,6 +187,73 @@ def _parse_checklist(text: str) -> list[dict[str, Any]]:
     return items
 
 
+def get_roadmap_data(path: Path) -> dict[str, Any]:
+    """Parse _roadmap.md into structured roadmap data."""
+    roadmap_file = path / "_roadmap.md"
+    if not roadmap_file.exists():
+        return {"mission": "", "phases": [], "raw": ""}
+
+    text = roadmap_file.read_text()
+    mission = _extract_roadmap_mission(text)
+    phases = _extract_roadmap_phases(text)
+
+    return {
+        "mission": mission,
+        "phases": phases,
+        "raw": text if not mission and not phases else "",
+    }
+
+
+def _extract_roadmap_mission(text: str) -> str:
+    """Extract text under ## Mission header."""
+    m = re.search(r"^## Mission\s*\n(.*?)(?=^## |\Z)", text, re.MULTILINE | re.DOTALL)
+    if not m:
+        return ""
+    return m.group(1).strip().strip("<!-- -->").strip()
+
+
+def _extract_roadmap_phases(text: str) -> list[dict[str, Any]]:
+    """Extract ### Phase N sections with goal, tracks table, exit criteria."""
+    phases = []
+    pattern = r"^### Phase (\d+)\s*[—–-]\s*(.+?)(?:\(([^)]+)\))?\s*$"
+    parts = re.split(pattern, text, flags=re.MULTILINE)
+    for i in range(1, len(parts) - 3, 4):
+        num = parts[i].strip()
+        name = parts[i + 1].strip()
+        timeframe = (parts[i + 2] or "").strip()
+        body = parts[i + 3]
+
+        goal = ""
+        gm = re.search(r"\*\*Goal:\*\*\s*(.+)", body)
+        if gm:
+            goal = gm.group(1).strip()
+
+        tracks = []
+        table_rows = re.findall(r"^\|([^|]+)\|([^|]+)\|([^|]+)\|$", body, re.MULTILINE)
+        for row in table_rows:
+            cells = [c.strip() for c in row]
+            if cells[0].startswith("---") or cells[0].lower() == "track":
+                continue
+            tracks.append({"track": cells[0], "work": cells[1], "owner": cells[2]})
+
+        exit_criteria = ""
+        em = re.search(r"\*\*Exit criteria:\*\*\s*(.+)", body)
+        if em:
+            exit_criteria = em.group(1).strip()
+
+        phases.append({
+            "num": num,
+            "name": name,
+            "timeframe": timeframe,
+            "goal": goal,
+            "tracks": tracks,
+            "exit": exit_criteria,
+            "current": len(phases) == 0,
+        })
+
+    return phases
+
+
 def get_inbox_data(path: Path) -> dict[str, Any]:
     """Get actionable items: in_review + blocked + approvals."""
     from scripts.v2_2 import inbox

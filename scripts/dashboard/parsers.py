@@ -60,11 +60,13 @@ def get_stage_data(path: Path) -> dict[str, Any]:
 
 
 def get_story_stats(path: Path) -> dict[str, int]:
-    """Count stories by status using board._group_by_status()."""
-    from scripts.v2_2 import board
-    with project_context(path):
-        groups = board._group_by_status()
-    result = {col: len(stories) for col, stories in groups.items()}
+    """Count stories by status (including _backlog/)."""
+    from scripts.v2_2.board import COLUMNS
+    result: dict[str, int] = {c: 0 for c in COLUMNS}
+    for story in _scan_all_stories(path):
+        status = story.get("status")
+        if status in result:
+            result[status] += 1
     result["total"] = sum(result.values())
     return result
 

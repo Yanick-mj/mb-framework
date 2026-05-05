@@ -21,6 +21,17 @@
     <span class="ms-tracks-count">&#9654; {{ phase.tracks | length }} tracks</span>
     {% if phase.timeframe %}<span class="ms-target">{{ phase.timeframe }}</span>{% endif %}
   </div>
+  <div class="phase-sprints-line">
+    {% if phase.sprint_count > 0 %}
+    <span style="font-weight: 600;">{{ phase.sprint_count }} sprint{{ 's' if phase.sprint_count != 1 else '' }}</span>
+    <span>&bull;</span>
+    <span>{{ phase.sprint_pct }}% complete</span>
+    <div class="progress-mini"><div class="progress-mini-fill" style="width: {{ phase.sprint_pct }}%"></div></div>
+    <a href="/projects/{{ project.name }}/sprints?phase=Phase+{{ phase.num }}" style="color:var(--accent); font-weight: 600; margin-left: 4px;">View sprints &rarr;</a>
+    {% else %}
+    <span>No sprints yet</span>
+    {% endif %}
+  </div>
 </div>
 {% endfor %}
 

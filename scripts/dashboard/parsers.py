@@ -202,7 +202,7 @@ def _parse_checklist(text: str) -> list[dict[str, Any]]:
 
 
 def get_roadmap_data(path: Path) -> dict[str, Any]:
-    """Parse _roadmap.md into structured roadmap data."""
+    """Parse _roadmap.md into structured roadmap data, enriched with sprint info."""
     roadmap_file = path / "_roadmap.md"
     if not roadmap_file.exists():
         return {"mission": "", "phases": [], "raw": ""}
@@ -210,6 +210,19 @@ def get_roadmap_data(path: Path) -> dict[str, Any]:
     text = roadmap_file.read_text()
     mission = _extract_roadmap_mission(text)
     phases = _extract_roadmap_phases(text)
+
+    # Enrich phases with sprint aggregation
+    sprints_data = get_sprints_data(path)
+    for phase in phases:
+        phase_name = f"Phase {phase['num']}"
+        phase_sprints = [s for s in sprints_data if s.get("phase") == phase_name]
+        phase["sprint_count"] = len(phase_sprints)
+        if phase_sprints:
+            phase["sprint_pct"] = round(
+                sum(s["pct"] for s in phase_sprints) / len(phase_sprints)
+            )
+        else:
+            phase["sprint_pct"] = 0
 
     return {
         "mission": mission,

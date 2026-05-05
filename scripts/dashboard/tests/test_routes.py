@@ -188,3 +188,35 @@ class TestInboxPartial:
         client = TestClient(app)
         resp = client.get("/partials/demo/inbox")
         assert resp.status_code == 200
+
+
+class TestMultiProjectSwitcher:
+    def test_switcher_shows_all_projects(self, tmp_home, tmp_project):
+        register_projects(tmp_home, [
+            {"name": "alpha", "path": str(tmp_project), "stage": "mvp"},
+            {"name": "beta", "path": str(tmp_project), "stage": "scale"},
+        ])
+        client = TestClient(app)
+        resp = client.get("/projects/alpha/overview")
+        assert resp.status_code == 200
+        assert "alpha" in resp.text
+        assert "beta" in resp.text
+
+    def test_switcher_links_preserve_current_page(self, tmp_home, tmp_project):
+        register_projects(tmp_home, [
+            {"name": "alpha", "path": str(tmp_project), "stage": "mvp"},
+            {"name": "beta", "path": str(tmp_project), "stage": "scale"},
+        ])
+        client = TestClient(app)
+        resp = client.get("/projects/alpha/board")
+        assert resp.status_code == 200
+        assert "/projects/beta/board" in resp.text
+
+    def test_single_project_no_dropdown(self, tmp_home, tmp_project):
+        register_projects(tmp_home, [
+            {"name": "solo", "path": str(tmp_project), "stage": "mvp"},
+        ])
+        client = TestClient(app)
+        resp = client.get("/projects/solo/overview")
+        assert resp.status_code == 200
+        assert 'class="project-dropdown"' not in resp.text

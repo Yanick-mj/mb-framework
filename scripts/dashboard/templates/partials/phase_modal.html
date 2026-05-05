@@ -1,0 +1,30 @@
+{% from "partials/modal_shell.html" import modal %}
+{% call modal('CURRENT' if phase.current else 'NEXT', 'Phase ' + phase.num + ' — ' + phase.name) %}
+      {% if phase.goal %}
+      <div class="sheet-section">
+        <h3>Goal</h3>
+        <p>{{ phase.goal }}{% if phase.timeframe %} ({{ phase.timeframe }}){% endif %}</p>
+      </div>
+      {% endif %}
+
+      {% if phase.tracks %}
+      <div class="sheet-section">
+        <h3>Tracks</h3>
+        <table class="tracks-table">
+          <thead><tr><th>Track</th><th>Work</th><th>Owner</th></tr></thead>
+          <tbody>
+            {% for t in phase.tracks %}
+            <tr><td>{{ t.track }}</td><td>{{ t.work }}</td><td>{{ t.owner }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+
+      {% if phase.exit %}
+      <div class="sheet-section">
+        <h3>Exit criteria</h3>
+        <p>{{ phase.exit }}</p>
+      </div>
+      {% endif %}
+{% endcall %}

@@ -160,7 +160,20 @@ def partial_inbox_count(name: str):
 def partial_roadmap(request: Request, name: str):
     path = _get_project_path(name)
     return templates.TemplateResponse(request, "partials/roadmap_content.html", context={
+        "project": {"name": name},
         "roadmap": parsers.get_roadmap_data(path),
+    })
+
+
+@app.get("/partials/{name}/phase/{idx}", response_class=HTMLResponse)
+def partial_phase_modal(request: Request, name: str, idx: int):
+    path = _get_project_path(name)
+    data = parsers.get_roadmap_data(path)
+    phases = data.get("phases", [])
+    if idx < 0 or idx >= len(phases):
+        raise HTTPException(404, f"Phase {idx} not found")
+    return templates.TemplateResponse(request, "partials/phase_modal.html", context={
+        "phase": phases[idx],
     })
 
 

@@ -688,17 +688,48 @@ main {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 24px 28px;
+  padding: 20px 24px;
   margin-bottom: 12px;
   box-shadow: var(--shadow-sm);
   transition: all 0.15s;
+  cursor: pointer;
+}
+.milestone-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  border-color: var(--border-strong);
 }
 .milestone-card.current-ms {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-light), var(--shadow-sm);
 }
+.milestone-card.current-ms:hover {
+  box-shadow: 0 0 0 3px var(--accent-light), var(--shadow-md);
+}
 .milestone-card.next-ms {
   opacity: 0.55;
+}
+.milestone-card.next-ms:hover {
+  opacity: 0.8;
+}
+.ms-summary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+.ms-summary .ms-tracks-count {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.ms-summary .ms-target {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  background: var(--bg-inset);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
 }
 .milestone-tag {
   font-family: var(--font-mono);
@@ -720,9 +751,9 @@ main {
   margin-bottom: 6px;
 }
 .milestone-card > p {
-  font-size: 14px;
-  color: var(--text-secondary);
-  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--text-tertiary);
+  margin-top: 4px;
   line-height: 1.5;
 }
 .tracks-table {

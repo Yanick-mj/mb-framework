@@ -1,0 +1,16 @@
+{% macro modal(tag, title) %}
+<div class="modal-overlay open" onclick="if(event.target===this){this.remove()}">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-sheet-header">
+      <div>
+        <div class="sheet-id">{{ tag }}</div>
+        <h2>{{ title }}</h2>
+      </div>
+      <button class="sheet-close" onclick="this.closest('.modal-overlay').remove()">&times;</button>
+    </div>
+    <div class="sheet-body">
+      {{ caller() }}
+    </div>
+  </div>
+</div>
+{% endmacro %}

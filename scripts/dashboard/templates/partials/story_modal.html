@@ -1,13 +1,5 @@
-<div class="modal-overlay open" onclick="if(event.target===this){this.remove()}">
-  <div class="modal-sheet" onclick="event.stopPropagation()">
-    <div class="modal-sheet-header">
-      <div>
-        <div class="sheet-id">{{ story.story_id }}</div>
-        <h2>{{ story.title }}</h2>
-      </div>
-      <button class="sheet-close" onclick="this.closest('.modal-overlay').remove()">&times;</button>
-    </div>
-    <div class="sheet-body">
+{% from "partials/modal_shell.html" import modal %}
+{% call modal(story.story_id, story.title) %}
       <div class="sheet-meta">
         <div class="sheet-meta-item">
           <div class="ml">Priority</div>
@@ -52,6 +44,4 @@
         </ul>
       </div>
       {% endif %}
-    </div>
-  </div>
-</div>
+{% endcall %}

@@ -1,6 +1,20 @@
-<div class="stats-grid">
-  <div class="stat-card"><span class="stat-value">{{ stats.total }}</span><span class="stat-label">Total</span></div>
-  <div class="stat-card"><span class="stat-value">{{ stats.in_progress }}</span><span class="stat-label">In Progress</span></div>
-  <div class="stat-card"><span class="stat-value">{{ stats.get("blocked", 0) }}</span><span class="stat-label">Blocked</span></div>
-  <div class="stat-card"><span class="stat-value">{{ stats.done }}</span><span class="stat-label">Done</span></div>
+<div class="stat-card">
+  <div class="stat-label">Total stories</div>
+  <div class="stat-number">{{ stats.total }}</div>
+  <div class="stat-sub">across {{ stats | length - 1 }} statuses</div>
+</div>
+<div class="stat-card">
+  <div class="stat-label">In progress</div>
+  <div class="stat-number" style="color:var(--orange)">{{ stats.in_progress }}</div>
+  <div class="stat-sub">active right now</div>
+</div>
+<div class="stat-card">
+  <div class="stat-label">In review</div>
+  <div class="stat-number" style="color:var(--purple)">{{ stats.in_review }}</div>
+  <div class="stat-sub">awaiting review</div>
+</div>
+<div class="stat-card">
+  <div class="stat-label">Done</div>
+  <div class="stat-number" style="color:var(--teal)">{{ stats.done }}</div>
+  <div class="stat-sub">completed</div>
 </div>

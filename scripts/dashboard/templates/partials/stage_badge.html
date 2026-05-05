@@ -1,1 +1,4 @@
-<span class="stage-badge stage-{{ stage.stage }}">{{ stage.stage }}</span>
+<div class="stage-pill {{ stage.stage }}"><span class="dot"></span> {{ stage.stage }}</div>
+{% if stage.since %}
+<div class="stage-next">Since <strong>{{ stage.since }}</strong></div>
+{% endif %}

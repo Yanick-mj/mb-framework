@@ -1,11 +1,29 @@
+{% set col_colors = {'backlog': 'var(--text-quaternary)', 'todo': 'var(--blue)', 'in_progress': 'var(--orange)', 'in_review': 'var(--purple)', 'done': 'var(--teal)'} %}
+{% set col_labels = {'backlog': 'Backlog', 'todo': 'Todo', 'in_progress': 'In Progress', 'in_review': 'Review', 'done': 'Done'} %}
+
 {% for col, stories in columns.items() %}
 <div class="board-column">
-  <h3>{{ col | upper }} <span class="count">{{ stories | length }}</span></h3>
-  {% for s in stories %}
-  <div class="story-card" hx-get="/partials/{{ project.name }}/story/{{ s.story_id }}" hx-target="#modal-container" hx-swap="innerHTML">
-    <span class="story-id">{{ s.story_id }}</span>
-    <span class="story-title">{{ s.title }}</span>
+  <div class="board-col-head">
+    <div class="board-col-name"><span class="col-dot" style="background:{{ col_colors[col] }}"></span>{{ col_labels[col] }}</div>
+    <span class="board-col-count">{{ stories | length }}</span>
   </div>
-  {% endfor %}
+  <div class="board-cards">
+    {% for s in stories %}
+    <div class="card"
+         hx-get="/partials/{{ project.name }}/story/{{ s.story_id }}"
+         hx-target="#modal-container"
+         hx-swap="innerHTML">
+      <div class="card-id">{{ s.story_id }}</div>
+      <div class="card-title">{{ s.title }}</div>
+      <div class="card-footer">
+        {% set prio_colors = {'critical': 'var(--red)', 'high': 'var(--orange)', 'medium': 'var(--blue)', 'low': 'var(--text-tertiary)'} %}
+        <span class="card-priority" style="background:{{ prio_colors.get(s.priority, 'var(--blue)') }}"></span>
+        {% for label in s.labels %}
+        <span class="tag">{{ label }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
 </div>
 {% endfor %}

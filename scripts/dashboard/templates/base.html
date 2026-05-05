@@ -2,12 +2,100 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>mb-dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/style.css">
   <script src="https://unpkg.com/htmx.org@2.0.4"></script>
 </head>
 <body>
-  {% block content %}{% endblock %}
-  <div id="modal-container"></div>
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <aside>
+    <div class="sidebar-logo">
+      <div class="logo-mark">mb</div>
+      <span class="logo-text">dashboard</span>
+    </div>
+
+    <div class="project-switcher">
+      <div class="project-current">
+        <div class="project-avatar" style="background:var(--{{ project.stage }}-bg, var(--bg-inset));color:var(--{{ project.stage }}, var(--text-primary))">{{ project.name[0] | upper }}</div>
+        <div class="project-info">
+          <div class="project-name">{{ project.name }}</div>
+          <div class="project-stage-label" style="color:var(--{{ project.stage }}, var(--text-tertiary))">{{ project.stage }}</div>
+        </div>
+      </div>
+      {% if projects | length > 1 %}
+      <div class="project-dropdown" id="project-dropdown">
+        {% for p in projects %}
+        <a class="project-option {{ 'active' if p.name == project.name else '' }}" href="/projects/{{ p.name }}/{{ current_page }}">
+          <div class="project-avatar" style="background:var(--{{ p.stage }}-bg, var(--bg-inset));color:var(--{{ p.stage }}, var(--text-primary));width:28px;height:28px;font-size:12px;border-radius:6px">{{ p.name[0] | upper }}</div>
+          <div>
+            <div style="font-weight:600;font-size:13px">{{ p.name }}</div>
+            <div style="font-family:var(--font-mono);font-size:11px;color:var(--{{ p.stage }}, var(--text-tertiary))">{{ p.stage }}</div>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <a class="sidebar-item {{ 'active' if current_page == 'overview' else '' }}" href="/projects/{{ project.name }}/overview">
+      <span class="icon">&#9673;</span> Overview
+    </a>
+    <a class="sidebar-item {{ 'active' if current_page == 'board' else '' }}" href="/projects/{{ project.name }}/board">
+      <span class="icon">&#9638;</span> Board
+    </a>
+    <a class="sidebar-item" href="/projects/{{ project.name }}/overview">
+      <span class="icon">&#9993;</span> Inbox
+      <span class="badge" hx-get="/partials/{{ project.name }}/inbox-count" hx-trigger="every 5s" hx-swap="innerHTML">{{ inbox_count }}</span>
+    </a>
+
+    <div class="sidebar-footer">
+      <div class="live-indicator">
+        <span class="live-dot"></span>
+        Auto-refresh 5s
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-area">
+    <div class="topbar">
+      <h1>{% block page_title %}Dashboard{% endblock %}</h1>
+      <p>{% block page_subtitle %}{% endblock %}</p>
+    </div>
+
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+
+<div id="modal-container"></div>
+
+<script>
+// Project dropdown toggle
+const switcher = document.querySelector('.project-current');
+const dropdown = document.getElementById('project-dropdown');
+if (switcher && dropdown) {
+  switcher.addEventListener('click', () => dropdown.classList.toggle('open'));
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.project-switcher')) dropdown.classList.remove('open');
+  });
+}
+
+// Modal: close on Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const modal = document.getElementById('modal-container');
+    if (modal) modal.innerHTML = '';
+  }
+});
+</script>
 </body>
 </html>

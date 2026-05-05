@@ -1,4 +1,27 @@
 {% extends "base.html" %}
+{% block page_title %}Overview{% endblock %}
+{% block page_subtitle %}Project health at a glance{% endblock %}
+
 {% block content %}
-<div>{{ stage.stage }}</div>
+<div class="stage-header"
+     hx-get="/partials/{{ project.name }}/stage"
+     hx-trigger="every 5s"
+     hx-swap="innerHTML">
+  {% include "partials/stage_badge.html" %}
+</div>
+
+<div class="stats-row"
+     hx-get="/partials/{{ project.name }}/stats"
+     hx-trigger="every 5s"
+     hx-swap="innerHTML">
+  {% include "partials/stats_grid.html" %}
+</div>
+
+<div class="section-label">Recent agent runs</div>
+<div class="runs-card"
+     hx-get="/partials/{{ project.name }}/runs"
+     hx-trigger="every 5s"
+     hx-swap="innerHTML">
+  {% include "partials/runs_table.html" %}
+</div>
 {% endblock %}

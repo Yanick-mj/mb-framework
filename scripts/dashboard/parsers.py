@@ -8,9 +8,13 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
+import re
+
 import yaml
 
 from scripts.v2_2 import _paths
+
+_FRONTMATTER_RE = re.compile(r"^---\r?\n(.*?)\r?\n---", re.DOTALL)
 
 
 @contextmanager
@@ -54,3 +58,53 @@ def get_story_stats(path: Path) -> dict[str, int]:
     result = {col: len(stories) for col, stories in groups.items()}
     result["total"] = sum(result.values())
     return result
+
+
+def _parse_frontmatter(text: str) -> dict:
+    m = _FRONTMATTER_RE.match(text)
+    if not m:
+        return {}
+    try:
+        data = yaml.safe_load(m.group(1)) or {}
+    except yaml.YAMLError:
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def _scan_all_stories(path: Path) -> list[dict]:
+    """Scan both _bmad-output stories and _backlog for story files."""
+    stories = []
+    stories_dir = path / "_bmad-output" / "implementation-artifacts" / "stories"
+    if stories_dir.exists():
+        for f in sorted(stories_dir.glob("*.md")):
+            fm = _parse_frontmatter(f.read_text())
+            if fm:
+                fm.setdefault("labels", [])
+                fm["_path"] = str(f)
+                stories.append(fm)
+    backlog_dir = path / "_backlog"
+    if backlog_dir.exists():
+        for f in sorted(backlog_dir.glob("*.md")):
+            fm = _parse_frontmatter(f.read_text())
+            if fm and fm.get("story_id"):
+                fm.setdefault("labels", [])
+                fm["_path"] = str(f)
+                stories.append(fm)
+    return stories
+
+
+def get_board_data(path: Path) -> dict[str, list[dict]]:
+    """Group stories into kanban columns with enriched card data."""
+    from scripts.v2_2.board import COLUMNS
+    groups: dict[str, list[dict]] = {c: [] for c in COLUMNS}
+    for story in _scan_all_stories(path):
+        status = story.get("status")
+        if status in groups:
+            groups[status].append({
+                "story_id": story.get("story_id", "?"),
+                "title": story.get("title", ""),
+                "status": status,
+                "priority": story.get("priority", "medium"),
+                "labels": story.get("labels") or [],
+            })
+    return groups

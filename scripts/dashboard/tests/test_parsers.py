@@ -4,7 +4,9 @@ from pathlib import Path
 import pytest
 
 from scripts.dashboard import parsers
-from scripts.dashboard.tests.conftest import register_projects, write_story
+from scripts.dashboard.tests.conftest import (
+    register_projects, write_story, write_backlog_story,
+)
 
 
 class TestProjectContext:
@@ -71,3 +73,32 @@ class TestGetStoryStats:
     def test_empty_project(self, tmp_project):
         result = parsers.get_story_stats(tmp_project)
         assert result["total"] == 0
+
+
+class TestGetBoardData:
+    def test_returns_enriched_stories_by_column(self, tmp_project):
+        write_story(tmp_project, "S1", "todo", "My Title", "high", ["frontend"])
+        result = parsers.get_board_data(tmp_project)
+        assert "todo" in result
+        assert len(result["todo"]) == 1
+        card = result["todo"][0]
+        assert card["story_id"] == "S1"
+        assert card["title"] == "My Title"
+        assert card["priority"] == "high"
+        assert card["labels"] == ["frontend"]
+
+    def test_includes_backlog_dir_stories(self, tmp_project):
+        write_backlog_story(tmp_project, "B1", "backlog", "Backlog Item")
+        result = parsers.get_board_data(tmp_project)
+        assert len(result["backlog"]) == 1
+        assert result["backlog"][0]["story_id"] == "B1"
+
+    def test_empty_project_returns_empty_columns(self, tmp_project):
+        result = parsers.get_board_data(tmp_project)
+        for col in ["backlog", "todo", "in_progress", "in_review", "done"]:
+            assert result[col] == []
+
+    def test_stories_without_labels_get_empty_list(self, tmp_project):
+        write_story(tmp_project, "S1", "todo", "No Labels")
+        card = parsers.get_board_data(tmp_project)["todo"][0]
+        assert card["labels"] == []

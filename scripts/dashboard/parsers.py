@@ -16,6 +16,8 @@ import yaml
 
 from scripts.v2_2 import _paths
 
+STORIES_SUBPATH = Path("_bmad-output") / "implementation-artifacts" / "stories"
+
 _FRONTMATTER_RE = re.compile(r"^---\r?\n(.*?)\r?\n---", re.DOTALL)
 
 
@@ -85,7 +87,7 @@ def _parse_frontmatter(text: str) -> dict:
 def _scan_all_stories(path: Path) -> list[dict]:
     """Scan both _bmad-output stories and _backlog for story files."""
     stories = []
-    stories_dir = path / "_bmad-output" / "implementation-artifacts" / "stories"
+    stories_dir = path / STORIES_SUBPATH
     if stories_dir.exists():
         for f in sorted(stories_dir.glob("*.md")):
             fm = _parse_frontmatter(f.read_text())

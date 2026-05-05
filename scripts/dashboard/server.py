@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
 
 from fastapi import FastAPI, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -228,17 +227,23 @@ class UpdateStoryRequest(BaseModel):
     status: str | None = None
 
 
+def _do_create(name: str, title: str, description: str, priority: str, status: str) -> dict:
+    path = _get_project_path(name)
+    return crud.create_story(project_path=path, title=title, description=description,
+                             priority=priority, status=status)
+
+
+def _do_update(name: str, story_id: str, updates: dict) -> dict:
+    path = _get_project_path(name)
+    result = crud.update_story(path, story_id, updates)
+    if result is None:
+        raise HTTPException(404, f"Story '{story_id}' not found")
+    return result
+
+
 @app.post("/api/stories/{name}", status_code=201)
 def api_create_story(name: str, body: CreateStoryRequest):
-    path = _get_project_path(name)
-    result = crud.create_story(
-        project_path=path,
-        title=body.title,
-        description=body.description,
-        priority=body.priority,
-        status=body.status,
-    )
-    return result
+    return _do_create(name, body.title, body.description, body.priority, body.status)
 
 
 @app.post("/api/stories/{name}/form", status_code=201, response_class=HTMLResponse)
@@ -249,21 +254,13 @@ def api_create_story_form(
     priority: str = Form("medium"),
     status: str = Form("todo"),
 ):
-    """Form-encoded create (used by HTMX forms)."""
-    path = _get_project_path(name)
-    crud.create_story(project_path=path, title=title, description=description,
-                      priority=priority, status=status)
+    _do_create(name, title, description, priority, status)
     return HTMLResponse("")
 
 
 @app.put("/api/stories/{name}/{story_id}")
 def api_update_story(name: str, story_id: str, body: UpdateStoryRequest):
-    path = _get_project_path(name)
-    updates = body.model_dump(exclude_none=True)
-    result = crud.update_story(path, story_id, updates)
-    if result is None:
-        raise HTTPException(404, f"Story '{story_id}' not found")
-    return result
+    return _do_update(name, story_id, body.model_dump(exclude_none=True))
 
 
 @app.post("/api/stories/{name}/{story_id}/form", response_class=HTMLResponse)
@@ -275,13 +272,9 @@ def api_update_story_form(
     priority: str = Form(None),
     status: str = Form(None),
 ):
-    """Form-encoded update (used by HTMX forms)."""
-    path = _get_project_path(name)
     updates = {k: v for k, v in {"title": title, "description": description,
                "priority": priority, "status": status}.items() if v is not None}
-    result = crud.update_story(path, story_id, updates)
-    if result is None:
-        raise HTTPException(404, f"Story '{story_id}' not found")
+    _do_update(name, story_id, updates)
     return HTMLResponse("")
 
 

@@ -1,7 +1,6 @@
-"""CRUD operations for stories with atomic writes and file locking."""
+"""CRUD operations for stories with atomic writes."""
 from __future__ import annotations
 
-import fcntl
 import os
 import tempfile
 import uuid
@@ -10,11 +9,11 @@ from typing import Any
 
 import yaml
 
-from scripts.dashboard.parsers import _parse_frontmatter
+from scripts.dashboard.parsers import STORIES_SUBPATH, _parse_frontmatter
 
 
 def _stories_dir(project_path: Path) -> Path:
-    d = project_path / "_bmad-output" / "implementation-artifacts" / "stories"
+    d = project_path / STORIES_SUBPATH
     d.mkdir(parents=True, exist_ok=True)
     return d
 
@@ -24,36 +23,34 @@ def _generate_story_id() -> str:
 
 
 def _atomic_write(path: Path, content: str) -> None:
-    """Write content to path atomically using temp file + rename."""
+    """Write atomically via temp file + rename (POSIX atomic on same FS)."""
     fd, tmp_path = tempfile.mkstemp(
         dir=str(path.parent), suffix=".tmp", prefix=".story_"
     )
     try:
         with os.fdopen(fd, "w") as f:
-            fcntl.flock(f, fcntl.LOCK_EX)
             f.write(content)
             f.flush()
             os.fsync(f.fileno())
-            fcntl.flock(f, fcntl.LOCK_UN)
         os.rename(tmp_path, str(path))
     except Exception:
-        if os.path.exists(tmp_path):
+        try:
             os.unlink(tmp_path)
+        except FileNotFoundError:
+            pass
         raise
 
 
-def _build_story_content(fm: dict, description: str = "") -> str:
+def _build_story_content(fm: dict, body: str = "") -> str:
     """Build markdown content with frontmatter + body."""
-    lines = ["---"]
-    lines.append(yaml.safe_dump(fm, sort_keys=False).rstrip())
-    lines.append("---")
-    lines.append("")
-    if description:
-        lines.append("## Description")
-        lines.append("")
-        lines.append(description)
-        lines.append("")
-    return "\n".join(lines) + "\n"
+    parts = ["---", yaml.safe_dump(fm, sort_keys=False).rstrip(), "---", ""]
+    if body:
+        parts += [body, ""]
+    return "\n".join(parts) + "\n"
+
+
+def _to_description_body(description: str) -> str:
+    return f"## Description\n\n{description}" if description else ""
 
 
 def create_story(
@@ -74,7 +71,7 @@ def create_story(
         "priority": priority,
     }
 
-    content = _build_story_content(fm, description)
+    content = _build_story_content(fm, _to_description_body(description))
     _atomic_write(d / f"{story_id}.md", content)
 
     return {
@@ -87,25 +84,47 @@ def create_story(
 
 
 def _find_story_file(project_path: Path, story_id: str) -> Path | None:
-    """Find a story file by story_id across all locations."""
-    # Check stories dir (exact match first)
-    d = _stories_dir(project_path)
-    exact = d / f"{story_id}.md"
-    if exact.exists():
-        return exact
-    # Scan stories dir for matching frontmatter
-    for f in d.glob("*.md"):
-        fm = _parse_frontmatter(f.read_text())
-        if fm.get("story_id") == story_id:
-            return f
-    # Check backlog dir
-    backlog = project_path / "_backlog"
-    if backlog.exists():
-        for f in backlog.glob("*.md"):
-            fm = _parse_frontmatter(f.read_text())
-            if fm.get("story_id") == story_id:
-                return f
+    """Find a story file by story_id across all locations.
+
+    Fast path: exact filename match. Fallback: frontmatter scan.
+    """
+    for directory in (_stories_dir(project_path), project_path / "_backlog"):
+        exact = directory / f"{story_id}.md"
+        if exact.exists():
+            return exact
+        if directory.exists():
+            for f in directory.glob("*.md"):
+                fm = _parse_frontmatter(f.read_text())
+                if fm.get("story_id") == story_id:
+                    return f
     return None
+
+
+def _read_story(story_file: Path) -> tuple[dict, str] | None:
+    """Read a story file and return (frontmatter, body) or None."""
+    try:
+        text = story_file.read_text()
+    except FileNotFoundError:
+        return None
+    fm = _parse_frontmatter(text)
+    if not fm:
+        return None
+    parts = text.split("---", 2)
+    body = parts[2].strip() if len(parts) >= 3 else ""
+    return fm, body
+
+
+def _clean_fm(fm: dict, story_id: str) -> dict:
+    """Extract only the known frontmatter fields."""
+    clean = {
+        "story_id": fm.get("story_id", story_id),
+        "title": fm.get("title", ""),
+        "status": fm.get("status", "todo"),
+        "priority": fm.get("priority", "medium"),
+    }
+    if fm.get("labels"):
+        clean["labels"] = fm["labels"]
+    return clean
 
 
 def update_story(
@@ -115,57 +134,25 @@ def update_story(
 ) -> dict[str, Any] | None:
     """Update an existing story. Returns updated data or None if not found."""
     story_file = _find_story_file(project_path, story_id)
-
     if not story_file:
         return None
 
-    text = story_file.read_text()
-    fm = _parse_frontmatter(text)
-    if not fm:
+    result = _read_story(story_file)
+    if not result:
         return None
+    fm, body = result
 
-    # Extract body (everything after frontmatter)
-    body = ""
-    parts = text.split("---", 2)
-    if len(parts) >= 3:
-        body = parts[2].strip()
-
-    # Apply updates to frontmatter fields
     for key in ("title", "priority", "status"):
         if key in updates:
             fm[key] = updates[key]
 
-    # Handle description update
     if "description" in updates:
-        body = f"## Description\n\n{updates['description']}"
+        body = _to_description_body(updates["description"])
 
-    # Rebuild content
-    lines = ["---"]
-    # Only keep known fields in frontmatter
-    clean_fm = {
-        "story_id": fm.get("story_id", story_id),
-        "title": fm.get("title", ""),
-        "status": fm.get("status", "todo"),
-        "priority": fm.get("priority", "medium"),
-    }
-    if fm.get("labels"):
-        clean_fm["labels"] = fm["labels"]
-    lines.append(yaml.safe_dump(clean_fm, sort_keys=False).rstrip())
-    lines.append("---")
-    lines.append("")
-    if body:
-        lines.append(body)
-        lines.append("")
+    clean = _clean_fm(fm, story_id)
+    _atomic_write(story_file, _build_story_content(clean, body))
 
-    content = "\n".join(lines) + "\n"
-    _atomic_write(story_file, content)
-
-    return {
-        "story_id": clean_fm["story_id"],
-        "title": clean_fm["title"],
-        "status": clean_fm["status"],
-        "priority": clean_fm["priority"],
-    }
+    return {k: clean[k] for k in ("story_id", "title", "status", "priority")}
 
 
 def delete_story(
@@ -174,12 +161,13 @@ def delete_story(
 ) -> dict[str, Any] | None:
     """Delete a story file. Returns its data before deletion or None if not found."""
     story_file = _find_story_file(project_path, story_id)
-
     if not story_file:
         return None
 
-    text = story_file.read_text()
-    fm = _parse_frontmatter(text)
+    result = _read_story(story_file)
+    if not result:
+        return None
+    fm, _ = result
 
     story_file.unlink()
 

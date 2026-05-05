@@ -88,6 +88,22 @@ def roadmap(request: Request, name: str):
     })
 
 
+@app.get("/projects/{name}/inbox", response_class=HTMLResponse)
+def inbox_page(request: Request, name: str):
+    project = _resolve_project(name)
+    if not project:
+        raise HTTPException(404, f"Project '{name}' not found")
+    path = Path(project["path"])
+    inbox_data = parsers.get_inbox_data(path)
+    return templates.TemplateResponse(request, "inbox.html", context={
+        "project": project,
+        "inbox": inbox_data,
+        "projects": parsers.load_projects(),
+        "current_page": "inbox",
+        "inbox_count": inbox_data["total"],
+    })
+
+
 # --- Partial routes (HTMX fragments) ---
 
 
@@ -120,6 +136,15 @@ def partial_board(request: Request, name: str):
     path = _get_project_path(name)
     return templates.TemplateResponse(request, "partials/board_columns.html", context={
         "columns": parsers.get_board_data(path),
+        "project": {"name": name},
+    })
+
+
+@app.get("/partials/{name}/inbox", response_class=HTMLResponse)
+def partial_inbox(request: Request, name: str):
+    path = _get_project_path(name)
+    return templates.TemplateResponse(request, "partials/inbox_items.html", context={
+        "inbox": parsers.get_inbox_data(path),
         "project": {"name": name},
     })
 

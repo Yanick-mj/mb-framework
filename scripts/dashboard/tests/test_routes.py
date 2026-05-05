@@ -151,3 +151,40 @@ class TestRoadmapPartial:
         resp = client.get("/partials/demo/roadmap")
         assert resp.status_code == 200
         assert "Foundation" in resp.text
+
+
+class TestInboxPage:
+    def test_returns_200_with_items(self, tmp_home, tmp_project):
+        register_projects(tmp_home, [
+            {"name": "demo", "path": str(tmp_project), "stage": "mvp"},
+        ])
+        write_story(tmp_project, "S1", "in_review", "Review This")
+        client = TestClient(app)
+        resp = client.get("/projects/demo/inbox")
+        assert resp.status_code == 200
+        assert "Review This" in resp.text or "in_review" in resp.text.lower()
+
+    def test_empty_inbox_returns_200(self, tmp_home, tmp_project):
+        register_projects(tmp_home, [
+            {"name": "demo", "path": str(tmp_project), "stage": "mvp"},
+        ])
+        client = TestClient(app)
+        resp = client.get("/projects/demo/inbox")
+        assert resp.status_code == 200
+        assert "clear" in resp.text.lower() or "nothing" in resp.text.lower()
+
+    def test_unknown_project_returns_404(self, tmp_home):
+        client = TestClient(app)
+        resp = client.get("/projects/nope/inbox")
+        assert resp.status_code == 404
+
+
+class TestInboxPartial:
+    def test_inbox_partial(self, tmp_home, tmp_project):
+        register_projects(tmp_home, [
+            {"name": "demo", "path": str(tmp_project), "stage": "mvp"},
+        ])
+        write_story(tmp_project, "S1", "blocked", "Stuck Item")
+        client = TestClient(app)
+        resp = client.get("/partials/demo/inbox")
+        assert resp.status_code == 200

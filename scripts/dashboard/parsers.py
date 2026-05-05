@@ -17,6 +17,7 @@ import yaml
 from scripts.v2_2 import _paths
 
 STORIES_SUBPATH = Path("_bmad-output") / "implementation-artifacts" / "stories"
+SPRINTS_SUBPATH = Path("_sprints")
 
 _FRONTMATTER_RE = re.compile(r"^---\r?\n(.*?)\r?\n---", re.DOTALL)
 
@@ -309,3 +310,72 @@ def get_inbox_data(path: Path) -> dict[str, Any]:
         "approvals": approvals,
         "total": len(in_review) + len(blocked) + len(approvals),
     }
+
+
+def load_sprints(path: Path) -> list[dict[str, Any]]:
+    """Load all sprint YAML files, sorted by start_date."""
+    sprint_dir = path / SPRINTS_SUBPATH
+    if not sprint_dir.exists():
+        return []
+    sprints = []
+    for f in sorted(sprint_dir.glob("*.yaml")):
+        try:
+            data = yaml.safe_load(f.read_text())
+        except yaml.YAMLError:
+            continue
+        if not isinstance(data, dict) or "id" not in data:
+            continue
+        sprints.append(data)
+    sprints.sort(key=lambda s: str(s.get("start_date", "")))
+    return sprints
+
+
+def get_sprint(path: Path, sprint_id: str) -> dict[str, Any] | None:
+    """Load a single sprint by ID with resolved story objects."""
+    for sprint in load_sprints(path):
+        if sprint["id"] == sprint_id:
+            stories_index = {s["story_id"]: s for s in _scan_all_stories(path)}
+            resolved = []
+            for sid in sprint.get("stories", []):
+                if sid in stories_index:
+                    s = stories_index[sid]
+                    resolved.append({
+                        "story_id": s.get("story_id"),
+                        "title": s.get("title", ""),
+                        "status": s.get("status", "unknown"),
+                        "priority": s.get("priority", "medium"),
+                        "labels": s.get("labels", []),
+                    })
+                else:
+                    resolved.append({
+                        "story_id": sid,
+                        "title": sid,
+                        "status": "unknown",
+                        "priority": "medium",
+                        "labels": [],
+                    })
+            sprint["resolved_stories"] = resolved
+            return sprint
+    return None
+
+
+def get_sprints_data(path: Path) -> list[dict[str, Any]]:
+    """Load sprints with computed completion %, active sprint first."""
+    stories_index = {s["story_id"]: s for s in _scan_all_stories(path)}
+    sprints = load_sprints(path)
+    result = []
+    for s in sprints:
+        story_ids = s.get("stories", [])
+        done = sum(1 for sid in story_ids
+                   if stories_index.get(sid, {}).get("status") == "done")
+        total = len(story_ids)
+        result.append({
+            **s,
+            "done_count": done,
+            "total_count": total,
+            "pct": round(done * 100 / total) if total else 0,
+        })
+    active = [s for s in result if s["status"] == "active"]
+    rest = [s for s in result if s["status"] != "active"]
+    rest.sort(key=lambda x: str(x.get("start_date", "")), reverse=True)
+    return active + rest

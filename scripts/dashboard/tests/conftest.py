@@ -110,6 +110,26 @@ def stories_dir(tmp_project):
     return d
 
 
+def write_sprint(root: Path, sprint_id: str, name: str, goal: str,
+                 status: str = "planned", phase: str = "Phase 1",
+                 start_date: str = "2026-05-01", end_date: str = "2026-05-03",
+                 stories: list[str] | None = None) -> None:
+    """Helper: write a sprint YAML file to _sprints/."""
+    d = root / "_sprints"
+    d.mkdir(parents=True, exist_ok=True)
+    data = {
+        "id": sprint_id,
+        "name": name,
+        "goal": goal,
+        "start_date": start_date,
+        "end_date": end_date,
+        "status": status,
+        "phase": phase,
+        "stories": stories or [],
+    }
+    (d / f"{sprint_id}.yaml").write_text(yaml.safe_dump(data, sort_keys=False))
+
+
 def write_roadmap(root: Path, mission: str = "", phases: list[dict] | None = None) -> None:
     """Helper: write a _roadmap.md file."""
     lines = ["# Roadmap — Test Project", ""]

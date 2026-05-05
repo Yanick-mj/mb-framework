@@ -433,3 +433,68 @@ def api_close_sprint(name: str, sprint_id: str):
             raise HTTPException(404, f"Sprint '{sprint_id}' not found")
         raise HTTPException(400, "Sprint is already closed")
     return result
+
+
+class CreateSprintRequest(BaseModel):
+    name: str
+    goal: str
+    start_date: str
+    end_date: str
+    phase: str
+    status: str = "planned"
+
+
+class AddStoryToSprintRequest(BaseModel):
+    story_id: str
+
+
+@app.post("/api/sprints/{name}", status_code=201)
+def api_create_sprint(name: str, body: CreateSprintRequest):
+    path = _get_project_path(name)
+    return crud.create_sprint(path, name=body.name, goal=body.goal,
+                              start_date=body.start_date, end_date=body.end_date,
+                              phase=body.phase, status=body.status)
+
+
+@app.post("/api/sprints/{name}/form", status_code=201, response_class=HTMLResponse)
+def api_create_sprint_form(
+    name: str,
+    form_name: str = Form(..., alias="name"),
+    goal: str = Form(...),
+    start_date: str = Form(...),
+    end_date: str = Form(...),
+    phase: str = Form(...),
+):
+    path = _get_project_path(name)
+    crud.create_sprint(path, name=form_name, goal=goal,
+                       start_date=start_date, end_date=end_date, phase=phase)
+    return HTMLResponse("", status_code=201)
+
+
+@app.post("/api/sprints/{name}/{sprint_id}/stories")
+def api_add_story_to_sprint(name: str, sprint_id: str, body: AddStoryToSprintRequest):
+    path = _get_project_path(name)
+    result = crud.add_story_to_sprint(path, sprint_id, body.story_id)
+    if result is None:
+        raise HTTPException(404, f"Sprint '{sprint_id}' not found")
+    return result
+
+
+@app.delete("/api/sprints/{name}/{sprint_id}/stories/{story_id}")
+def api_remove_story_from_sprint(name: str, sprint_id: str, story_id: str):
+    path = _get_project_path(name)
+    result = crud.remove_story_from_sprint(path, sprint_id, story_id)
+    if result is None:
+        raise HTTPException(404, f"Sprint '{sprint_id}' not found")
+    return result
+
+
+@app.get("/partials/{name}/create-sprint", response_class=HTMLResponse)
+def partial_create_sprint_form(request: Request, name: str):
+    path = _get_project_path(name)
+    roadmap = parsers.get_roadmap_data(path)
+    phases = [f"Phase {p['num']}" for p in roadmap.get("phases", [])]
+    return templates.TemplateResponse(request, "partials/create_sprint_form.html", context={
+        "project_name": name,
+        "phases": phases,
+    })

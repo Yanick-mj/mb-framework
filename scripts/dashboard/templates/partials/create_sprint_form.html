@@ -1,0 +1,41 @@
+{% from "partials/modal_shell.html" import modal %}
+{% call modal('NEW', 'New Sprint') %}
+<form hx-post="/api/sprints/{{ project_name }}/form"
+      hx-target="#modal-container"
+      hx-swap="innerHTML"
+      hx-on::after-request="if(event.detail.successful){document.querySelector('.modal-overlay').remove(); htmx.trigger(document.body, 'sprint-changed')}">
+  <div class="form-group">
+    <label>Name</label>
+    <input type="text" name="name" placeholder="e.g. Phase 2 — Chat UI" required>
+  </div>
+  <div class="form-group">
+    <label>Goal</label>
+    <input type="text" name="goal" placeholder="What does this sprint deliver?" required>
+  </div>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Start Date</label>
+      <input type="date" name="start_date" required>
+    </div>
+    <div class="form-group">
+      <label>End Date</label>
+      <input type="date" name="end_date" required>
+    </div>
+  </div>
+  <div class="form-group">
+    <label>Phase</label>
+    <select name="phase">
+      {% for p in phases %}
+      <option value="{{ p }}">{{ p }}</option>
+      {% endfor %}
+      {% if not phases %}
+      <option value="Phase 1">Phase 1</option>
+      {% endif %}
+    </select>
+  </div>
+  <div class="form-actions">
+    <button type="button" class="btn" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+    <button type="submit" class="btn btn-primary">Create Sprint</button>
+  </div>
+</form>
+{% endcall %}

@@ -100,6 +100,63 @@ Otherwise, stay solo-focus.
 
 **Exit criteria:** User can run /mb:feature from dashboard and watch agent output live
 
+### Phase 4 — Lightweight Multi-User Collaboration
+
+**Goal:** Enable multiple team members to work simultaneously without conflict
+
+| Track | Work | Owner |
+|---|---|---|
+| Backend | User identity (X-mb-User header), optimistic locking, activity log | TBD |
+| Frontend | Presence indicators, edit annotations, conflict resolution UI | TBD |
+
+**Exit criteria:** Two users can edit stories concurrently without data loss
+
+### Phase 5 — Export & Integrations
+
+**Goal:** Connect the AI-driven workflow with external tools already used by the team
+
+| Track | Work | Owner |
+|---|---|---|
+| Backend | Jira/Linear/GitHub export, Slack notifications, webhooks | TBD |
+| Frontend | One-click export buttons, integration settings page | TBD |
+
+**Exit criteria:** Story exported to Linear in one click, Slack notified on stage upgrade
+
+### Phase 6 — Advanced Analytics & Automation
+
+**Goal:** Surface team-level metrics and automate stage-gate progression
+
+| Track | Work | Owner |
+|---|---|---|
+| Analytics | DORA metrics, stage-gate analytics, agent performance scoring | TBD |
+| Automation | Auto stage-upgrades when criteria met, custom dashboard widgets | TBD |
+
+**Exit criteria:** Dashboard shows lead time + deployment frequency, auto-upgrade triggers work
+
+### Phase 7 — AI Team Intelligence & Skill Evolution
+
+**Goal:** Self-improving multi-agent system with trainable principles and culture packs
+
+| Track | Work | Owner |
+|---|---|---|
+| Engine | Principle cards, multi-agent roundtable mediator | TBD |
+| Culture | Culture packs (Telegram, Apple, SpaceX), UI selector | TBD |
+| Training | Scoring pipeline, preference datasets, DPO fine-tuning | TBD |
+
+**Exit criteria:** Team can switch culture pack from dashboard, roundtable produces better artifacts than sequential pipeline
+
+### Beta — External Team Release
+
+**Goal:** Other product teams can use mb-dashboard without local setup
+
+| Track | Work | Owner |
+|---|---|---|
+| Auth | Email/password registration, workspace isolation | TBD |
+| Onboarding | Project import (Git clone, ZIP), new project wizard | TBD |
+| Infra | Docker compose, centralised hosting option | TBD |
+
+**Exit criteria:** External team creates account, imports project, uses dashboard without assistance
+
 ---
 
 ## Decisions log

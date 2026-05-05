@@ -12,11 +12,28 @@ mb() {
     ""|help|-h|--help)
       echo "mb <name>  — cd to project and launch claude"
       echo "mb list    — list registered projects"
+      echo "mb dashboard — launch browser dashboard on localhost:5111"
       echo "mb help    — this message"
       return 0
       ;;
     list)
       python3 "$py"
+      return 0
+      ;;
+    dashboard)
+      shift
+      local port="${MB_DASHBOARD_PORT:-5111}"
+      if [[ "$1" == "--port" && -n "$2" ]]; then
+        port="$2"
+        shift 2
+      fi
+      PYTHONPATH="$mb_repo" python3 -m scripts.dashboard --port "$port" &
+      local pid=$!
+      sleep 1
+      python3 -m webbrowser "http://localhost:$port" 2>/dev/null
+      echo "mb-dashboard running on http://localhost:$port (PID: $pid)"
+      echo "Press Ctrl+C to stop."
+      wait $pid
       return 0
       ;;
     *)

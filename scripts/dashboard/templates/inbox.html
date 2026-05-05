@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block page_title %}Inbox{% endblock %}
+{% block page_subtitle %}Items that need attention{% endblock %}
+
+{% block content %}
+<div hx-get="/partials/{{ project.name }}/inbox"
+     hx-trigger="every 5s"
+     hx-swap="innerHTML">
+  {% include "partials/inbox_items.html" %}
+</div>
+{% endblock %}

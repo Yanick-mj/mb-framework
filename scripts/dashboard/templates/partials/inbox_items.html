@@ -1,0 +1,65 @@
+{% if inbox.total == 0 %}
+<div class="inbox-empty-state">
+  <div class="empty-icon">&#9745;</div>
+  <p>Inbox clear — nothing needs your attention right now.</p>
+</div>
+{% else %}
+
+{% if inbox.in_review %}
+<div class="inbox-group">
+  <div class="inbox-group-head">
+    <div class="gh-icon" style="background:var(--orange-light);color:var(--orange)">&#9679;</div>
+    <h2>In Review</h2>
+    <span class="gh-count">{{ inbox.in_review | length }}</span>
+  </div>
+  {% for s in inbox.in_review %}
+  <div class="inbox-row"
+       hx-get="/partials/{{ project.name }}/story/{{ s.story_id }}"
+       hx-target="#modal-container"
+       hx-swap="innerHTML">
+    <span class="row-id">{{ s.story_id }}</span>
+    <span class="row-title">{{ s.title or s.story_id }}</span>
+    <span class="row-badge" style="background:var(--orange-light);color:var(--orange)">{{ s.priority or 'medium' }}</span>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if inbox.blocked %}
+<div class="inbox-group">
+  <div class="inbox-group-head">
+    <div class="gh-icon" style="background:var(--red-light);color:var(--red)">&#9632;</div>
+    <h2>Blocked</h2>
+    <span class="gh-count">{{ inbox.blocked | length }}</span>
+  </div>
+  {% for s in inbox.blocked %}
+  <div class="inbox-row"
+       hx-get="/partials/{{ project.name }}/story/{{ s.story_id }}"
+       hx-target="#modal-container"
+       hx-swap="innerHTML">
+    <span class="row-id">{{ s.story_id }}</span>
+    <span class="row-title">{{ s.title or s.story_id }}</span>
+    <span class="row-badge" style="background:var(--red-light);color:var(--red)">{{ s.priority or 'medium' }}</span>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if inbox.approvals %}
+<div class="inbox-group">
+  <div class="inbox-group-head">
+    <div class="gh-icon" style="background:var(--teal-light);color:var(--teal)">&#9201;</div>
+    <h2>Approvals pending</h2>
+    <span class="gh-count">{{ inbox.approvals | length }}</span>
+  </div>
+  {% for a in inbox.approvals %}
+  <div class="inbox-row">
+    <span class="row-id">{{ a._name or 'approve' }}</span>
+    <span class="row-title">{{ a.title or a._name or 'Pending approval' }}</span>
+    <span class="row-badge" style="background:var(--teal-light);color:var(--teal)">pending</span>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% endif %}

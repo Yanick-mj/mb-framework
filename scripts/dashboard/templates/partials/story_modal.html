@@ -1,0 +1,57 @@
+<div class="modal-overlay open" onclick="if(event.target===this){this.remove()}">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-sheet-header">
+      <div>
+        <div class="sheet-id">{{ story.story_id }}</div>
+        <h2>{{ story.title }}</h2>
+      </div>
+      <button class="sheet-close" onclick="this.closest('.modal-overlay').remove()">&times;</button>
+    </div>
+    <div class="sheet-body">
+      <div class="sheet-meta">
+        <div class="sheet-meta-item">
+          <div class="ml">Priority</div>
+          <div class="mv">{{ story.priority }}</div>
+        </div>
+        <div class="sheet-meta-item">
+          <div class="ml">Status</div>
+          <div class="mv">{{ story.status }}</div>
+        </div>
+        {% if story.created %}
+        <div class="sheet-meta-item">
+          <div class="ml">Created</div>
+          <div class="mv">{{ story.created }}</div>
+        </div>
+        {% endif %}
+      </div>
+
+      {% if story.sections.why %}
+      <div class="sheet-section">
+        <h3>Why</h3>
+        <p>{{ story.sections.why }}</p>
+      </div>
+      {% endif %}
+
+      {% if story.sections.scope %}
+      <div class="sheet-section">
+        <h3>Scope</h3>
+        <p>{{ story.sections.scope }}</p>
+      </div>
+      {% endif %}
+
+      {% if story.sections.acceptance_criteria %}
+      <div class="sheet-section">
+        <h3>Acceptance criteria</h3>
+        <ul>
+          {% for item in story.sections.acceptance_criteria %}
+          <li>
+            <span class="check {{ 'done' if item.done else 'todo' }}">{% if item.done %}&#10003;{% endif %}</span>
+            {{ item.text }}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>

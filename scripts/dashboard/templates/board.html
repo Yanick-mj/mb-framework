@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block page_title %}Board{% endblock %}
+{% block page_subtitle %}Stories by status{% endblock %}
+
+{% block content %}
+<div class="board-grid"
+     hx-get="/partials/{{ project.name }}/board"
+     hx-trigger="every 5s"
+     hx-swap="innerHTML">
+  {% include "partials/board_columns.html" %}
+</div>
+{% endblock %}

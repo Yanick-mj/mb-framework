@@ -57,3 +57,93 @@ class TestSprintsPartial:
     def test_404_unknown_project(self, client):
         resp = client.get("/partials/nope/sprints")
         assert resp.status_code == 404
+
+
+class TestSprintDetailPage:
+    def test_returns_200(self, client, tmp_project):
+        write_sprint(tmp_project, "sprint-1", "Sprint", "Goal", status="active")
+        resp = client.get("/projects/demo/sprints/sprint-1")
+        assert resp.status_code == 200
+
+    def test_shows_sprint_name_and_goal(self, client, tmp_project):
+        write_sprint(tmp_project, "sprint-1", "My Sprint", "Build great things",
+                     status="active")
+        resp = client.get("/projects/demo/sprints/sprint-1")
+        assert "My Sprint" in resp.text
+        assert "Build great things" in resp.text
+
+    def test_shows_stat_cards(self, client, tmp_project):
+        write_story(tmp_project, "S1", "done", "Done Story")
+        write_story(tmp_project, "S2", "in_progress", "WIP Story")
+        write_sprint(tmp_project, "sprint-1", "Sprint", "Goal",
+                     status="active", stories=["S1", "S2"])
+        resp = client.get("/projects/demo/sprints/sprint-1")
+        assert "stat-card" in resp.text or "stat-label" in resp.text
+
+    def test_shows_stories_in_board_view(self, client, tmp_project):
+        write_story(tmp_project, "S1", "done", "Done One")
+        write_story(tmp_project, "S2", "todo", "Todo One")
+        write_sprint(tmp_project, "sprint-1", "Sprint", "Goal",
+                     status="active", stories=["S1", "S2"])
+        resp = client.get("/projects/demo/sprints/sprint-1")
+        assert "board-column" in resp.text
+        assert "Done One" in resp.text
+        assert "Todo One" in resp.text
+
+    def test_stories_have_modal_link(self, client, tmp_project):
+        write_story(tmp_project, "S1", "todo", "Clickable Story")
+        write_sprint(tmp_project, "sprint-1", "Sprint", "Goal",
+                     status="active", stories=["S1"])
+        resp = client.get("/projects/demo/sprints/sprint-1")
+        assert "/partials/demo/story/S1" in resp.text
+
+    def test_active_sprint_has_close_button(self, client, tmp_project):
+        write_sprint(tmp_project, "sprint-1", "Sprint", "Goal", status="active")
+        resp = client.get("/projects/demo/sprints/sprint-1")
+        assert "Close Sprint" in resp.text
+
+    def test_closed_sprint_no_close_button(self, client, tmp_project):
+        write_sprint(tmp_project, "sprint-1", "Sprint", "Goal", status="closed")
+        resp = client.get("/projects/demo/sprints/sprint-1")
+        assert "Close Sprint" not in resp.text
+
+    def test_closed_sprint_shows_completed_banner(self, client, tmp_project):
+        write_sprint(tmp_project, "sprint-1", "Sprint", "Goal",
+                     status="closed", end_date="2026-05-06")
+        resp = client.get("/projects/demo/sprints/sprint-1")
+        assert "completed" in resp.text.lower() or "Completed" in resp.text
+
+    def test_has_board_list_toggle(self, client, tmp_project):
+        write_sprint(tmp_project, "sprint-1", "Sprint", "Goal", status="active")
+        resp = client.get("/projects/demo/sprints/sprint-1")
+        assert "view-toggle" in resp.text
+
+    def test_breadcrumb_links_to_sprints(self, client, tmp_project):
+        write_sprint(tmp_project, "sprint-1", "Sprint", "Goal", status="active")
+        resp = client.get("/projects/demo/sprints/sprint-1")
+        assert "/projects/demo/sprints" in resp.text
+
+    def test_404_unknown_sprint(self, client, tmp_project):
+        resp = client.get("/projects/demo/sprints/nope")
+        assert resp.status_code == 404
+
+    def test_404_unknown_project(self, client):
+        resp = client.get("/projects/nope/sprints/sprint-1")
+        assert resp.status_code == 404
+
+
+class TestCloseSprintAPI:
+    def test_close_sprint(self, client, tmp_project):
+        write_sprint(tmp_project, "sprint-1", "Sprint", "Goal", status="active")
+        resp = client.post("/api/sprints/demo/sprint-1/close")
+        assert resp.status_code == 200
+        assert resp.json()["status"] == "closed"
+
+    def test_close_sprint_404_unknown(self, client, tmp_project):
+        resp = client.post("/api/sprints/demo/nope/close")
+        assert resp.status_code == 404
+
+    def test_close_already_closed_returns_400(self, client, tmp_project):
+        write_sprint(tmp_project, "sprint-1", "Sprint", "Goal", status="closed")
+        resp = client.post("/api/sprints/demo/sprint-1/close")
+        assert resp.status_code == 400

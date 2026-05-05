@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block page_title %}{{ sprint.name }}{% endblock %}
+{% block page_subtitle %}<a href="/projects/{{ project.name }}/sprints" style="color:var(--accent)">Sprints</a> / {{ sprint.id }}{% endblock %}
+
+{% block content %}
+{% if sprint.status == 'closed' %}
+<div class="completed-banner">&#10003; Sprint completed on {{ sprint.end_date }}</div>
+{% endif %}
+
+<!-- Header card -->
+<div class="sprint-detail-header {{ 'closed' if sprint.status == 'closed' else '' }}">
+  <div class="sprint-detail-top">
+    <div>
+      <span class="sprint-status-pill {{ sprint.status }}" style="display:inline-flex">{{ sprint.status }}</span>
+      <span class="phase-tag" style="margin-left:8px">{{ sprint.phase }}</span>
+    </div>
+    {% if sprint.status == 'active' %}
+    <button class="btn btn-danger"
+            hx-post="/api/sprints/{{ project.name }}/{{ sprint.id }}/close"
+            hx-confirm="Close this sprint?"
+            hx-swap="none"
+            hx-on::after-request="if(event.detail.successful) location.reload()">Close Sprint</button>
+    {% endif %}
+  </div>
+  <div class="sprint-goal" style="font-size:15px">{{ sprint.goal }}</div>
+  <div class="sprint-detail-dates">
+    <span>Start: <span class="mono">{{ sprint.start_date }}</span></span>
+    <span>End: <span class="mono">{{ sprint.end_date }}</span></span>
+  </div>
+</div>
+
+<!-- Stat cards -->
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-label">Total stories</div>
+    <div class="stat-number">{{ stats.total }}</div>
+    <div class="stat-sub">in this sprint</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Done</div>
+    <div class="stat-number" style="color:var(--teal)">{{ stats.done }}</div>
+    <div class="stat-sub">completed</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">In progress</div>
+    <div class="stat-number" style="color:var(--orange)">{{ stats.in_progress }}</div>
+    <div class="stat-sub">being worked on</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Todo</div>
+    <div class="stat-number" style="color:var(--accent)">{{ stats.todo }}</div>
+    <div class="stat-sub">remaining</div>
+  </div>
+</div>
+
+<!-- View toggle -->
+<div class="detail-toolbar">
+  <div class="section-label" style="margin-bottom:0">Stories</div>
+  <div class="view-toggle">
+    <button class="view-toggle-btn active" onclick="toggleView('board', this)">Board</button>
+    <button class="view-toggle-btn" onclick="toggleView('list', this)">List</button>
+  </div>
+</div>
+
+<!-- Board view -->
+<div id="view-board" class="detail-view">
+  {% set col_meta = {
+    'backlog': {'label': 'Backlog', 'dot': 'var(--text-quaternary)'},
+    'todo': {'label': 'Todo', 'dot': 'var(--blue)'},
+    'in_progress': {'label': 'In Progress', 'dot': 'var(--orange)'},
+    'in_review': {'label': 'Review', 'dot': 'var(--purple)'},
+    'done': {'label': 'Done', 'dot': 'var(--teal)'}
+  } %}
+  {% set priority_colors = {'critical': 'var(--red)', 'high': 'var(--orange)', 'medium': 'var(--blue)', 'low': 'var(--text-tertiary)'} %}
+  <div class="board-grid">
+    {% for col_key in ['backlog', 'todo', 'in_progress', 'in_review', 'done'] %}
+    <div class="board-column">
+      <div class="board-col-head">
+        <div class="board-col-name">
+          <span class="col-dot" style="background:{{ col_meta[col_key].dot }}"></span>
+          {{ col_meta[col_key].label }}
+        </div>
+        <span class="board-col-count">{{ board[col_key] | length }}</span>
+      </div>
+      <div class="board-cards">
+        {% for s in board[col_key] %}
+        <div class="card"
+             hx-get="/partials/{{ project.name }}/story/{{ s.story_id }}"
+             hx-target="#modal-container"
+             hx-swap="innerHTML">
+          <div class="card-id">{{ s.story_id }}</div>
+          <div class="card-title">{{ s.title }}</div>
+          <div class="card-footer">
+            <span class="card-priority" style="background:{{ priority_colors.get(s.priority, 'var(--blue)') }}"></span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- List view -->
+<div id="view-list" class="detail-view" style="display:none">
+  {% set priority_colors = {'critical': 'var(--red)', 'high': 'var(--orange)', 'medium': 'var(--blue)', 'low': 'var(--text-tertiary)'} %}
+  <div class="story-groups">
+    {% for col_key in ['done', 'in_review', 'in_progress', 'todo', 'backlog'] %}
+    {% if board[col_key] %}
+    <div>
+      <div class="story-group-header">
+        <span class="col-dot" style="background:{{ col_meta[col_key].dot }}"></span>
+        <h3>{{ col_meta[col_key].label }}</h3>
+        <span class="count">{{ board[col_key] | length }}</span>
+      </div>
+      {% for s in board[col_key] %}
+      <div class="story-row"
+           hx-get="/partials/{{ project.name }}/story/{{ s.story_id }}"
+           hx-target="#modal-container"
+           hx-swap="innerHTML">
+        <span class="row-id">{{ s.story_id }}</span>
+        <span class="row-title">{{ s.title }}</span>
+        <span class="row-priority" style="background:{{ priority_colors.get(s.priority, 'var(--blue)') }}"></span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+function toggleView(view, btn) {
+  document.getElementById('view-board').style.display = view === 'board' ? '' : 'none';
+  document.getElementById('view-list').style.display = view === 'list' ? '' : 'none';
+  btn.parentElement.querySelectorAll('.view-toggle-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+</script>
+{% endblock %}

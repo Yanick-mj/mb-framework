@@ -111,6 +111,39 @@ def sprints_page(request: Request, name: str, phase: str | None = None):
     })
 
 
+@app.get("/projects/{name}/sprints/{sprint_id}", response_class=HTMLResponse)
+def sprint_detail(request: Request, name: str, sprint_id: str):
+    project = _resolve_project(name)
+    if not project:
+        raise HTTPException(404, f"Project '{name}' not found")
+    path = Path(project["path"])
+    sprint = parsers.get_sprint(path, sprint_id)
+    if not sprint:
+        raise HTTPException(404, f"Sprint '{sprint_id}' not found")
+    from scripts.v2_2.board import COLUMNS
+    board = {c: [] for c in COLUMNS}
+    for story in sprint["resolved_stories"]:
+        status = story.get("status", "backlog")
+        if status in board:
+            board[status].append(story)
+    stories = sprint["resolved_stories"]
+    stats = {
+        "total": len(stories),
+        "done": sum(1 for s in stories if s["status"] == "done"),
+        "in_progress": sum(1 for s in stories if s["status"] == "in_progress"),
+        "todo": sum(1 for s in stories if s["status"] in ("todo", "backlog")),
+    }
+    return templates.TemplateResponse(request, "sprint_detail.html", context={
+        "project": project,
+        "sprint": sprint,
+        "board": board,
+        "stats": stats,
+        "projects": parsers.load_projects(),
+        "current_page": "sprints",
+        "inbox_count": parsers.get_inbox_data(path)["total"],
+    })
+
+
 @app.get("/projects/{name}/inbox", response_class=HTMLResponse)
 def inbox_page(request: Request, name: str):
     project = _resolve_project(name)
@@ -384,4 +417,19 @@ def api_delete_story(name: str, story_id: str):
     result = crud.delete_story(path, story_id)
     if result is None:
         raise HTTPException(404, f"Story '{story_id}' not found")
+    return result
+
+
+# --- Sprint API routes ---
+
+
+@app.post("/api/sprints/{name}/{sprint_id}/close")
+def api_close_sprint(name: str, sprint_id: str):
+    path = _get_project_path(name)
+    result = crud.close_sprint(path, sprint_id)
+    if result is None:
+        sprint_file = path / "_sprints" / f"{sprint_id}.yaml"
+        if not sprint_file.exists():
+            raise HTTPException(404, f"Sprint '{sprint_id}' not found")
+        raise HTTPException(400, "Sprint is already closed")
     return result

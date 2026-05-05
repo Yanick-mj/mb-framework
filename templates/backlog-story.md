@@ -4,7 +4,7 @@
 story_id: STU-XXX
 title: Short sentence describing the work
 priority: high
-created: 2026-04-19
+created: YYYY-MM-DD
 ---
 
 # <title>

@@ -48,7 +48,7 @@ def _roadmap_path() -> Path:
 
 def _parse_frontmatter(text: str) -> dict:
     """Extract the YAML frontmatter block. Returns {} if missing or invalid."""
-    m = re.match(r"^---\n(.*?)\n---", text, re.DOTALL)
+    m = re.match(r"^---\r?\n(.*?)\r?\n---", text, re.DOTALL)
     if not m:
         return {}
     try:
@@ -161,7 +161,7 @@ def read_roadmap() -> str:
             "No _roadmap.md at project root yet.\n"
             "Create one from .claude/mb/templates/roadmap.md"
         )
-    return p.read_text()
+    return p.read_text(encoding="utf-8")
 
 
 if __name__ == "__main__":

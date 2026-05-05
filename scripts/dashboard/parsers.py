@@ -162,7 +162,7 @@ def get_story_detail(path: Path, story_id: str) -> dict[str, Any] | None:
 def _parse_sections(text: str) -> dict[str, Any]:
     """Extract Why, Scope, Acceptance criteria from story body."""
     body = re.sub(r"^---.*?---\s*", "", text, flags=re.DOTALL)
-    sections: dict[str, Any] = {"why": "", "scope": "", "acceptance_criteria": []}
+    sections: dict[str, Any] = {"why": "", "scope": "", "description": "", "acceptance_criteria": []}
     parts = re.split(r"^## (.+)$", body, flags=re.MULTILINE)
     for i in range(1, len(parts) - 1, 2):
         header = parts[i].strip().lower()
@@ -171,6 +171,8 @@ def _parse_sections(text: str) -> dict[str, Any]:
             sections["why"] = content
         elif "scope" in header:
             sections["scope"] = content
+        elif "description" in header:
+            sections["description"] = content
         elif "acceptance" in header or "criteria" in header:
             sections["acceptance_criteria"] = _parse_checklist(content)
     return sections

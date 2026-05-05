@@ -1,0 +1,44 @@
+{% from "partials/modal_shell.html" import modal %}
+{% call modal(story.story_id, "Edit Story") %}
+<form hx-post="/api/stories/{{ project_name }}/{{ story.story_id }}/form"
+      hx-target="#modal-container"
+      hx-swap="innerHTML"
+      hx-on::after-request="if(event.detail.successful){this.closest('.modal-overlay').remove(); htmx.trigger(document.body, 'story-changed')}"
+      class="edit-story-form">
+
+  <div class="form-group">
+    <label for="title">Title</label>
+    <input type="text" name="title" id="title" value="{{ story.title }}" required>
+  </div>
+
+  <div class="form-group">
+    <label for="description">Description</label>
+    <textarea name="description" id="description" rows="4">{{ story.sections.description or story.sections.why or story.sections.scope or '' }}</textarea>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label for="priority">Priority</label>
+      <select name="priority" id="priority">
+        {% for p in ['low', 'medium', 'high', 'critical'] %}
+        <option value="{{ p }}" {{ 'selected' if story.priority == p else '' }}>{{ p|capitalize }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="status">Status</label>
+      <select name="status" id="status">
+        {% for s in ['backlog', 'todo', 'in_progress', 'in_review', 'done'] %}
+        <option value="{{ s }}" {{ 'selected' if story.status == s else '' }}>{{ s|replace('_', ' ')|capitalize }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button type="button" class="btn btn-secondary" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+    <button type="submit" class="btn btn-primary">Save Changes</button>
+  </div>
+</form>
+{% endcall %}

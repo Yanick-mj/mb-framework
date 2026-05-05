@@ -2,13 +2,15 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
 
-from scripts.dashboard import parsers
+from scripts.dashboard import crud, parsers
 
 _HERE = Path(__file__).resolve().parent
 
@@ -185,4 +187,108 @@ def partial_story_modal(request: Request, name: str, story_id: str):
         raise HTTPException(404, f"Story '{story_id}' not found")
     return templates.TemplateResponse(request, "partials/story_modal.html", context={
         "story": detail,
+        "project_name": name,
     })
+
+
+@app.get("/partials/{name}/create-story", response_class=HTMLResponse)
+def partial_create_story_form(request: Request, name: str):
+    _get_project_path(name)  # validates project exists
+    return templates.TemplateResponse(request, "partials/create_story_form.html", context={
+        "project_name": name,
+    })
+
+
+@app.get("/partials/{name}/edit-story/{story_id}", response_class=HTMLResponse)
+def partial_edit_story_form(request: Request, name: str, story_id: str):
+    path = _get_project_path(name)
+    detail = parsers.get_story_detail(path, story_id)
+    if not detail:
+        raise HTTPException(404, f"Story '{story_id}' not found")
+    return templates.TemplateResponse(request, "partials/edit_story_form.html", context={
+        "project_name": name,
+        "story": detail,
+    })
+
+
+# --- CRUD API routes ---
+
+
+class CreateStoryRequest(BaseModel):
+    title: str
+    description: str = ""
+    priority: str = "medium"
+    status: str = "todo"
+
+
+class UpdateStoryRequest(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    priority: str | None = None
+    status: str | None = None
+
+
+@app.post("/api/stories/{name}", status_code=201)
+def api_create_story(name: str, body: CreateStoryRequest):
+    path = _get_project_path(name)
+    result = crud.create_story(
+        project_path=path,
+        title=body.title,
+        description=body.description,
+        priority=body.priority,
+        status=body.status,
+    )
+    return result
+
+
+@app.post("/api/stories/{name}/form", status_code=201, response_class=HTMLResponse)
+def api_create_story_form(
+    name: str,
+    title: str = Form(...),
+    description: str = Form(""),
+    priority: str = Form("medium"),
+    status: str = Form("todo"),
+):
+    """Form-encoded create (used by HTMX forms)."""
+    path = _get_project_path(name)
+    crud.create_story(project_path=path, title=title, description=description,
+                      priority=priority, status=status)
+    return HTMLResponse("")
+
+
+@app.put("/api/stories/{name}/{story_id}")
+def api_update_story(name: str, story_id: str, body: UpdateStoryRequest):
+    path = _get_project_path(name)
+    updates = body.model_dump(exclude_none=True)
+    result = crud.update_story(path, story_id, updates)
+    if result is None:
+        raise HTTPException(404, f"Story '{story_id}' not found")
+    return result
+
+
+@app.post("/api/stories/{name}/{story_id}/form", response_class=HTMLResponse)
+def api_update_story_form(
+    name: str,
+    story_id: str,
+    title: str = Form(None),
+    description: str = Form(None),
+    priority: str = Form(None),
+    status: str = Form(None),
+):
+    """Form-encoded update (used by HTMX forms)."""
+    path = _get_project_path(name)
+    updates = {k: v for k, v in {"title": title, "description": description,
+               "priority": priority, "status": status}.items() if v is not None}
+    result = crud.update_story(path, story_id, updates)
+    if result is None:
+        raise HTTPException(404, f"Story '{story_id}' not found")
+    return HTMLResponse("")
+
+
+@app.delete("/api/stories/{name}/{story_id}")
+def api_delete_story(name: str, story_id: str):
+    path = _get_project_path(name)
+    result = crud.delete_story(path, story_id)
+    if result is None:
+        raise HTTPException(404, f"Story '{story_id}' not found")
+    return result

@@ -1,5 +1,15 @@
 {% from "partials/modal_shell.html" import modal %}
 {% call modal(story.story_id, story.title) %}
+      <div class="sheet-actions">
+        <button class="btn btn-secondary"
+                hx-get="/partials/{{ project_name }}/edit-story/{{ story.story_id }}"
+                hx-target="#modal-container"
+                hx-swap="innerHTML">Edit</button>
+        <button class="btn btn-danger"
+                hx-delete="/api/stories/{{ project_name }}/{{ story.story_id }}"
+                hx-confirm="Delete story {{ story.story_id }}?"
+                hx-on::after-request="if(event.detail.successful){document.querySelector('.modal-overlay').remove(); htmx.trigger(document.body, 'story-changed')}">Delete</button>
+      </div>
       <div class="sheet-meta">
         <div class="sheet-meta-item">
           <div class="ml">Priority</div>
@@ -16,6 +26,13 @@
         </div>
         {% endif %}
       </div>
+
+      {% if story.sections.description %}
+      <div class="sheet-section">
+        <h3>Description</h3>
+        <p>{{ story.sections.description }}</p>
+      </div>
+      {% endif %}
 
       {% if story.sections.why %}
       <div class="sheet-section">

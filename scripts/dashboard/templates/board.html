@@ -3,9 +3,15 @@
 {% block page_subtitle %}Stories by status{% endblock %}
 
 {% block content %}
+<div class="board-toolbar">
+  <button class="btn btn-primary"
+          hx-get="/partials/{{ project.name }}/create-story"
+          hx-target="#modal-container"
+          hx-swap="innerHTML">+ New Story</button>
+</div>
 <div class="board-grid"
      hx-get="/partials/{{ project.name }}/board"
-     hx-trigger="every 5s"
+     hx-trigger="every 5s, story-changed from:body"
      hx-swap="innerHTML">
   {% include "partials/board_columns.html" %}
 </div>

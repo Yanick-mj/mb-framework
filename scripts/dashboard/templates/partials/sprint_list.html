@@ -1,0 +1,27 @@
+{% if sprints %}
+{% for s in sprints %}
+<div class="sprint-card {{ 'active-sprint' if s.status == 'active' else '' }} {{ 'closed-sprint' if s.status == 'closed' else '' }}"
+     onclick="window.location='/projects/{{ project.name }}/sprints/{{ s.id }}'">
+  <div class="sprint-card-header">
+    <h3>{{ s.name }}</h3>
+    <span class="sprint-status-pill {{ s.status }}">{{ s.status }}</span>
+  </div>
+  <div class="sprint-goal">{{ s.goal }}</div>
+  <div class="sprint-card-meta">
+    <span class="mono">{{ s.start_date }} — {{ s.end_date }}</span>
+    <span class="phase-tag">{{ s.phase }}</span>
+    <span>{{ s.done_count }} / {{ s.total_count }} stories</span>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill {{ s.status }}" style="width: {{ s.pct }}%"></div>
+    </div>
+    <span class="mono">{{ s.pct }}%</span>
+  </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">&#9776;</div>
+  <h3>No sprints yet</h3>
+  <p>Create your first sprint to start tracking progress.</p>
+</div>
+{% endif %}

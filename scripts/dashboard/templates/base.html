@@ -50,6 +50,9 @@
     <a class="sidebar-item {{ 'active' if current_page == 'board' else '' }}" href="/projects/{{ project.name }}/board">
       <span class="icon">&#9638;</span> Board
     </a>
+    <a class="sidebar-item {{ 'active' if current_page == 'sprints' else '' }}" href="/projects/{{ project.name }}/sprints">
+      <span class="icon">&#9776;</span> Sprints
+    </a>
     <a class="sidebar-item {{ 'active' if current_page == 'roadmap' else '' }}" href="/projects/{{ project.name }}/roadmap">
       <span class="icon">&#9656;</span> Roadmap
     </a>

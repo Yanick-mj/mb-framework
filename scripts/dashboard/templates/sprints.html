@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block page_title %}Sprints{% endblock %}
+{% block page_subtitle %}Track sprint progress and velocity{% endblock %}
+
+{% block content %}
+<div class="board-toolbar">
+  <button class="btn btn-primary"
+          hx-get="/partials/{{ project.name }}/create-sprint"
+          hx-target="#modal-container"
+          hx-swap="innerHTML">+ New Sprint</button>
+</div>
+<div class="sprint-list"
+     hx-get="/partials/{{ project.name }}/sprints"
+     hx-trigger="every 5s"
+     hx-swap="innerHTML">
+  {% include "partials/sprint_list.html" %}
+</div>
+{% endblock %}

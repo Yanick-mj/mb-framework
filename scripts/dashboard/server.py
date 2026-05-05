@@ -92,6 +92,25 @@ def roadmap(request: Request, name: str):
     })
 
 
+@app.get("/projects/{name}/sprints", response_class=HTMLResponse)
+def sprints_page(request: Request, name: str, phase: str | None = None):
+    project = _resolve_project(name)
+    if not project:
+        raise HTTPException(404, f"Project '{name}' not found")
+    path = Path(project["path"])
+    sprints = parsers.get_sprints_data(path)
+    if phase:
+        sprints = [s for s in sprints if s.get("phase") == phase]
+    return templates.TemplateResponse(request, "sprints.html", context={
+        "project": project,
+        "sprints": sprints,
+        "projects": parsers.load_projects(),
+        "current_page": "sprints",
+        "inbox_count": parsers.get_inbox_data(path)["total"],
+        "phase_filter": phase or "",
+    })
+
+
 @app.get("/projects/{name}/inbox", response_class=HTMLResponse)
 def inbox_page(request: Request, name: str):
     project = _resolve_project(name)
@@ -166,6 +185,15 @@ def partial_roadmap(request: Request, name: str):
     return templates.TemplateResponse(request, "partials/roadmap_content.html", context={
         "project": {"name": name},
         "roadmap": parsers.get_roadmap_data(path),
+    })
+
+
+@app.get("/partials/{name}/sprints", response_class=HTMLResponse)
+def partial_sprints(request: Request, name: str):
+    path = _get_project_path(name)
+    return templates.TemplateResponse(request, "partials/sprint_list.html", context={
+        "sprints": parsers.get_sprints_data(path),
+        "project": {"name": name},
     })
 
 

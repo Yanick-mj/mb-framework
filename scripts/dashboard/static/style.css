@@ -528,7 +528,7 @@ main {
   background: var(--bg-elevated);
   border-radius: var(--radius-xl);
   width: 92%;
-  max-width: 600px;
+  max-width: 720px;
   max-height: 80vh;
   overflow-y: auto;
   box-shadow: var(--shadow-xl);

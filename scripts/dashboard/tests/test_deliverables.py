@@ -1,38 +1,10 @@
-"""TDD tests for deliverable viewer — Sprint 2 S2.4.
-
-Tests for:
-- GET /api/stories/{name}/{id}/deliverables → list of files
-- GET /api/stories/{name}/{id}/deliverables/{filename} → rendered HTML
-- Empty state when no deliverables
-- Story modal has deliverables tab
-"""
+"""TDD tests for deliverable viewer — Sprint 2 S2.4."""
 import sys
 from pathlib import Path
 
-import pytest
-
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
-from fastapi.testclient import TestClient
-from scripts.dashboard.server import app
-from scripts.dashboard.tests.conftest import (
-    register_projects, write_story,
-)
-
-
-@pytest.fixture
-def client(tmp_home, tmp_project):
-    register_projects(tmp_home, [
-        {"name": "demo", "path": str(tmp_project), "stage": "mvp"},
-    ])
-    return TestClient(app)
-
-
-@pytest.fixture
-def stories_dir(tmp_project):
-    d = tmp_project / "_bmad-output" / "implementation-artifacts" / "stories"
-    d.mkdir(parents=True, exist_ok=True)
-    return d
+from scripts.dashboard.tests.conftest import write_story
 
 
 def _write_deliverable(tmp_project: Path, story_id: str, filename: str, content: str) -> Path:

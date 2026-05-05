@@ -1053,8 +1053,7 @@ main {
   gap: 8px;
   margin-bottom: 16px;
 }
-.btn-approve {
-  background: var(--teal);
+.btn-action {
   color: white;
   border: none;
   padding: 6px 16px;
@@ -1062,20 +1061,25 @@ main {
   font-weight: 600;
   cursor: pointer;
 }
-.btn-approve:hover { opacity: 0.9; }
-.btn-warn {
-  background: var(--orange);
-  color: white;
-  border: none;
-  padding: 6px 16px;
-  border-radius: var(--radius-sm);
-  font-weight: 600;
-  cursor: pointer;
-}
-.btn-warn:hover { opacity: 0.9; }
+.btn-action:hover { opacity: 0.9; }
+.btn-approve { background: var(--teal); }
+.btn-warn { background: var(--orange); }
 .review-comment-form {
   margin-bottom: 16px;
   padding: 12px;
   background: var(--bg-inset);
   border-radius: var(--radius-md);
+}
+.review-comment-form textarea {
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  resize: vertical;
+}
+.empty-hint {
+  color: var(--text-tertiary);
+  font-size: 13px;
 }

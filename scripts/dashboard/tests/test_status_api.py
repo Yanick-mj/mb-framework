@@ -1,40 +1,13 @@
-"""TDD tests for PATCH /api/stories/{id}/status — Sprint 2 S2.2.
-
-Tests written FIRST. Endpoint doesn't exist yet.
-"""
+"""TDD tests for PATCH /api/stories/{id}/status — Sprint 2 S2.2."""
 import json
 import sys
 from pathlib import Path
 
-import pytest
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
-from fastapi.testclient import TestClient
-from scripts.dashboard.server import app
-from scripts.dashboard.tests.conftest import (
-    register_projects, write_story, write_runs,
-)
-
-
-@pytest.fixture
-def client(tmp_home, tmp_project):
-    """TestClient with a registered project."""
-    register_projects(tmp_home, [
-        {"name": "demo", "path": str(tmp_project), "stage": "mvp"},
-    ])
-    return TestClient(app)
-
-
-@pytest.fixture
-def stories_dir(tmp_project):
-    d = tmp_project / "_bmad-output" / "implementation-artifacts" / "stories"
-    d.mkdir(parents=True, exist_ok=True)
-    return d
-
-
-# --- PATCH /api/stories/{name}/{story_id}/status ---
+from scripts.dashboard.tests.conftest import write_story
 
 class TestPatchStatus:
     def test_updates_status_in_frontmatter(self, client, tmp_project, stories_dir):

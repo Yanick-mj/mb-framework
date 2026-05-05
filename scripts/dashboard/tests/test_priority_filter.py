@@ -1,33 +1,10 @@
-"""TDD tests for priority filter on board — filter cards by priority.
-
-Board toolbar has filter buttons. Clicking a priority filters the board
-via query param ?priority=high. Partial endpoint also supports filtering.
-"""
+"""TDD tests for priority filter on board."""
 import sys
 from pathlib import Path
 
-import pytest
-
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
-from fastapi.testclient import TestClient
-from scripts.dashboard.server import app
-from scripts.dashboard.tests.conftest import register_projects, write_story
-
-
-@pytest.fixture
-def client(tmp_home, tmp_project):
-    register_projects(tmp_home, [
-        {"name": "demo", "path": str(tmp_project), "stage": "mvp"},
-    ])
-    return TestClient(app)
-
-
-@pytest.fixture
-def stories_dir(tmp_project):
-    d = tmp_project / "_bmad-output" / "implementation-artifacts" / "stories"
-    d.mkdir(parents=True, exist_ok=True)
-    return d
+from scripts.dashboard.tests.conftest import write_story
 
 
 class TestBoardFilterPartial:

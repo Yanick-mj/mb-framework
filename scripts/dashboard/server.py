@@ -9,7 +9,7 @@ from fastapi import FastAPI, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from scripts.dashboard import crud, parsers
 
@@ -218,21 +218,22 @@ def partial_edit_story_form(request: Request, name: str, story_id: str):
 # --- CRUD API routes ---
 
 
+AllowedStatus = Literal["backlog", "todo", "in_progress", "in_review", "done"]
+AllowedPriority = Literal["critical", "high", "medium", "low"]
+
+
 class CreateStoryRequest(BaseModel):
     title: str
     description: str = ""
-    priority: str = "medium"
-    status: str = "todo"
+    priority: AllowedPriority = "medium"
+    status: AllowedStatus = "todo"
 
 
 class UpdateStoryRequest(BaseModel):
     title: str | None = None
     description: str | None = None
-    priority: str | None = None
-    status: str | None = None
-
-
-AllowedStatus = Literal["backlog", "todo", "in_progress", "in_review", "done"]
+    priority: AllowedPriority | None = None
+    status: AllowedStatus | None = None
 
 
 class PatchStatusRequest(BaseModel):
@@ -293,8 +294,7 @@ def api_update_story_form(
 @app.get("/api/stories/{name}/{story_id}/deliverables")
 def api_list_deliverables(name: str, story_id: str):
     path = _get_project_path(name)
-    detail = parsers.get_story_detail(path, story_id)
-    if not detail:
+    if not crud._find_story_file(path, story_id):
         raise HTTPException(404, f"Story '{story_id}' not found")
     return parsers.get_deliverables_list(path, story_id)
 
@@ -311,15 +311,16 @@ def api_get_deliverable(name: str, story_id: str, filename: str):
 class CommentRequest(BaseModel):
     text: str
 
-    @property
-    def is_valid(self) -> bool:
-        return bool(self.text.strip())
+    @field_validator("text")
+    @classmethod
+    def text_not_empty(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("Comment text cannot be empty")
+        return v
 
 
 @app.post("/api/stories/{name}/{story_id}/comment")
 def api_add_comment(name: str, story_id: str, body: CommentRequest):
-    if not body.is_valid:
-        raise HTTPException(422, "Comment text cannot be empty")
     path = _get_project_path(name)
     result = crud.add_comment(path, story_id, body.text)
     if result is None:

@@ -5,13 +5,16 @@ import json
 import os
 import tempfile
 import uuid
+from collections.abc import Callable
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 import yaml
 
-from scripts.dashboard.parsers import STORIES_SUBPATH, _parse_frontmatter
+from scripts.dashboard.parsers import RUNS_LOG_SUBPATH, STORIES_SUBPATH, _parse_frontmatter
+
+_SUMMARY_KEYS = ("story_id", "title", "status", "priority")
 
 
 def _stories_dir(project_path: Path) -> Path:
@@ -53,36 +56,6 @@ def _build_story_content(fm: dict, body: str = "") -> str:
 
 def _to_description_body(description: str) -> str:
     return f"## Description\n\n{description}" if description else ""
-
-
-def create_story(
-    project_path: Path,
-    title: str,
-    description: str = "",
-    priority: str = "medium",
-    status: str = "todo",
-) -> dict[str, Any]:
-    """Create a new story file and return its data."""
-    story_id = _generate_story_id()
-    d = _stories_dir(project_path)
-
-    fm = {
-        "story_id": story_id,
-        "title": title,
-        "status": status,
-        "priority": priority,
-    }
-
-    content = _build_story_content(fm, _to_description_body(description))
-    _atomic_write(d / f"{story_id}.md", content)
-
-    return {
-        "story_id": story_id,
-        "title": title,
-        "status": status,
-        "priority": priority,
-        "description": description,
-    }
 
 
 def _find_story_file(project_path: Path, story_id: str) -> Path | None:
@@ -131,12 +104,20 @@ def _clean_fm(fm: dict, story_id: str) -> dict:
     return clean
 
 
-def update_story(
+def _story_summary(clean: dict) -> dict[str, Any]:
+    """Standard return dict from a cleaned frontmatter."""
+    return {k: clean[k] for k in _SUMMARY_KEYS}
+
+
+def _mutate_story(
     project_path: Path,
     story_id: str,
-    updates: dict[str, Any],
-) -> dict[str, Any] | None:
-    """Update an existing story. Returns updated data or None if not found."""
+    mutator: Callable[[dict, str], tuple[dict, str]],
+) -> tuple[dict, Path] | None:
+    """Find, read, mutate, and write a story. Returns (clean_fm, file_path) or None.
+
+    The mutator receives (frontmatter_dict, body_str) and must return (fm, body).
+    """
     story_file = _find_story_file(project_path, story_id)
     if not story_file:
         return None
@@ -146,17 +127,64 @@ def update_story(
         return None
     fm, body = result
 
-    for key in ("title", "priority", "status"):
-        if key in updates:
-            fm[key] = updates[key]
-
-    if "description" in updates:
-        body = _to_description_body(updates["description"])
+    fm, body = mutator(fm, body)
 
     clean = _clean_fm(fm, story_id)
     _atomic_write(story_file, _build_story_content(clean, body))
+    return clean, story_file
 
-    return {k: clean[k] for k in ("story_id", "title", "status", "priority")}
+
+# --- Public API ---
+
+
+def create_story(
+    project_path: Path,
+    title: str,
+    description: str = "",
+    priority: str = "medium",
+    status: str = "todo",
+) -> dict[str, Any]:
+    """Create a new story file and return its data."""
+    story_id = _generate_story_id()
+    d = _stories_dir(project_path)
+
+    fm = {
+        "story_id": story_id,
+        "title": title,
+        "status": status,
+        "priority": priority,
+    }
+
+    content = _build_story_content(fm, _to_description_body(description))
+    _atomic_write(d / f"{story_id}.md", content)
+
+    return {
+        "story_id": story_id,
+        "title": title,
+        "status": status,
+        "priority": priority,
+        "description": description,
+    }
+
+
+def update_story(
+    project_path: Path,
+    story_id: str,
+    updates: dict[str, Any],
+) -> dict[str, Any] | None:
+    """Update an existing story. Returns updated data or None if not found."""
+    def mutator(fm: dict, body: str) -> tuple[dict, str]:
+        for key in ("title", "priority", "status"):
+            if key in updates:
+                fm[key] = updates[key]
+        if "description" in updates:
+            body = _to_description_body(updates["description"])
+        return fm, body
+
+    result = _mutate_story(project_path, story_id, mutator)
+    if not result:
+        return None
+    return _story_summary(result[0])
 
 
 def patch_status(
@@ -165,43 +193,19 @@ def patch_status(
     new_status: str,
 ) -> dict[str, Any] | None:
     """Update only the status field of a story. Returns updated data or None."""
-    story_file = _find_story_file(project_path, story_id)
-    if not story_file:
-        return None
+    old_status = None
 
-    result = _read_story(story_file)
+    def mutator(fm: dict, body: str) -> tuple[dict, str]:
+        nonlocal old_status
+        old_status = fm.get("status", "unknown")
+        fm["status"] = new_status
+        return fm, body
+
+    result = _mutate_story(project_path, story_id, mutator)
     if not result:
         return None
-    fm, body = result
-
-    old_status = fm.get("status", "unknown")
-    fm["status"] = new_status
-
-    clean = _clean_fm(fm, story_id)
-    _atomic_write(story_file, _build_story_content(clean, body))
-
-    # Log the transition
     _log_status_change(project_path, story_id, old_status, new_status)
-
-    return {k: clean[k] for k in ("story_id", "title", "status", "priority")}
-
-
-def _log_status_change(
-    project_path: Path, story_id: str, from_status: str, to_status: str
-) -> None:
-    """Append a status_change entry to runs.jsonl."""
-    log_dir = project_path / "memory" / "agents" / "_common"
-    log_dir.mkdir(parents=True, exist_ok=True)
-    log_file = log_dir / "runs.jsonl"
-    entry = {
-        "action": "status_change",
-        "story": story_id,
-        "from_status": from_status,
-        "to_status": to_status,
-        "ts": datetime.now(timezone.utc).isoformat(),
-    }
-    with log_file.open("a") as f:
-        f.write(json.dumps(entry) + "\n")
+    return _story_summary(result[0])
 
 
 def reorder_story(
@@ -210,26 +214,16 @@ def reorder_story(
     sort_order: int,
 ) -> dict[str, Any] | None:
     """Set sort_order on a story for intra-column ordering."""
-    story_file = _find_story_file(project_path, story_id)
-    if not story_file:
-        return None
+    def mutator(fm: dict, body: str) -> tuple[dict, str]:
+        fm["sort_order"] = sort_order
+        return fm, body
 
-    result = _read_story(story_file)
+    result = _mutate_story(project_path, story_id, mutator)
     if not result:
         return None
-    fm, body = result
-
-    fm["sort_order"] = sort_order
-    clean = _clean_fm(fm, story_id)
-    _atomic_write(story_file, _build_story_content(clean, body))
-
-    return {
-        "story_id": clean["story_id"],
-        "title": clean["title"],
-        "status": clean["status"],
-        "priority": clean["priority"],
-        "sort_order": sort_order,
-    }
+    summary = _story_summary(result[0])
+    summary["sort_order"] = sort_order
+    return summary
 
 
 def add_comment(
@@ -238,23 +232,15 @@ def add_comment(
     text: str,
 ) -> dict[str, Any] | None:
     """Append a review comment to a story's body. Returns story data or None."""
-    story_file = _find_story_file(project_path, story_id)
-    if not story_file:
-        return None
+    def mutator(fm: dict, body: str) -> tuple[dict, str]:
+        date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        body += f"\n\n## Review — {date_str}\n\n{text}"
+        return fm, body
 
-    result = _read_story(story_file)
+    result = _mutate_story(project_path, story_id, mutator)
     if not result:
         return None
-    fm, body = result
-
-    date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    review_section = f"\n\n## Review — {date_str}\n\n{text}"
-    body = body + review_section
-
-    clean = _clean_fm(fm, story_id)
-    _atomic_write(story_file, _build_story_content(clean, body))
-
-    return {k: clean[k] for k in ("story_id", "title", "status", "priority")}
+    return _story_summary(result[0])
 
 
 def delete_story(
@@ -279,3 +265,20 @@ def delete_story(
         "status": fm.get("status", "unknown"),
         "priority": fm.get("priority", "medium"),
     }
+
+
+def _log_status_change(
+    project_path: Path, story_id: str, from_status: str, to_status: str
+) -> None:
+    """Append a status_change entry to runs.jsonl."""
+    log_file = project_path / RUNS_LOG_SUBPATH
+    log_file.parent.mkdir(parents=True, exist_ok=True)
+    entry = {
+        "action": "status_change",
+        "story": story_id,
+        "from_status": from_status,
+        "to_status": to_status,
+        "ts": datetime.now(timezone.utc).isoformat(),
+    }
+    with log_file.open("a") as f:
+        f.write(json.dumps(entry) + "\n")

@@ -130,10 +130,12 @@ def get_board_data(path: Path, priority_filter: str | None = None) -> dict[str, 
     return groups
 
 
+RUNS_LOG_SUBPATH = Path("memory") / "agents" / "_common" / "runs.jsonl"
+
+
 def get_recent_runs(path: Path, limit: int = 5) -> list[dict]:
     """Load recent agent runs from runs.jsonl (newest first)."""
-    # Check v2.2 path first, fall back to v2.1
-    v2_2 = path / "memory" / "agents" / "_common" / "runs.jsonl"
+    v2_2 = path / RUNS_LOG_SUBPATH
     v2_1 = path / "memory" / "runs.jsonl"
     log_path = v2_2 if (v2_2.parent.exists() or v2_2.exists()) else v2_1
     if not log_path.exists():

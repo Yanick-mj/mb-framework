@@ -1,37 +1,13 @@
-"""TDD tests for story CRUD API — Sprint 1 Phase 2.
-
-Tests written FIRST. Endpoints don't exist yet.
-"""
+"""TDD tests for story CRUD API — Sprint 1 Phase 2."""
 import sys
 from pathlib import Path
 
-import pytest
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
-from fastapi.testclient import TestClient
-from scripts.dashboard.server import app
-from scripts.dashboard.tests.conftest import (
-    register_projects, write_story,
-)
+from scripts.dashboard.tests.conftest import write_story
 
-
-@pytest.fixture
-def client(tmp_home, tmp_project):
-    """TestClient with a registered project."""
-    register_projects(tmp_home, [
-        {"name": "demo", "path": str(tmp_project), "stage": "mvp"},
-    ])
-    return TestClient(app)
-
-
-@pytest.fixture
-def stories_dir(tmp_project):
-    """Ensure stories directory exists and return path."""
-    d = tmp_project / "_bmad-output" / "implementation-artifacts" / "stories"
-    d.mkdir(parents=True, exist_ok=True)
-    return d
 
 
 # --- POST /api/stories ---

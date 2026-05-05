@@ -1,39 +1,12 @@
-"""TDD tests for validation flow — Sprint 2 S2.3.
-
-Tests for:
-- Approve/Request Changes buttons shown only for in_review stories
-- POST /api/stories/{name}/{id}/comment endpoint
-- Approve moves status to done
-- Request changes moves status to in_progress + appends review comment
-"""
+"""TDD tests for validation flow — Sprint 2 S2.3."""
 import sys
 from pathlib import Path
 
-import pytest
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
-from fastapi.testclient import TestClient
-from scripts.dashboard.server import app
-from scripts.dashboard.tests.conftest import (
-    register_projects, write_story,
-)
-
-
-@pytest.fixture
-def client(tmp_home, tmp_project):
-    register_projects(tmp_home, [
-        {"name": "demo", "path": str(tmp_project), "stage": "mvp"},
-    ])
-    return TestClient(app)
-
-
-@pytest.fixture
-def stories_dir(tmp_project):
-    d = tmp_project / "_bmad-output" / "implementation-artifacts" / "stories"
-    d.mkdir(parents=True, exist_ok=True)
-    return d
+from scripts.dashboard.tests.conftest import write_story
 
 
 class TestValidationButtons:

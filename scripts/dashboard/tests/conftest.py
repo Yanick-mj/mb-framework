@@ -91,6 +91,25 @@ def register_projects(tmp_home: Path, projects: list[dict]) -> None:
     )
 
 
+@pytest.fixture
+def client(tmp_home, tmp_project):
+    """TestClient with a single registered 'demo' project."""
+    from fastapi.testclient import TestClient
+    from scripts.dashboard.server import app
+    register_projects(tmp_home, [
+        {"name": "demo", "path": str(tmp_project), "stage": "mvp"},
+    ])
+    return TestClient(app)
+
+
+@pytest.fixture
+def stories_dir(tmp_project):
+    """Ensure stories directory exists and return path."""
+    d = tmp_project / "_bmad-output" / "implementation-artifacts" / "stories"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
 def write_roadmap(root: Path, mission: str = "", phases: list[dict] | None = None) -> None:
     """Helper: write a _roadmap.md file."""
     lines = ["# Roadmap — Test Project", ""]

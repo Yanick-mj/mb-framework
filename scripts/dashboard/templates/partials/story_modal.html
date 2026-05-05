@@ -2,11 +2,11 @@
 {% call modal(story.story_id, story.title) %}
       <div class="sheet-actions">
         {% if story.status == 'in_review' %}
-        <button class="btn btn-approve"
+        <button class="btn-action btn-approve"
                 hx-patch="/api/stories/{{ project_name }}/{{ story.story_id }}/status"
                 hx-vals='{"status":"done"}'
                 hx-on::after-request="if(event.detail.successful){document.querySelector('.modal-overlay').remove(); htmx.trigger(document.body, 'story-changed')}">Approve</button>
-        <button class="btn btn-warn"
+        <button class="btn-action btn-warn"
                 onclick="document.getElementById('review-comment-{{ story.story_id }}').style.display='block'">Request Changes</button>
         {% endif %}
         <button class="btn btn-secondary"
@@ -20,8 +20,8 @@
       </div>
       {% if story.status == 'in_review' %}
       <div id="review-comment-{{ story.story_id }}" class="review-comment-form" style="display:none">
-        <textarea id="review-text-{{ story.story_id }}" placeholder="What needs to change?" rows="3" style="width:100%;margin-bottom:8px;padding:8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;resize:vertical"></textarea>
-        <button class="btn btn-warn"
+        <textarea id="review-text-{{ story.story_id }}" placeholder="What needs to change?" rows="3"></textarea>
+        <button class="btn-action btn-warn"
                 onclick="
                   var text = document.getElementById('review-text-{{ story.story_id }}').value;
                   if (!text.trim()) { alert('Please add a comment.'); return; }
@@ -98,7 +98,7 @@
         </div>
         <div id="deliverable-content" class="deliverable-content"></div>
         {% else %}
-        <p style="color:var(--text-tertiary);font-size:13px">No deliverables yet.</p>
+        <p class="empty-hint">No deliverables yet.</p>
         {% endif %}
       </div>
 {% endcall %}

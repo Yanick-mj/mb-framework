@@ -114,7 +114,7 @@ Also installs a `mb <name>` shell helper so `mb drivia` = `cd ~/projects/drivia 
 `.claude/skills/mb-{name}/SKILL.md` file Claude Code loads. Legacy
 unmigrated agents keep working via fallback.
 
-### v2.3 — Browser dashboard
+### v2.3 — Browser Dashboard
 
 | Command | Description |
 |---|---|
@@ -122,11 +122,32 @@ unmigrated agents keep working via fallback.
 
 Also available from terminal: `mb dashboard` (opens browser automatically).
 
-**Pages:** Overview (stage, stats, runs) · Board (5-column kanban) · Roadmap (mission + milestones) · Inbox (review/blocked/approvals) · Story detail modal (click any card).
+**Requires:** `pip install fastapi uvicorn jinja2` (one-time). Missing deps produce a helpful error with install command.
 
-**Features:** Multi-project switcher · HTMX auto-refresh every 5s · Notion + BlaBlaCar + Apple aesthetic.
+#### Current (Phase 1 — Read-Only MVP)
+- **Overview:** stage badge, story stats, recent agent runs
+- **Board:** 5-column kanban with priority dots, labels, click-to-open story modal
+- **Roadmap:** mission card, milestone cards with tracks tables
+- **Inbox:** in_review + blocked + approvals pending
+- **Multi-project switcher** with page-preserving navigation
+- **HTMX auto-refresh** every 5s on all data sections
+- Design: Notion + BlaBlaCar + Apple aesthetic (warm palette, frosted glass modals)
 
-**Requires:** `pip install fastapi uvicorn jinja2` (one-time). Missing deps → helpful error message with install command.
+#### Planned Phases
+
+| Phase | Name | Status |
+|-------|------|--------|
+| 1 | Read-Only Dashboard (MVP) | Done |
+| 2 | Write & Story Management (drag-drop kanban, create/edit stories) | Planned |
+| 2.1 | Editable Roadmap (inline editing of mission & milestones) | Planned |
+| 3 | Live AI Interaction (trigger CLI commands from browser, stream output) | Planned |
+| 4 | Lightweight Multi-User (identity, activity log, presence) | Planned |
+| 5 | Export & Integrations (Jira/Linear, Slack, webhooks) | Planned |
+| 6 | Advanced Analytics & Automation (DORA metrics, auto stage-upgrades) | Planned |
+| 7 | AI Team Intelligence (principle cards, multi-agent roundtables, culture packs) | Planned |
+| Beta | External Team Release (accounts, project import, shared hosting) | Planned |
+
+See [`docs/dashboard-prd.md`](docs/dashboard-prd.md) for full phase details.
 
 ### v2.2.1 / v2.2.2 — Orchestrator auto-invoke (hook)
 

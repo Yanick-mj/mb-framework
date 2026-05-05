@@ -215,7 +215,7 @@ def _extract_roadmap_mission(text: str) -> str:
 def _extract_roadmap_phases(text: str) -> list[dict[str, Any]]:
     """Extract ### Phase N sections with goal, tracks table, exit criteria."""
     phases = []
-    pattern = r"^### Phase (\d+)\s*[—–-]\s*(.+?)(?:\(([^)]+)\))?\s*$"
+    pattern = r"^### Phase (\d+\w*)\s*[—–-]\s*(.+?)(?:\(([^)]+)\))?\s*$"
     parts = re.split(pattern, text, flags=re.MULTILINE)
     for i in range(1, len(parts) - 3, 4):
         num = parts[i].strip()

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block page_title %}Roadmap{% endblock %}
+{% block page_subtitle %}Mission & milestones{% endblock %}
+
+{% block content %}
+<div hx-get="/partials/{{ project.name }}/roadmap"
+     hx-trigger="every 5s"
+     hx-swap="innerHTML">
+  {% include "partials/roadmap_content.html" %}
+</div>
+{% endblock %}

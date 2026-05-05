@@ -10,7 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 from fastapi.testclient import TestClient
 from scripts.dashboard.server import app
 from scripts.dashboard.tests.conftest import (
-    register_projects, write_story, write_runs,
+    register_projects, write_story, write_runs, write_roadmap,
 )
 
 
@@ -111,3 +111,43 @@ class TestPartials:
     def test_partial_404_unknown_project(self):
         resp = self.client.get("/partials/nope/stage")
         assert resp.status_code == 404
+
+
+class TestRoadmapPage:
+    def test_returns_200_with_mission(self, tmp_home, tmp_project):
+        register_projects(tmp_home, [
+            {"name": "demo", "path": str(tmp_project), "stage": "mvp"},
+        ])
+        write_roadmap(tmp_project, mission="Build greatness.")
+        client = TestClient(app)
+        resp = client.get("/projects/demo/roadmap")
+        assert resp.status_code == 200
+        assert "Build greatness" in resp.text
+
+    def test_unknown_project_returns_404(self, tmp_home):
+        client = TestClient(app)
+        resp = client.get("/projects/nope/roadmap")
+        assert resp.status_code == 404
+
+    def test_missing_roadmap_returns_200(self, tmp_home, tmp_project):
+        register_projects(tmp_home, [
+            {"name": "demo", "path": str(tmp_project), "stage": "mvp"},
+        ])
+        client = TestClient(app)
+        resp = client.get("/projects/demo/roadmap")
+        assert resp.status_code == 200
+
+
+class TestRoadmapPartial:
+    def test_roadmap_partial(self, tmp_home, tmp_project):
+        register_projects(tmp_home, [
+            {"name": "demo", "path": str(tmp_project), "stage": "mvp"},
+        ])
+        write_roadmap(tmp_project, mission="Ship it.", phases=[
+            {"num": 1, "name": "Foundation", "timeframe": "weeks 1-2",
+             "goal": "Basics", "tracks": [["BE", "API", "Alice"]], "exit": "Tests green"},
+        ])
+        client = TestClient(app)
+        resp = client.get("/partials/demo/roadmap")
+        assert resp.status_code == 200
+        assert "Foundation" in resp.text

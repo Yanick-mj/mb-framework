@@ -50,6 +50,9 @@
     <a class="sidebar-item {{ 'active' if current_page == 'board' else '' }}" href="/projects/{{ project.name }}/board">
       <span class="icon">&#9638;</span> Board
     </a>
+    <a class="sidebar-item {{ 'active' if current_page == 'roadmap' else '' }}" href="/projects/{{ project.name }}/roadmap">
+      <span class="icon">&#9656;</span> Roadmap
+    </a>
     <a class="sidebar-item" href="/projects/{{ project.name }}/overview">
       <span class="icon">&#9993;</span> Inbox
       <span class="badge" hx-get="/partials/{{ project.name }}/inbox-count" hx-trigger="every 5s" hx-swap="innerHTML">{{ inbox_count }}</span>

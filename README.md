@@ -53,6 +53,7 @@ Projects without `mb-stage.yaml` default to `scale` → strict v1 behavior (zero
 | `agents-early/` | **v2** 4 early-stage agents (stage-advisor, idea-validator, user-interviewer, wedge-builder) |
 | `commands/` | Entry points: `/mb:feature`, `/mb:sprint`, `/mb:fix`, `/mb:review`, `/mb:init`, **v2**: `/mb:stage`, `/mb:validate`, `/mb:ship` |
 | `skills/` | Injectable domain knowledge (ux-design, project-specific) |
+| `scripts/dashboard/` | **v2.3** Browser dashboard — FastAPI + Jinja2 + HTMX (localhost:5111) |
 | `templates/` | Code scaffolding, validation checklists, stack conventions |
 | `tools/` | External tool catalog + permissions |
 | `creds/` | Credentials (.gitignored) |
@@ -91,6 +92,7 @@ Projects without `mb-stage.yaml` default to `scale` → strict v1 behavior (zero
 | `/mb:roadmap` | Show `_roadmap.md` at project root |
 
 Also installs a `mb <name>` shell helper so `mb drivia` = `cd ~/projects/drivia && claude`.
+`mb dashboard` launches the browser dashboard.
 
 ### v2.2 (structural — governance, layers, views)
 
@@ -111,6 +113,20 @@ Also installs a `mb <name>` shell helper so `mb drivia` = `cd ~/projects/drivia 
 `scripts/v2_2/agent_loader.py` composes these into the single
 `.claude/skills/mb-{name}/SKILL.md` file Claude Code loads. Legacy
 unmigrated agents keep working via fallback.
+
+### v2.3 — Browser dashboard
+
+| Command | Description |
+|---|---|
+| `/mb:dashboard` | Launch browser dashboard on localhost:5111 |
+
+Also available from terminal: `mb dashboard` (opens browser automatically).
+
+**Pages:** Overview (stage, stats, runs) · Board (5-column kanban) · Roadmap (mission + milestones) · Inbox (review/blocked/approvals) · Story detail modal (click any card).
+
+**Features:** Multi-project switcher · HTMX auto-refresh every 5s · Notion + BlaBlaCar + Apple aesthetic.
+
+**Requires:** `pip install fastapi uvicorn jinja2` (one-time). Missing deps → helpful error message with install command.
 
 ### v2.2.1 / v2.2.2 — Orchestrator auto-invoke (hook)
 

@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sprint 3 Preview — mb-dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+:root {
+  --bg: #FAFAF8; --bg-card: #FFFFFF; --bg-elevated: #FFFFFF; --bg-inset: #F3F2EE;
+  --bg-hover: #F7F6F3; --bg-sidebar: #FBFBF9;
+  --border: #E8E5DE; --border-strong: #D6D3CC;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 2px 8px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
+  --shadow-xl: 0 16px 64px rgba(0,0,0,0.12), 0 4px 16px rgba(0,0,0,0.06);
+  --text-primary: #1A1A1A; --text-secondary: #6B6B6B; --text-tertiary: #9B9B9B; --text-quaternary: #BFBFBF;
+  --accent: #0066FF; --accent-light: #E8F0FF; --accent-hover: #0052CC;
+  --teal: #00A67E; --teal-light: #E6F7F2;
+  --orange: #F5A623; --orange-light: #FFF4E0;
+  --red: #E53935; --red-light: #FFEAEA;
+  --purple: #7C5CFC; --purple-light: #F0ECFF;
+  --blue: #0066FF; --blue-light: #E8F0FF;
+  --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'SF Mono', monospace;
+  --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --radius-xl: 20px; --radius-full: 100px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: var(--bg); color: var(--text-primary); font-family: var(--font-body); font-size: 14px; line-height: 1.55; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+::selection { background: var(--accent-light); color: var(--accent); }
+a { color: inherit; text-decoration: none; }
+
+.shell { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+
+/* SIDEBAR */
+aside { background: var(--bg-sidebar); border-right: 1px solid var(--border); padding: 20px 12px; display: flex; flex-direction: column; gap: 4px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+.sidebar-logo { padding: 8px 12px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+.logo-mark { width: 28px; height: 28px; background: var(--text-primary); border-radius: 7px; display: flex; align-items: center; justify-content: center; color: white; font-family: var(--font-mono); font-weight: 600; font-size: 13px; letter-spacing: -0.5px; }
+.logo-text { font-weight: 700; font-size: 15px; letter-spacing: -0.3px; }
+.sidebar-divider { height: 1px; background: var(--border); margin: 8px 12px; }
+.sidebar-item { padding: 7px 12px; border-radius: var(--radius-sm); cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; color: var(--text-secondary); transition: all 0.12s ease; user-select: none; }
+.sidebar-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+.sidebar-item.active { background: var(--bg-inset); color: var(--text-primary); font-weight: 600; }
+.sidebar-item .icon { font-size: 16px; width: 22px; text-align: center; opacity: 0.7; }
+.sidebar-item.active .icon { opacity: 1; }
+.sidebar-item .badge { margin-left: auto; background: var(--red); color: white; font-size: 10px; font-weight: 700; min-width: 18px; height: 18px; border-radius: 9px; display: flex; align-items: center; justify-content: center; padding: 0 5px; }
+.project-switcher { margin: 0 0 4px; }
+.project-current { padding: 10px 12px; border-radius: var(--radius-md); display: flex; align-items: center; gap: 10px; border: 1px solid transparent; }
+.project-avatar { width: 32px; height: 32px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; background: var(--purple-light); color: var(--purple); flex-shrink: 0; }
+.project-info { flex: 1; }
+.project-name { font-weight: 600; font-size: 14px; }
+.project-stage-label { font-family: var(--font-mono); font-size: 11px; font-weight: 500; color: var(--purple); }
+.sidebar-footer { margin-top: auto; padding: 12px; border-top: 1px solid var(--border); }
+.live-indicator { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-tertiary); }
+.live-dot { width: 7px; height: 7px; background: var(--teal); border-radius: 50%; animation: livePulse 2s ease-in-out infinite; }
+@keyframes livePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+
+/* MAIN */
+.main-area { display: flex; flex-direction: column; min-height: 100vh; }
+.topbar { padding: 20px 40px 0; display: flex; justify-content: space-between; align-items: flex-start; }
+.topbar-left h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; }
+.topbar-left p { color: var(--text-tertiary); font-size: 14px; }
+main { padding: 24px 40px 48px; flex: 1; }
+
+/* BUTTONS */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); transition: all 0.15s ease; font-family: inherit; background: var(--bg-card); color: var(--text-secondary); }
+.btn:hover { background: var(--bg-hover); }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-danger { background: var(--red-light); color: var(--red); border-color: var(--red); }
+.btn-danger:hover { background: var(--red); color: #fff; }
+
+/* SPRINT CARDS */
+.sprint-list { display: flex; flex-direction: column; gap: 12px; }
+.sprint-card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 20px 24px; box-shadow: var(--shadow-sm); transition: all 0.15s ease; cursor: pointer;
+}
+.sprint-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); border-color: var(--border-strong); }
+.sprint-card.active-sprint { border-left: 4px solid var(--accent); box-shadow: 0 0 0 3px var(--accent-light), var(--shadow-sm); }
+.sprint-card.active-sprint:hover { box-shadow: 0 0 0 3px var(--accent-light), var(--shadow-md); }
+.sprint-card.closed-sprint { opacity: 0.6; }
+.sprint-card.closed-sprint:hover { opacity: 0.85; }
+.sprint-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.sprint-card-header h3 { font-size: 16px; font-weight: 700; letter-spacing: -0.2px; }
+.sprint-status-pill { font-family: var(--font-mono); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; padding: 3px 10px; border-radius: var(--radius-full); }
+.sprint-status-pill.active { background: var(--accent-light); color: var(--accent); }
+.sprint-status-pill.closed { background: var(--teal-light); color: var(--teal); }
+.sprint-status-pill.planned { background: var(--bg-inset); color: var(--text-tertiary); }
+.sprint-goal { font-size: 13px; color: var(--text-secondary); font-style: italic; margin-bottom: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sprint-card-meta { display: flex; align-items: center; gap: 16px; font-size: 12px; color: var(--text-tertiary); }
+.sprint-card-meta .mono { font-family: var(--font-mono); font-size: 11px; }
+.phase-tag { font-family: var(--font-mono); font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: var(--radius-full); background: var(--purple-light); color: var(--purple); }
+.progress-bar-wrap { flex: 1; max-width: 200px; height: 4px; background: var(--bg-inset); border-radius: 2px; overflow: hidden; }
+.progress-bar-fill { height: 100%; border-radius: 2px; transition: width 0.3s ease; }
+.progress-bar-fill.active { background: var(--accent); }
+.progress-bar-fill.closed { background: var(--teal); }
+.progress-bar-fill.planned { background: var(--text-quaternary); }
+
+/* SPRINT DETAIL HEADER */
+.sprint-detail-header {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 24px 28px; margin-bottom: 24px; box-shadow: var(--shadow-sm); position: relative; overflow: hidden;
+}
+.sprint-detail-header::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--accent); border-radius: 0 2px 2px 0; }
+.sprint-detail-header.closed::before { background: var(--teal); }
+.sprint-detail-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.sprint-detail-header .sprint-goal { font-size: 15px; margin-bottom: 12px; }
+.sprint-detail-dates { display: flex; gap: 16px; font-size: 12px; color: var(--text-tertiary); }
+.sprint-detail-dates .mono { font-family: var(--font-mono); font-size: 11px; }
+
+/* STAT CARDS (reuse from overview) */
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
+.stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; transition: all 0.15s ease; box-shadow: var(--shadow-sm); }
+.stat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+.stat-label { font-size: 12px; font-weight: 600; color: var(--text-tertiary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.3px; }
+.stat-number { font-size: 32px; font-weight: 800; letter-spacing: -1.5px; line-height: 1; margin-bottom: 4px; }
+.stat-sub { font-size: 12px; color: var(--text-tertiary); }
+
+/* VIEW TOGGLE */
+.view-toggle { display: flex; gap: 4px; padding: 3px; background: var(--bg-inset); border-radius: var(--radius-sm); width: fit-content; }
+.view-toggle-btn { padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; background: transparent; color: var(--text-tertiary); font-family: inherit; transition: all 0.15s; }
+.view-toggle-btn.active { background: var(--bg-card); color: var(--text-primary); box-shadow: var(--shadow-sm); }
+.view-toggle-btn:hover:not(.active) { color: var(--text-secondary); }
+
+/* BOARD (kanban inside sprint detail) */
+.board-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; align-items: flex-start; }
+.board-column { min-height: 120px; }
+.board-col-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; padding: 0 4px; }
+.board-col-name { font-size: 13px; font-weight: 700; color: var(--text-secondary); display: flex; align-items: center; gap: 8px; }
+.board-col-name .col-dot { width: 8px; height: 8px; border-radius: 50%; }
+.board-col-count { font-family: var(--font-mono); font-size: 11px; color: var(--text-tertiary); }
+.board-cards { display: flex; flex-direction: column; gap: 8px; }
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px 16px; cursor: pointer; transition: all 0.15s ease; box-shadow: var(--shadow-sm); }
+.card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); border-color: var(--border-strong); }
+.card-id { font-family: var(--font-mono); font-size: 11px; color: var(--text-tertiary); margin-bottom: 5px; }
+.card-title { font-size: 13px; font-weight: 600; color: var(--text-primary); line-height: 1.4; margin-bottom: 10px; }
+.card-footer { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.card-priority { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+/* STORY ROWS (list view) */
+.story-groups { display: flex; flex-direction: column; gap: 20px; }
+.story-group-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.story-group-header .col-dot { width: 8px; height: 8px; border-radius: 50%; }
+.story-group-header h3 { font-size: 14px; font-weight: 700; color: var(--text-secondary); }
+.story-group-header .count { font-family: var(--font-mono); font-size: 11px; color: var(--text-tertiary); }
+.story-row { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 6px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: all 0.12s ease; box-shadow: var(--shadow-sm); }
+.story-row:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); border-color: var(--border-strong); }
+.story-row .row-id { font-family: var(--font-mono); font-size: 11px; color: var(--text-tertiary); min-width: 80px; }
+.story-row .row-title { flex: 1; font-weight: 600; font-size: 13px; }
+.story-row .row-priority { width: 6px; height: 6px; border-radius: 50%; }
+
+/* COMPLETED BANNER */
+.completed-banner { background: var(--teal-light); border: 1px solid var(--teal); border-radius: var(--radius-md); padding: 12px 20px; color: var(--teal); font-weight: 600; font-size: 14px; margin-bottom: 24px; display: flex; align-items: center; gap: 8px; }
+
+/* ROADMAP */
+.milestone-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px 24px; margin-bottom: 12px; box-shadow: var(--shadow-sm); cursor: pointer; transition: all 0.15s; }
+.milestone-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.milestone-tag { font-family: var(--font-mono); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; padding: 3px 10px; border-radius: var(--radius-full); display: inline-flex; margin-bottom: 12px; }
+.milestone-tag.curr { background: var(--accent-light); color: var(--accent); }
+.milestone-tag.nxt { background: var(--bg-inset); color: var(--text-tertiary); }
+.milestone-card h3 { font-size: 17px; font-weight: 700; letter-spacing: -0.2px; margin-bottom: 6px; }
+.milestone-card > p { font-size: 13px; color: var(--text-tertiary); margin-top: 4px; }
+.phase-sprints-line { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 12px; color: var(--text-tertiary); }
+.phase-sprints-line .progress-mini { width: 60px; height: 3px; background: var(--bg-inset); border-radius: 2px; overflow: hidden; }
+.phase-sprints-line .progress-mini-fill { height: 100%; background: var(--accent); border-radius: 2px; }
+.section-label { font-size: 12px; font-weight: 700; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 14px; }
+
+/* MODAL */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.25); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 500; align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal-sheet { background: var(--bg-elevated); border-radius: var(--radius-xl); width: 92%; max-width: 720px; max-height: 80vh; overflow-y: auto; box-shadow: var(--shadow-xl); animation: sheetIn 0.25s cubic-bezier(0.22, 1, 0.36, 1); }
+@keyframes sheetIn { from { opacity: 0; transform: scale(0.95) translateY(12px); } }
+.modal-sheet-header { padding: 24px 28px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-start; }
+.modal-sheet-header h2 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+.sheet-id { font-family: var(--font-mono); font-size: 12px; color: var(--text-tertiary); margin-bottom: 4px; }
+.sheet-close { width: 28px; height: 28px; border-radius: 50%; background: var(--bg-inset); border: none; color: var(--text-secondary); font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.1s; flex-shrink: 0; }
+.sheet-close:hover { background: var(--border); }
+.sheet-body { padding: 20px 28px 28px; }
+.sheet-meta { display: flex; gap: 10px; margin-bottom: 22px; }
+.sheet-meta-item { flex: 1; background: var(--bg-inset); border-radius: var(--radius-sm); padding: 10px 14px; }
+.sheet-meta-item .ml { font-size: 10px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+.sheet-meta-item .mv { font-family: var(--font-mono); font-size: 13px; font-weight: 500; color: var(--text-primary); }
+.sheet-section { margin-bottom: 18px; }
+.sheet-section h3 { font-size: 13px; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.3px; }
+.sheet-section p { font-size: 14px; color: var(--text-secondary); line-height: 1.65; }
+.sheet-section ul { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.sheet-section li { font-size: 13px; color: var(--text-secondary); display: flex; align-items: center; gap: 8px; padding: 4px 0; }
+.sheet-section li .check { width: 18px; height: 18px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; flex-shrink: 0; }
+.sheet-section li .check.done { background: var(--teal); color: white; }
+.sheet-section li .check.todo { background: var(--bg-inset); border: 1.5px solid var(--border-strong); }
+.sheet-actions { display: flex; gap: 8px; margin-bottom: 16px; }
+
+/* FORM */
+.form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.form-group label { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+.form-group input, .form-group textarea, .form-group select { padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; background: var(--bg); color: var(--text-primary); transition: border-color 0.15s; }
+.form-group input:focus, .form-group select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+
+/* TOOLBAR ROW */
+.detail-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+
+.page { display: none; }
+.page.active { display: block; }
+
+@media (max-width: 1100px) { .stats-row { grid-template-columns: repeat(2, 1fr); } .board-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 768px) { .shell { grid-template-columns: 1fr; } aside { display: none; } }
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <aside>
+    <div class="sidebar-logo">
+      <div class="logo-mark">mb</div>
+      <span class="logo-text">dashboard</span>
+    </div>
+    <div class="project-switcher">
+      <div class="project-current">
+        <div class="project-avatar">S</div>
+        <div class="project-info">
+          <div class="project-name">studion</div>
+          <div class="project-stage-label">discovery</div>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar-divider"></div>
+    <a class="sidebar-item" href="#" onclick="navigateTo('overview'); return false" id="nav-overview">
+      <span class="icon">&#9673;</span> Overview
+    </a>
+    <a class="sidebar-item" href="#" onclick="navigateTo('board'); return false" id="nav-board">
+      <span class="icon">&#9638;</span> Board
+    </a>
+    <a class="sidebar-item active" href="#" onclick="navigateTo('sprints'); return false" id="nav-sprints">
+      <span class="icon">&#9776;</span> Sprints
+    </a>
+    <a class="sidebar-item" href="#" onclick="navigateTo('roadmap'); return false" id="nav-roadmap">
+      <span class="icon">&#9656;</span> Roadmap
+    </a>
+    <a class="sidebar-item" href="#" onclick="navigateTo('inbox'); return false" id="nav-inbox">
+      <span class="icon">&#9993;</span> Inbox
+      <span class="badge">2</span>
+    </a>
+    <div class="sidebar-footer">
+      <div class="live-indicator">
+        <span class="live-dot"></span>
+        Auto-refresh 5s
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-area">
+
+    <!-- PAGE: SPRINTS LIST -->
+    <div class="page active" id="page-sprints">
+      <div class="topbar">
+        <div class="topbar-left">
+          <h1>Sprints</h1>
+          <p>Track sprint progress and velocity</p>
+        </div>
+        <button class="btn btn-primary" onclick="openCreateSprintModal()">+ New Sprint</button>
+      </div>
+      <main>
+        <div class="sprint-list">
+          <div class="sprint-card active-sprint" onclick="navigateTo('sprint-detail')">
+            <div class="sprint-card-header">
+              <h3>Phase 2 — Sprint Views</h3>
+              <span class="sprint-status-pill active">Active</span>
+            </div>
+            <div class="sprint-goal">Enable the builder to see sprint history and measure phase advancement</div>
+            <div class="sprint-card-meta">
+              <span class="mono">May 7 — May 9, 2026</span>
+              <span class="phase-tag">Phase 2</span>
+              <span>3 / 5 stories</span>
+              <div class="progress-bar-wrap"><div class="progress-bar-fill active" style="width: 60%"></div></div>
+              <span class="mono" style="color: var(--accent); font-weight: 600;">60%</span>
+            </div>
+          </div>
+          <div class="sprint-card closed-sprint" onclick="navigateTo('sprint-detail-closed')">
+            <div class="sprint-card-header">
+              <h3>Phase 2 — Kanban Interactive</h3>
+              <span class="sprint-status-pill closed">Closed</span>
+            </div>
+            <div class="sprint-goal">Drag-and-drop kanban with validation flow and deliverable viewing</div>
+            <div class="sprint-card-meta">
+              <span class="mono">May 4 — May 6, 2026</span>
+              <span class="phase-tag">Phase 2</span>
+              <span>5 / 5 stories</span>
+              <div class="progress-bar-wrap"><div class="progress-bar-fill closed" style="width: 100%"></div></div>
+              <span class="mono" style="color: var(--teal); font-weight: 600;">100%</span>
+            </div>
+          </div>
+          <div class="sprint-card closed-sprint">
+            <div class="sprint-card-header">
+              <h3>Phase 2 — CRUD Stories</h3>
+              <span class="sprint-status-pill closed">Closed</span>
+            </div>
+            <div class="sprint-goal">Product builder can create, edit, and delete stories from the dashboard</div>
+            <div class="sprint-card-meta">
+              <span class="mono">May 1 — May 3, 2026</span>
+              <span class="phase-tag">Phase 2</span>
+              <span>5 / 5 stories</span>
+              <div class="progress-bar-wrap"><div class="progress-bar-fill closed" style="width: 100%"></div></div>
+              <span class="mono" style="color: var(--teal); font-weight: 600;">100%</span>
+            </div>
+          </div>
+          <div class="sprint-card">
+            <div class="sprint-card-header">
+              <h3>Phase 2 — Chat UI</h3>
+              <span class="sprint-status-pill planned">Planned</span>
+            </div>
+            <div class="sprint-goal">Chat interface with context injection and structured AI responses</div>
+            <div class="sprint-card-meta">
+              <span class="mono">May 10 — May 12, 2026</span>
+              <span class="phase-tag">Phase 2</span>
+              <span>0 / 5 stories</span>
+              <div class="progress-bar-wrap"><div class="progress-bar-fill planned" style="width: 0%"></div></div>
+              <span class="mono">0%</span>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- PAGE: SPRINT DETAIL (Active) -->
+    <div class="page" id="page-sprint-detail">
+      <div class="topbar">
+        <div class="topbar-left">
+          <p><a href="#" onclick="navigateTo('sprints'); return false" style="color: var(--accent);">Sprints</a> / sprint-3</p>
+          <h1>Phase 2 — Sprint Views</h1>
+        </div>
+        <button class="btn btn-danger">Close Sprint</button>
+      </div>
+      <main>
+        <!-- Header card -->
+        <div class="sprint-detail-header">
+          <div class="sprint-detail-top">
+            <div>
+              <span class="sprint-status-pill active" style="display: inline-flex;">Active</span>
+              <span class="phase-tag" style="margin-left: 8px;">Phase 2</span>
+            </div>
+          </div>
+          <div class="sprint-goal" style="font-size: 15px;">Enable the builder to see sprint history, measure phase advancement, and drill into sprint details</div>
+          <div class="sprint-detail-dates">
+            <span>Start: <span class="mono">May 7, 2026</span></span>
+            <span>End: <span class="mono">May 9, 2026</span></span>
+          </div>
+        </div>
+
+        <!-- Stat cards (reuse overview pattern) -->
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-label">Total stories</div>
+            <div class="stat-number">5</div>
+            <div class="stat-sub">in this sprint</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Done</div>
+            <div class="stat-number" style="color:var(--teal)">3</div>
+            <div class="stat-sub">completed</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">In progress</div>
+            <div class="stat-number" style="color:var(--orange)">1</div>
+            <div class="stat-sub">being worked on</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Todo</div>
+            <div class="stat-number" style="color:var(--accent)">1</div>
+            <div class="stat-sub">remaining</div>
+          </div>
+        </div>
+
+        <!-- View toggle -->
+        <div class="detail-toolbar">
+          <div class="section-label" style="margin-bottom: 0;">Stories</div>
+          <div class="view-toggle">
+            <button class="view-toggle-btn active" onclick="toggleDetailView('kanban', this)">Board</button>
+            <button class="view-toggle-btn" onclick="toggleDetailView('list', this)">List</button>
+          </div>
+        </div>
+
+        <!-- KANBAN VIEW (default) -->
+        <div id="detail-kanban" class="detail-view">
+          <div class="board-grid">
+            <div class="board-column">
+              <div class="board-col-head">
+                <div class="board-col-name"><span class="col-dot" style="background:var(--text-quaternary)"></span>Backlog</div>
+                <span class="board-col-count">0</span>
+              </div>
+              <div class="board-cards"></div>
+            </div>
+            <div class="board-column">
+              <div class="board-col-head">
+                <div class="board-col-name"><span class="col-dot" style="background:var(--blue)"></span>Todo</div>
+                <span class="board-col-count">1</span>
+              </div>
+              <div class="board-cards">
+                <div class="card" onclick="openStoryModal('STU-P2S3.5', 'Create and close sprints from UI', 'high', 'todo')">
+                  <div class="card-id">STU-P2S3.5</div>
+                  <div class="card-title">Create and close sprints from UI</div>
+                  <div class="card-footer"><span class="card-priority" style="background:var(--orange)"></span></div>
+                </div>
+              </div>
+            </div>
+            <div class="board-column">
+              <div class="board-col-head">
+                <div class="board-col-name"><span class="col-dot" style="background:var(--orange)"></span>In Progress</div>
+                <span class="board-col-count">1</span>
+              </div>
+              <div class="board-cards">
+                <div class="card" onclick="openStoryModal('STU-P2S3.4', 'Roadmap &harr; Sprint bidirectional links', 'medium', 'in_progress')">
+                  <div class="card-id">STU-P2S3.4</div>
+                  <div class="card-title">Roadmap &#8596; Sprint bidirectional links</div>
+                  <div class="card-footer"><span class="card-priority" style="background:var(--blue)"></span></div>
+                </div>
+              </div>
+            </div>
+            <div class="board-column">
+              <div class="board-col-head">
+                <div class="board-col-name"><span class="col-dot" style="background:var(--purple)"></span>Review</div>
+                <span class="board-col-count">0</span>
+              </div>
+              <div class="board-cards"></div>
+            </div>
+            <div class="board-column">
+              <div class="board-col-head">
+                <div class="board-col-name"><span class="col-dot" style="background:var(--teal)"></span>Done</div>
+                <span class="board-col-count">3</span>
+              </div>
+              <div class="board-cards">
+                <div class="card" onclick="openStoryModal('STU-P2S3.1', 'Sprint data model (YAML)', 'critical', 'done')">
+                  <div class="card-id">STU-P2S3.1</div>
+                  <div class="card-title">Sprint data model (YAML)</div>
+                  <div class="card-footer"><span class="card-priority" style="background:var(--red)"></span></div>
+                </div>
+                <div class="card" onclick="openStoryModal('STU-P2S3.2', 'Sprints list page', 'critical', 'done')">
+                  <div class="card-id">STU-P2S3.2</div>
+                  <div class="card-title">Sprints list page</div>
+                  <div class="card-footer"><span class="card-priority" style="background:var(--red)"></span></div>
+                </div>
+                <div class="card" onclick="openStoryModal('STU-P2S3.3', 'Sprint detail page with drill-down', 'high', 'done')">
+                  <div class="card-id">STU-P2S3.3</div>
+                  <div class="card-title">Sprint detail page with drill-down</div>
+                  <div class="card-footer"><span class="card-priority" style="background:var(--orange)"></span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LIST VIEW -->
+        <div id="detail-list" class="detail-view" style="display:none;">
+          <div class="story-groups">
+            <div>
+              <div class="story-group-header">
+                <span class="col-dot" style="background: var(--teal);"></span>
+                <h3>Done</h3>
+                <span class="count">3</span>
+              </div>
+              <div class="story-row" onclick="openStoryModal('STU-P2S3.1', 'Sprint data model (YAML)', 'critical', 'done')">
+                <span class="row-id">STU-P2S3.1</span>
+                <span class="row-title">Sprint data model (YAML)</span>
+                <span class="row-priority" style="background: var(--red);"></span>
+              </div>
+              <div class="story-row" onclick="openStoryModal('STU-P2S3.2', 'Sprints list page', 'critical', 'done')">
+                <span class="row-id">STU-P2S3.2</span>
+                <span class="row-title">Sprints list page</span>
+                <span class="row-priority" style="background: var(--red);"></span>
+              </div>
+              <div class="story-row" onclick="openStoryModal('STU-P2S3.3', 'Sprint detail page with drill-down', 'high', 'done')">
+                <span class="row-id">STU-P2S3.3</span>
+                <span class="row-title">Sprint detail page with drill-down</span>
+                <span class="row-priority" style="background: var(--orange);"></span>
+              </div>
+            </div>
+            <div>
+              <div class="story-group-header">
+                <span class="col-dot" style="background: var(--orange);"></span>
+                <h3>In Progress</h3>
+                <span class="count">1</span>
+              </div>
+              <div class="story-row" onclick="openStoryModal('STU-P2S3.4', 'Roadmap &#8596; Sprint bidirectional links', 'medium', 'in_progress')">
+                <span class="row-id">STU-P2S3.4</span>
+                <span class="row-title">Roadmap &#8596; Sprint bidirectional links</span>
+                <span class="row-priority" style="background: var(--blue);"></span>
+              </div>
+            </div>
+            <div>
+              <div class="story-group-header">
+                <span class="col-dot" style="background: var(--text-quaternary);"></span>
+                <h3>Todo</h3>
+                <span class="count">1</span>
+              </div>
+              <div class="story-row" onclick="openStoryModal('STU-P2S3.5', 'Create and close sprints from UI', 'high', 'todo')">
+                <span class="row-id">STU-P2S3.5</span>
+                <span class="row-title">Create and close sprints from UI</span>
+                <span class="row-priority" style="background: var(--orange);"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- PAGE: SPRINT DETAIL (Closed) -->
+    <div class="page" id="page-sprint-detail-closed">
+      <div class="topbar">
+        <div class="topbar-left">
+          <p><a href="#" onclick="navigateTo('sprints'); return false" style="color: var(--accent);">Sprints</a> / sprint-2</p>
+          <h1>Phase 2 — Kanban Interactive</h1>
+        </div>
+      </div>
+      <main>
+        <div class="completed-banner">&#10003; Sprint completed on May 6, 2026</div>
+        <div class="sprint-detail-header closed">
+          <div class="sprint-detail-top">
+            <div>
+              <span class="sprint-status-pill closed" style="display: inline-flex;">Closed</span>
+              <span class="phase-tag" style="margin-left: 8px;">Phase 2</span>
+            </div>
+          </div>
+          <div class="sprint-goal" style="font-size: 15px;">Drag-and-drop kanban with validation flow and deliverable viewing</div>
+          <div class="sprint-detail-dates">
+            <span>Start: <span class="mono">May 4, 2026</span></span>
+            <span>End: <span class="mono">May 6, 2026</span></span>
+          </div>
+        </div>
+        <div class="stats-row">
+          <div class="stat-card"><div class="stat-label">Total stories</div><div class="stat-number">5</div><div class="stat-sub">in this sprint</div></div>
+          <div class="stat-card"><div class="stat-label">Done</div><div class="stat-number" style="color:var(--teal)">5</div><div class="stat-sub">all completed</div></div>
+          <div class="stat-card"><div class="stat-label">In progress</div><div class="stat-number" style="color:var(--orange)">0</div><div class="stat-sub">-</div></div>
+          <div class="stat-card"><div class="stat-label">Todo</div><div class="stat-number" style="color:var(--accent)">0</div><div class="stat-sub">-</div></div>
+        </div>
+
+        <div class="detail-toolbar">
+          <div class="section-label" style="margin-bottom: 0;">Stories</div>
+          <div class="view-toggle">
+            <button class="view-toggle-btn active" onclick="toggleDetailViewClosed('kanban', this)">Board</button>
+            <button class="view-toggle-btn" onclick="toggleDetailViewClosed('list', this)">List</button>
+          </div>
+        </div>
+
+        <!-- KANBAN (closed - all in Done) -->
+        <div id="closed-kanban" class="detail-view">
+          <div class="board-grid">
+            <div class="board-column">
+              <div class="board-col-head"><div class="board-col-name"><span class="col-dot" style="background:var(--text-quaternary)"></span>Backlog</div><span class="board-col-count">0</span></div>
+              <div class="board-cards"></div>
+            </div>
+            <div class="board-column">
+              <div class="board-col-head"><div class="board-col-name"><span class="col-dot" style="background:var(--blue)"></span>Todo</div><span class="board-col-count">0</span></div>
+              <div class="board-cards"></div>
+            </div>
+            <div class="board-column">
+              <div class="board-col-head"><div class="board-col-name"><span class="col-dot" style="background:var(--orange)"></span>In Progress</div><span class="board-col-count">0</span></div>
+              <div class="board-cards"></div>
+            </div>
+            <div class="board-column">
+              <div class="board-col-head"><div class="board-col-name"><span class="col-dot" style="background:var(--purple)"></span>Review</div><span class="board-col-count">0</span></div>
+              <div class="board-cards"></div>
+            </div>
+            <div class="board-column">
+              <div class="board-col-head"><div class="board-col-name"><span class="col-dot" style="background:var(--teal)"></span>Done</div><span class="board-col-count">5</span></div>
+              <div class="board-cards">
+                <div class="card" onclick="openStoryModal('STU-D2.1', 'Kanban drag-and-drop columns', 'critical', 'done')"><div class="card-id">STU-D2.1</div><div class="card-title">Kanban drag-and-drop columns</div><div class="card-footer"><span class="card-priority" style="background:var(--red)"></span></div></div>
+                <div class="card" onclick="openStoryModal('STU-D2.2', 'Status patch endpoint', 'critical', 'done')"><div class="card-id">STU-D2.2</div><div class="card-title">Status patch endpoint</div><div class="card-footer"><span class="card-priority" style="background:var(--red)"></span></div></div>
+                <div class="card" onclick="openStoryModal('STU-D2.3', 'Validation flow (approve/request changes)', 'high', 'done')"><div class="card-id">STU-D2.3</div><div class="card-title">Validation flow (approve/request changes)</div><div class="card-footer"><span class="card-priority" style="background:var(--orange)"></span></div></div>
+                <div class="card" onclick="openStoryModal('STU-D2.4', 'Deliverable viewing before validation', 'high', 'done')"><div class="card-id">STU-D2.4</div><div class="card-title">Deliverable viewing before validation</div><div class="card-footer"><span class="card-priority" style="background:var(--orange)"></span></div></div>
+                <div class="card" onclick="openStoryModal('STU-D2.5', 'Story detail modal click handler', 'medium', 'done')"><div class="card-id">STU-D2.5</div><div class="card-title">Story detail modal click handler</div><div class="card-footer"><span class="card-priority" style="background:var(--blue)"></span></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- LIST (closed) -->
+        <div id="closed-list" class="detail-view" style="display:none;">
+          <div class="story-groups">
+            <div>
+              <div class="story-group-header"><span class="col-dot" style="background: var(--teal);"></span><h3>Done</h3><span class="count">5</span></div>
+              <div class="story-row" onclick="openStoryModal('STU-D2.1', 'Kanban drag-and-drop columns', 'critical', 'done')"><span class="row-id">STU-D2.1</span><span class="row-title">Kanban drag-and-drop columns</span><span class="row-priority" style="background: var(--red);"></span></div>
+              <div class="story-row" onclick="openStoryModal('STU-D2.2', 'Status patch endpoint', 'critical', 'done')"><span class="row-id">STU-D2.2</span><span class="row-title">Status patch endpoint</span><span class="row-priority" style="background: var(--red);"></span></div>
+              <div class="story-row" onclick="openStoryModal('STU-D2.3', 'Validation flow', 'high', 'done')"><span class="row-id">STU-D2.3</span><span class="row-title">Validation flow (approve/request changes)</span><span class="row-priority" style="background: var(--orange);"></span></div>
+              <div class="story-row" onclick="openStoryModal('STU-D2.4', 'Deliverable viewing', 'high', 'done')"><span class="row-id">STU-D2.4</span><span class="row-title">Deliverable viewing before validation</span><span class="row-priority" style="background: var(--orange);"></span></div>
+              <div class="story-row" onclick="openStoryModal('STU-D2.5', 'Story detail modal', 'medium', 'done')"><span class="row-id">STU-D2.5</span><span class="row-title">Story detail modal click handler</span><span class="row-priority" style="background: var(--blue);"></span></div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- PAGE: ROADMAP -->
+    <div class="page" id="page-roadmap">
+      <div class="topbar">
+        <div class="topbar-left">
+          <h1>Roadmap</h1>
+          <p>Phase progression with sprint aggregation</p>
+        </div>
+      </div>
+      <main>
+        <div class="section-label">Phases</div>
+        <div class="milestone-card" style="border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light), var(--shadow-sm);">
+          <span class="milestone-tag curr">Current Phase</span>
+          <h3>Phase 2 — Interactive Dashboard</h3>
+          <p><strong>Goal:</strong> Transform read-only dashboard into a fully interactive cockpit</p>
+          <div class="phase-sprints-line">
+            <span style="font-weight: 600;">3 sprints</span>
+            <span>&bull;</span>
+            <span>87% complete</span>
+            <div class="progress-mini"><div class="progress-mini-fill" style="width: 87%"></div></div>
+            <a href="#" onclick="navigateTo('sprints'); return false" style="color: var(--accent); font-weight: 600; margin-left: 4px;">View sprints &rarr;</a>
+          </div>
+        </div>
+        <div class="milestone-card" style="opacity: 0.55;">
+          <span class="milestone-tag nxt">Next</span>
+          <h3>Phase 3 — Agent Orchestration</h3>
+          <p><strong>Goal:</strong> Chat-driven agent actions with live feedback</p>
+          <div class="phase-sprints-line"><span>No sprints yet</span></div>
+        </div>
+        <div class="milestone-card" style="opacity: 0.55;">
+          <span class="milestone-tag nxt">Planned</span>
+          <h3>Phase 4 — Scale & Polish</h3>
+          <p><strong>Goal:</strong> Multi-project support, performance, and deployment</p>
+          <div class="phase-sprints-line"><span>No sprints yet</span></div>
+        </div>
+      </main>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL CONTAINER -->
+<div id="modal-container"></div>
+
+<script>
+// Navigation
+function navigateTo(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+
+  var el = document.getElementById('page-' + page);
+  if (el) el.classList.add('active');
+
+  // Map detail pages to sidebar
+  var sidebarMap = {
+    'sprints': 'nav-sprints',
+    'sprint-detail': 'nav-sprints',
+    'sprint-detail-closed': 'nav-sprints',
+    'roadmap': 'nav-roadmap',
+    'overview': 'nav-overview',
+    'board': 'nav-board',
+    'inbox': 'nav-inbox',
+  };
+  var navId = sidebarMap[page];
+  if (navId) document.getElementById(navId).classList.add('active');
+}
+
+// View toggle (active sprint)
+function toggleDetailView(view, btn) {
+  document.getElementById('detail-kanban').style.display = view === 'kanban' ? '' : 'none';
+  document.getElementById('detail-list').style.display = view === 'list' ? '' : 'none';
+  btn.parentElement.querySelectorAll('.view-toggle-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// View toggle (closed sprint)
+function toggleDetailViewClosed(view, btn) {
+  document.getElementById('closed-kanban').style.display = view === 'kanban' ? '' : 'none';
+  document.getElementById('closed-list').style.display = view === 'list' ? '' : 'none';
+  btn.parentElement.querySelectorAll('.view-toggle-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// Story modal (reuses same pattern as existing story_modal.html + modal_shell.html)
+function openStoryModal(id, title, priority, status) {
+  var descriptions = {
+    'STU-P2S3.1': 'Create _sprints/ directory structure + YAML schema for sprints; load_sprints() + get_sprint(id) parsers.',
+    'STU-P2S3.2': 'GET /projects/{name}/sprints route; render all sprints as cards (newest first), active sprint at top, % completion bars.',
+    'STU-P2S3.3': 'GET /projects/{name}/sprints/{sprint_id} route; show sprint metadata, metrics, story list grouped by status, "Close Sprint" button.',
+    'STU-P2S3.4': 'Add phase field to sprint YAML; roadmap shows sprint aggregation per phase; filter sprints by phase.',
+    'STU-P2S3.5': '"New Sprint" modal form (name, goal, dates, phase); POST /api/sprints + POST /api/sprints/{id}/close; "Add to Sprint" dropdown.',
+    'STU-D2.1': 'Drag-and-drop kanban columns using SortableJS with cross-column card movement.',
+    'STU-D2.2': 'PATCH /api/stories/{id}/status endpoint for kanban drag status changes.',
+    'STU-D2.3': '"Approve" and "Request changes" buttons with review comment flow.',
+    'STU-D2.4': 'View deliverable files attached to a story before approving.',
+    'STU-D2.5': 'Click story card on board to open full detail modal.',
+  };
+  var criteria = {
+    'STU-P2S3.1': [
+      {done: true, text: '_sprints/sprint-1.yaml is a valid sprint file with all fields'},
+      {done: true, text: 'load_sprints() returns list sorted by start_date'},
+      {done: true, text: 'get_sprint(id) returns sprint with resolved story objects'},
+      {done: false, text: 'Creating a sprint creates the YAML file'},
+      {done: false, text: 'Only one sprint can be status=active at a time'},
+    ],
+    'STU-P2S3.4': [
+      {done: false, text: 'Sprint YAML phase field parsed and displayed'},
+      {done: false, text: 'Roadmap phase card shows "3 sprints, 67% complete"'},
+      {done: false, text: 'Click phase on roadmap navigates to filtered sprints'},
+    ],
+  };
+
+  var desc = descriptions[id] || 'Story implementation details.';
+  var ac = criteria[id] || [];
+
+  var acHtml = '';
+  if (ac.length) {
+    acHtml = '<div class="sheet-section"><h3>Acceptance criteria</h3><ul>';
+    ac.forEach(function(item) {
+      var cls = item.done ? 'done' : 'todo';
+      var check = item.done ? '&#10003;' : '';
+      acHtml += '<li><span class="check ' + cls + '">' + check + '</span>' + item.text + '</li>';
+    });
+    acHtml += '</ul></div>';
+  }
+
+  var html = '<div class="modal-overlay open" onclick="if(event.target===this){this.remove()}">' +
+    '<div class="modal-sheet" onclick="event.stopPropagation()">' +
+      '<div class="modal-sheet-header">' +
+        '<div><div class="sheet-id">' + id + '</div><h2>' + title + '</h2></div>' +
+        '<button class="sheet-close" onclick="this.closest(\'.modal-overlay\').remove()">&times;</button>' +
+      '</div>' +
+      '<div class="sheet-body">' +
+        '<div class="sheet-actions">' +
+          '<button class="btn" style="font-size:12px;">Edit</button>' +
+          '<button class="btn btn-danger" style="font-size:12px;">Delete</button>' +
+        '</div>' +
+        '<div class="sheet-meta">' +
+          '<div class="sheet-meta-item"><div class="ml">Priority</div><div class="mv">' + priority + '</div></div>' +
+          '<div class="sheet-meta-item"><div class="ml">Status</div><div class="mv">' + status.replace('_', ' ') + '</div></div>' +
+          '<div class="sheet-meta-item"><div class="ml">Sprint</div><div class="mv">sprint-3</div></div>' +
+        '</div>' +
+        '<div class="sheet-section"><h3>Description</h3><p>' + desc + '</p></div>' +
+        acHtml +
+      '</div>' +
+    '</div>' +
+  '</div>';
+
+  document.getElementById('modal-container').innerHTML = html;
+}
+
+// Create Sprint modal
+function openCreateSprintModal() {
+  var html = '<div class="modal-overlay open" onclick="if(event.target===this){this.remove()}">' +
+    '<div class="modal-sheet" onclick="event.stopPropagation()">' +
+      '<div class="modal-sheet-header">' +
+        '<div><h2>New Sprint</h2></div>' +
+        '<button class="sheet-close" onclick="this.closest(\'.modal-overlay\').remove()">&times;</button>' +
+      '</div>' +
+      '<div class="sheet-body">' +
+        '<div class="form-group"><label>Name</label><input type="text" placeholder="e.g. Phase 2 — Chat UI"></div>' +
+        '<div class="form-group"><label>Goal</label><input type="text" placeholder="What does this sprint deliver?"></div>' +
+        '<div class="form-row">' +
+          '<div class="form-group"><label>Start Date</label><input type="date"></div>' +
+          '<div class="form-group"><label>End Date</label><input type="date"></div>' +
+        '</div>' +
+        '<div class="form-group"><label>Phase</label><select>' +
+          '<option>Phase 1 — Discovery</option>' +
+          '<option selected>Phase 2 — Interactive Dashboard</option>' +
+          '<option>Phase 3 — Agent Orchestration</option>' +
+        '</select></div>' +
+        '<div class="form-actions">' +
+          '<button class="btn" onclick="this.closest(\'.modal-overlay\').remove()">Cancel</button>' +
+          '<button class="btn btn-primary" onclick="this.closest(\'.modal-overlay\').remove()">Create Sprint</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+  document.getElementById('modal-container').innerHTML = html;
+}
+
+// Close modal on Escape
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    var modal = document.querySelector('.modal-overlay');
+    if (modal) modal.remove();
+  }
+});
+</script>
+</body>
+</html>

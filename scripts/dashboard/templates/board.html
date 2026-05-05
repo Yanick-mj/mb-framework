@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+{% for col, stories in columns.items() %}
+  {% for s in stories %}
+    <div>{{ s.story_id }}</div>
+  {% endfor %}
+{% endfor %}
+{% endblock %}

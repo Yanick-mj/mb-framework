@@ -29,3 +29,36 @@ class TestRootRedirect:
         resp = client.get("/")
         assert resp.status_code == 200
         assert "no project" in resp.text.lower()
+
+
+class TestOverviewPage:
+    def test_returns_200_with_stage(self, tmp_home, tmp_project):
+        register_projects(tmp_home, [
+            {"name": "demo", "path": str(tmp_project), "stage": "mvp"},
+        ])
+        client = TestClient(app)
+        resp = client.get("/projects/demo/overview")
+        assert resp.status_code == 200
+        assert "mvp" in resp.text.lower()
+
+    def test_unknown_project_returns_404(self, tmp_home):
+        client = TestClient(app)
+        resp = client.get("/projects/nope/overview")
+        assert resp.status_code == 404
+
+
+class TestBoardPage:
+    def test_returns_200_with_columns(self, tmp_home, tmp_project):
+        register_projects(tmp_home, [
+            {"name": "demo", "path": str(tmp_project), "stage": "mvp"},
+        ])
+        write_story(tmp_project, "S1", "todo", "My Story")
+        client = TestClient(app)
+        resp = client.get("/projects/demo/board")
+        assert resp.status_code == 200
+        assert "S1" in resp.text
+
+    def test_unknown_project_returns_404(self, tmp_home):
+        client = TestClient(app)
+        resp = client.get("/projects/nope/board")
+        assert resp.status_code == 404

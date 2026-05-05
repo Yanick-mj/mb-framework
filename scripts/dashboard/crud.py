@@ -12,7 +12,7 @@ from typing import Any
 
 import yaml
 
-from scripts.dashboard.parsers import RUNS_LOG_SUBPATH, STORIES_SUBPATH, _parse_frontmatter
+from scripts.dashboard.parsers import RUNS_LOG_SUBPATH, SPRINTS_SUBPATH, STORIES_SUBPATH, _parse_frontmatter, load_sprints
 
 _SUMMARY_KEYS = ("story_id", "title", "status", "priority")
 
@@ -282,3 +282,132 @@ def _log_status_change(
     }
     with log_file.open("a") as f:
         f.write(json.dumps(entry) + "\n")
+
+
+# --- Sprint CRUD ---
+
+
+def _sprints_dir(project_path: Path) -> Path:
+    d = project_path / SPRINTS_SUBPATH
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def _next_sprint_id(project_path: Path) -> str:
+    """Generate sprint-{max+1} ID."""
+    existing = load_sprints(project_path)
+    nums = []
+    for s in existing:
+        try:
+            nums.append(int(s["id"].split("-")[1]))
+        except (IndexError, ValueError):
+            continue
+    return f"sprint-{max(nums, default=0) + 1}"
+
+
+def _write_sprint(project_path: Path, data: dict) -> None:
+    """Atomically write a sprint YAML file."""
+    _atomic_write(
+        _sprints_dir(project_path) / f"{data['id']}.yaml",
+        yaml.safe_dump(data, sort_keys=False),
+    )
+
+
+def _close_active_sprints(project_path: Path) -> None:
+    """Close any currently active sprints."""
+    for sprint in load_sprints(project_path):
+        if sprint["status"] == "active":
+            sprint["status"] = "closed"
+            sprint["end_date"] = str(datetime.now(timezone.utc).date())
+            _write_sprint(project_path, sprint)
+
+
+def create_sprint(
+    project_path: Path,
+    name: str,
+    goal: str,
+    start_date: str,
+    end_date: str,
+    phase: str,
+    status: str = "planned",
+) -> dict[str, Any]:
+    """Create a new sprint YAML file."""
+    sprint_id = _next_sprint_id(project_path)
+    if status == "active":
+        _close_active_sprints(project_path)
+    data = {
+        "id": sprint_id,
+        "name": name,
+        "goal": goal,
+        "start_date": start_date,
+        "end_date": end_date,
+        "status": status,
+        "phase": phase,
+        "stories": [],
+    }
+    _write_sprint(project_path, data)
+    return data
+
+
+def close_sprint(project_path: Path, sprint_id: str) -> dict | None:
+    """Close a sprint: set status=closed and end_date=today."""
+    sprint_dir = project_path / SPRINTS_SUBPATH
+    f = sprint_dir / f"{sprint_id}.yaml"
+    if not f.exists():
+        return None
+    data = yaml.safe_load(f.read_text())
+    if data.get("status") == "closed":
+        return None
+    data["status"] = "closed"
+    data["end_date"] = str(datetime.now(timezone.utc).date())
+    _write_sprint(project_path, data)
+    return data
+
+
+def add_story_to_sprint(
+    project_path: Path, sprint_id: str, story_id: str
+) -> dict | None:
+    """Add a story to a sprint. Updates both sprint YAML and story frontmatter."""
+    sprint_file = project_path / SPRINTS_SUBPATH / f"{sprint_id}.yaml"
+    if not sprint_file.exists():
+        return None
+    data = yaml.safe_load(sprint_file.read_text())
+    if story_id not in data.get("stories", []):
+        data.setdefault("stories", []).append(story_id)
+        _write_sprint(project_path, data)
+    # Update story frontmatter
+    story_file = _find_story_file(project_path, story_id)
+    if story_file:
+        result = _read_story(story_file)
+        if result:
+            fm, body = result
+            fm["sprint"] = sprint_id
+            clean = _clean_fm(fm, story_id)
+            clean["sprint"] = sprint_id
+            _atomic_write(story_file, _build_story_content(clean, body))
+    return data
+
+
+def remove_story_from_sprint(
+    project_path: Path, sprint_id: str, story_id: str
+) -> dict | None:
+    """Remove a story from a sprint. Updates both files."""
+    sprint_file = project_path / SPRINTS_SUBPATH / f"{sprint_id}.yaml"
+    if not sprint_file.exists():
+        return None
+    data = yaml.safe_load(sprint_file.read_text())
+    stories = data.get("stories", [])
+    if story_id in stories:
+        stories.remove(story_id)
+        data["stories"] = stories
+        _write_sprint(project_path, data)
+    # Clear sprint from story frontmatter
+    story_file = _find_story_file(project_path, story_id)
+    if story_file:
+        result = _read_story(story_file)
+        if result:
+            fm, body = result
+            fm.pop("sprint", None)
+            clean = _clean_fm(fm, story_id)
+            _atomic_write(story_file, _build_story_content(clean, body))
+    return data

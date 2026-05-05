@@ -5,7 +5,7 @@ import pytest
 
 from scripts.dashboard import parsers
 from scripts.dashboard.tests.conftest import (
-    register_projects, write_story, write_backlog_story,
+    register_projects, write_story, write_backlog_story, write_runs,
 )
 
 
@@ -102,3 +102,63 @@ class TestGetBoardData:
         write_story(tmp_project, "S1", "todo", "No Labels")
         card = parsers.get_board_data(tmp_project)["todo"][0]
         assert card["labels"] == []
+
+
+class TestGetRecentRuns:
+    def test_returns_runs_newest_first(self, tmp_project):
+        write_runs(tmp_project, count=3)
+        result = parsers.get_recent_runs(tmp_project, limit=2)
+        assert len(result) == 2
+        assert result[0]["run_id"] == "run002"
+
+    def test_empty_project_returns_empty(self, tmp_project):
+        result = parsers.get_recent_runs(tmp_project)
+        assert result == []
+
+
+class TestGetStoryDetail:
+    def test_returns_full_story(self, tmp_project):
+        write_story(tmp_project, "S1", "todo", "Build Widget", "high")
+        result = parsers.get_story_detail(tmp_project, "S1")
+        assert result is not None
+        assert result["story_id"] == "S1"
+        assert result["title"] == "Build Widget"
+        assert result["priority"] == "high"
+        assert result["status"] == "todo"
+        assert "why" in result["sections"]
+        assert "scope" in result["sections"]
+        assert "acceptance_criteria" in result["sections"]
+
+    def test_acceptance_criteria_parsed(self, tmp_project):
+        write_story(tmp_project, "S1", "todo")
+        result = parsers.get_story_detail(tmp_project, "S1")
+        ac = result["sections"]["acceptance_criteria"]
+        assert len(ac) == 2
+        assert ac[0]["done"] is False
+        assert ac[1]["done"] is True
+
+    def test_missing_story_returns_none(self, tmp_project):
+        result = parsers.get_story_detail(tmp_project, "NOPE")
+        assert result is None
+
+    def test_finds_story_in_backlog(self, tmp_project):
+        write_backlog_story(tmp_project, "B1", "backlog", "Backlog Thing")
+        result = parsers.get_story_detail(tmp_project, "B1")
+        assert result is not None
+        assert result["story_id"] == "B1"
+
+
+class TestGetInboxData:
+    def test_counts_actionable_items(self, tmp_project):
+        write_story(tmp_project, "S1", "in_review")
+        write_story(tmp_project, "S2", "blocked")
+        write_story(tmp_project, "S3", "done")
+        result = parsers.get_inbox_data(tmp_project)
+        assert result["total"] == 2
+        assert len(result["in_review"]) == 1
+        assert len(result["blocked"]) == 1
+        assert len(result["approvals"]) == 0
+
+    def test_empty_inbox(self, tmp_project):
+        result = parsers.get_inbox_data(tmp_project)
+        assert result["total"] == 0

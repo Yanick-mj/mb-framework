@@ -62,3 +62,52 @@ class TestBoardPage:
         client = TestClient(app)
         resp = client.get("/projects/nope/board")
         assert resp.status_code == 404
+
+
+class TestPartials:
+    @pytest.fixture(autouse=True)
+    def setup_project(self, tmp_home, tmp_project):
+        register_projects(tmp_home, [
+            {"name": "demo", "path": str(tmp_project), "stage": "mvp"},
+        ])
+        self.project_path = tmp_project
+        self.client = TestClient(app)
+
+    def test_stage_partial(self):
+        resp = self.client.get("/partials/demo/stage")
+        assert resp.status_code == 200
+        assert "mvp" in resp.text.lower()
+
+    def test_stats_partial(self):
+        write_story(self.project_path, "S1", "todo")
+        resp = self.client.get("/partials/demo/stats")
+        assert resp.status_code == 200
+
+    def test_runs_partial(self):
+        write_runs(self.project_path, count=2)
+        resp = self.client.get("/partials/demo/runs")
+        assert resp.status_code == 200
+
+    def test_board_partial(self):
+        write_story(self.project_path, "S1", "todo", "Board Card")
+        resp = self.client.get("/partials/demo/board")
+        assert resp.status_code == 200
+        assert "S1" in resp.text
+
+    def test_inbox_count_partial(self):
+        resp = self.client.get("/partials/demo/inbox-count")
+        assert resp.status_code == 200
+
+    def test_story_modal_returns_detail(self):
+        write_story(self.project_path, "S1", "todo", "My Story", "high")
+        resp = self.client.get("/partials/demo/story/S1")
+        assert resp.status_code == 200
+        assert "My Story" in resp.text
+
+    def test_story_modal_404_if_missing(self):
+        resp = self.client.get("/partials/demo/story/NOPE")
+        assert resp.status_code == 404
+
+    def test_partial_404_unknown_project(self):
+        resp = self.client.get("/partials/nope/stage")
+        assert resp.status_code == 404

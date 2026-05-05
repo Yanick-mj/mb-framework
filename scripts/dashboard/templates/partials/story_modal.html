@@ -1,0 +1,26 @@
+<div class="modal-overlay" onclick="if(event.target===this)this.remove()">
+  <div class="modal-sheet">
+    <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">&times;</button>
+    <h2>{{ story.title }}</h2>
+    <p class="story-meta">{{ story.story_id }} &mdash; {{ story.priority }} &mdash; {{ story.status }}</p>
+    {% if story.sections.why %}
+    <h3>Why</h3>
+    <p>{{ story.sections.why }}</p>
+    {% endif %}
+    {% if story.sections.scope %}
+    <h3>Scope</h3>
+    <p>{{ story.sections.scope }}</p>
+    {% endif %}
+    {% if story.sections.acceptance_criteria %}
+    <h3>Acceptance Criteria</h3>
+    <ul class="checklist">
+      {% for item in story.sections.acceptance_criteria %}
+      <li class="{{ 'done' if item.done else '' }}">
+        <input type="checkbox" {{ 'checked' if item.done else '' }} disabled>
+        {{ item.text }}
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </div>
+</div>

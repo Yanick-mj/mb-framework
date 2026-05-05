@@ -1,0 +1,11 @@
+{% for col, stories in columns.items() %}
+<div class="board-column">
+  <h3>{{ col | upper }} <span class="count">{{ stories | length }}</span></h3>
+  {% for s in stories %}
+  <div class="story-card" hx-get="/partials/{{ project.name }}/story/{{ s.story_id }}" hx-target="#modal-container" hx-swap="innerHTML">
+    <span class="story-id">{{ s.story_id }}</span>
+    <span class="story-title">{{ s.title }}</span>
+  </div>
+  {% endfor %}
+</div>
+{% endfor %}

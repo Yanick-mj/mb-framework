@@ -1,0 +1,9 @@
+<div class="runs-table">
+{% for r in runs %}
+  <div class="run-row">
+    <span class="run-agent">{{ r.agent }}</span>
+    <span class="run-story">{{ r.story }}</span>
+    <span class="run-summary">{{ r.summary }}</span>
+  </div>
+{% endfor %}
+</div>

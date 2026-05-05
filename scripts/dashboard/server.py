@@ -71,3 +71,57 @@ def board(request: Request, name: str):
         "current_page": "board",
         "inbox_count": parsers.get_inbox_data(path)["total"],
     })
+
+
+# --- Partial routes (HTMX fragments) ---
+
+
+@app.get("/partials/{name}/stage", response_class=HTMLResponse)
+def partial_stage(request: Request, name: str):
+    path = _get_project_path(name)
+    return templates.TemplateResponse(request, "partials/stage_badge.html", context={
+        "stage": parsers.get_stage_data(path),
+    })
+
+
+@app.get("/partials/{name}/stats", response_class=HTMLResponse)
+def partial_stats(request: Request, name: str):
+    path = _get_project_path(name)
+    return templates.TemplateResponse(request, "partials/stats_grid.html", context={
+        "stats": parsers.get_story_stats(path),
+    })
+
+
+@app.get("/partials/{name}/runs", response_class=HTMLResponse)
+def partial_runs(request: Request, name: str):
+    path = _get_project_path(name)
+    return templates.TemplateResponse(request, "partials/runs_table.html", context={
+        "runs": parsers.get_recent_runs(path),
+    })
+
+
+@app.get("/partials/{name}/board", response_class=HTMLResponse)
+def partial_board(request: Request, name: str):
+    path = _get_project_path(name)
+    return templates.TemplateResponse(request, "partials/board_columns.html", context={
+        "columns": parsers.get_board_data(path),
+        "project": {"name": name},
+    })
+
+
+@app.get("/partials/{name}/inbox-count", response_class=HTMLResponse)
+def partial_inbox_count(name: str):
+    path = _get_project_path(name)
+    count = parsers.get_inbox_data(path)["total"]
+    return HTMLResponse(str(count))
+
+
+@app.get("/partials/{name}/story/{story_id}", response_class=HTMLResponse)
+def partial_story_modal(request: Request, name: str, story_id: str):
+    path = _get_project_path(name)
+    detail = parsers.get_story_detail(path, story_id)
+    if not detail:
+        raise HTTPException(404, f"Story '{story_id}' not found")
+    return templates.TemplateResponse(request, "partials/story_modal.html", context={
+        "story": detail,
+    })

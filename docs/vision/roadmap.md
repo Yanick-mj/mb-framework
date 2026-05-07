@@ -61,7 +61,7 @@ Priorisé par ratio **valeur quotidienne / effort**. Tous compatibles avec la ph
 
 **Design** :
 ```
-_bmad-output/deliverables/STU-{id}/
+_mb-output/deliverables/STU-{id}/
 ├── PLAN-rev1.md        # architect
 ├── PLAN-rev2.md        # revision post-clarif
 ├── IMPL-rev1.md        # dev diff summary
@@ -104,7 +104,7 @@ Chaque agent écrit son output dans un fichier typé versionné, pas dans le .md
 ├── _roadmap.md                    # strategique : stages + targets
 ├── _backlog/                      # stories non-actives
 │   └── STU-52-add-stripe-webhook.md
-└── _bmad-output/
+└── _mb-output/
     ├── implementation-artifacts/
     │   └── stories/               # stories actives (sprint en cours)
     └── deliverables/              # voir section B

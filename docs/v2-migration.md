@@ -209,8 +209,8 @@ seven required artifacts to manual creation:
 - `CLAUDE.md`
 - `_roadmap.md`
 - `_backlog/` + `.gitkeep`
-- `_bmad-output/deliverables/`
-- `_bmad-output/implementation-artifacts/stories/`
+- `_mb-output/deliverables/`
+- `_mb-output/implementation-artifacts/stories/`
 - `memory/_session/`
 - Seed first backlog story
 
@@ -258,7 +258,7 @@ No migration needed for existing v2.0 projects. Rerunning `install.sh` will:
 | `~/.mb/projects.yaml` | Multi-project registry | `/mb:projects` says "No projects registered" |
 | `_backlog/*.md` at project root | Stories not yet scheduled | `/mb:backlog` says "No stories in _backlog/" |
 | `_roadmap.md` at project root | Strategic roadmap | `/mb:roadmap` suggests the template |
-| `_bmad-output/deliverables/{story}/{TYPE}-rev{n}.md` | Typed, versioned artifacts | `/mb:deliverables STU-X` says "No deliverables" |
+| `_mb-output/deliverables/{story}/{TYPE}-rev{n}.md` | Typed, versioned artifacts | `/mb:deliverables STU-X` says "No deliverables" |
 | `memory/runs.jsonl` | Structured run log | `/mb:runs` says "No runs logged yet" |
 | Story frontmatter `parent_story:` / `children:` | Hierarchy for `/mb:tree` | Stories without these appear as roots |
 
@@ -272,7 +272,7 @@ outside the bundled venv. If pyyaml is missing:
 
 ### No retroactive migration
 
-Stories already in `_bmad-output/implementation-artifacts/stories/` keep working
+Stories already in `_mb-output/implementation-artifacts/stories/` keep working
 as-is. `/mb:tree` will render them as orphan roots (no `parent_story`), and
 `/mb:deliverables` will be empty for them. v2.1 features apply forward, not
 backward — zero risk to existing artifacts.

@@ -31,7 +31,7 @@ After `/mb:init` you have:
 - `CLAUDE.md` (stack-aware, edit to add conventions)
 - `_roadmap.md` (fill in mission + next milestone)
 - `_backlog/STU-1-initial-setup.md` (first task)
-- `_bmad-output/` + `memory/` directory skeleton
+- `_mb-output/` + `memory/` directory skeleton
 - `memory/project.md` + `memory/codebase-index.md` (auto-generated)
 
 ## The 4 Stages (v2)

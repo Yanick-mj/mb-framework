@@ -22,6 +22,6 @@ python3 "${MB_DIR:-.claude/mb}/scripts/v2_1/tree.py" $ARGUMENTS
 ```
 
 Show the output verbatim. If output is "No stories found.", remind the user
-that stories live in `_bmad-output/implementation-artifacts/stories/`.
+that stories live in `_mb-output/implementation-artifacts/stories/`.
 
 $ARGUMENTS

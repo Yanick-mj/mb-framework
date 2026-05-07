@@ -18,8 +18,8 @@ PYTHONPATH="${MB_DIR:-.claude/mb}" python3 -m scripts.v2_1.init_scaffold
 
 The scaffolder:
 - Detects the stack from manifests (package.json, Cargo.toml, go.mod, pyproject.toml)
-- Creates missing dirs: `_backlog/`, `_bmad-output/deliverables/`,
-  `_bmad-output/implementation-artifacts/stories/`, `memory/_session/`
+- Creates missing dirs: `_backlog/`, `_mb-output/deliverables/`,
+  `_mb-output/implementation-artifacts/stories/`, `memory/_session/`
 - Generates `_roadmap.md` from template (preserves existing)
 - Generates `CLAUDE.md` with stack-aware placeholders (preserves existing)
 - Seeds `_backlog/STU-1-initial-setup.md` if `_backlog/` is empty

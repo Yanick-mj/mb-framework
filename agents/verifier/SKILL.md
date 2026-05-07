@@ -121,7 +121,7 @@ deliverables.write(
 )
 ```
 
-This creates a versioned file at `_bmad-output/deliverables/{story_id}/REVIEW-rev{n}.md`.
+This creates a versioned file at `_mb-output/deliverables/{story_id}/REVIEW-rev{n}.md`.
 
 
 ## Run Summary (v2.1 — mandatory)

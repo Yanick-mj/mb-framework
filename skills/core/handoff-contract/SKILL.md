@@ -17,7 +17,7 @@ This is enforced by orchestrator Step 3.6 (verifier's handoff gate).
 
 | Agent | Required artifact |
 |-------|-------------------|
-| pm | `_bmad-output/implementation-artifacts/stories/STU-XXX.md` with complete Acceptance Criteria |
+| pm | `_mb-output/implementation-artifacts/stories/STU-XXX.md` with complete Acceptance Criteria |
 | architect | ADR or tech notes in the story's `## Technical notes` section |
 | ux-designer | Wireframe or UI spec referenced in the story |
 | sm | Story with `status: todo` + `assignee:` set |

@@ -26,6 +26,6 @@ If `$ARGUMENTS` is empty, the script prints a usage error — remind the
 user the command takes a story_id: `/mb:deliverables STU-46`.
 
 Output shows each TYPE group (PLAN, IMPL, REVIEW, DOC) with its revisions.
-Click-to-open hints: suggest `Read _bmad-output/deliverables/<story_id>/<filename>` to inspect.
+Click-to-open hints: suggest `Read _mb-output/deliverables/<story_id>/<filename>` to inspect.
 
 $ARGUMENTS

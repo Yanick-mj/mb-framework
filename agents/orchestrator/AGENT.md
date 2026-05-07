@@ -127,7 +127,7 @@ artifact = contract violation = no proceed.
 
 1. Read `mb-config.yaml` for project settings, model preferences, and agent overrides
 2. Read `memory/codebase-index.md` if it exists for cached codebase understanding
-3. Load sprint status from `_bmad-output/implementation-artifacts/sprint-status.yaml` if sprint context
+3. Load sprint status from `_mb-output/implementation-artifacts/sprint-status.yaml` if sprint context
 4. Establish cost budget from config (default: unbounded)
 
 ### Step 0.5 -- Stage Detection (v2)

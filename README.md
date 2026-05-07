@@ -12,7 +12,7 @@ Replaces complex AI agent infrastructure (embeddings, vector stores, message bus
 # Add as submodule to your project
 cd your-project
 git submodule add git@github.com:Yanick-mj/mb-framework.git .claude/mb
-cd .claude/mb && git checkout v2.1.5 && cd ../..   # pin to stable
+cd .claude/mb && git checkout v2.2.2 && cd ../..   # pin to stable
 
 # One-time global dep
 pip3 install --user pyyaml
@@ -113,6 +113,21 @@ Also installs a `mb <name>` shell helper so `mb drivia` = `cd ~/projects/drivia 
 `scripts/v2_2/agent_loader.py` composes these into the single
 `.claude/skills/mb-{name}/SKILL.md` file Claude Code loads. Legacy
 unmigrated agents keep working via fallback.
+
+### v2.4 — Independence cut from BMAD naming (rc1)
+
+mb writes its artifacts under `_mb-output/` instead of `_bmad-output/`.
+A read-compat fallback in `scripts.v2_2._paths.output_root_for()` keeps
+pre-v2.4 projects working without migration; new projects scaffolded by
+`/mb:init` always create `_mb-output/`. The fallback is removed at v2.5
+— migrate by renaming the directory:
+
+```bash
+mv _bmad-output _mb-output
+```
+
+Currently shipped as `v2.4.0-rc1` for dogfood. Promotion to `v2.4.0`
+after real-usage validation.
 
 ### v2.3 — Browser Dashboard
 
@@ -218,15 +233,31 @@ project-skills/
 
 ## Versioning
 
-- `master` — v1 stable (latest feature: Design System Update Gate)
-- `v2` — stage-aware branch, tagged `v2.0.0`
-- `v2.1.0` — solo quality-of-life (multi-project, tree, runs, deliverables, backlog)
-- Projects can pin: `git submodule add -b v2 ...` or stay on `master`
+Tags trace the trajectory. Pin one in your submodule with `git checkout <tag>`.
+
+| Tag | What it brings | Status |
+|---|---|---|
+| `v2.0.0` | Stage-aware mode (4 stages, agents-early, /mb:stage, /mb:validate, /mb:ship). Retrocompat: projects without `mb-stage.yaml` keep v1. | superseded |
+| `v2.1.0` → `v2.1.6` | Solo quality-of-life: multi-project, /mb:tree, /mb:runs, /mb:deliverables, /mb:backlog, /mb:roadmap. Plus security and pipeline-enforcement patches. /mb:init scaffolder. | superseded |
+| `v2.2.0` | Structural: tool RBAC, 3-layer agents (AGENT.md + uses-skills.yaml + skills/core/*), memory layers, /mb:inbox, /mb:board. | **stable** |
+| `v2.2.1` / `v2.2.2` | Orchestrator auto-invoke hook (`UserPromptSubmit`); v2.2.2 drops the action-verb regex filter. | **stable** |
+| `v2.4.0-rc1` | Independence cut from BMAD naming (`_mb-output/` becomes default; legacy `_bmad-output/` read-compat fallback until v2.5). | release candidate |
+
+Branches:
+- `master` — points at `v2.2.2` (current stable)
+- `v2` — historical stage-aware branch (kept for older submodule pins)
+- `feat/dashboard-sprint3` — v2.3 dashboard work (sprint 3 in progress, not yet merged)
+- `v2.4-independence` — v2.4 cut, where `v2.4.0-rc1` is tagged
+
+Submodule pins: `git submodule add -b v2 ...` or `git checkout <tag>` after add.
 
 ## Documentation
 
-- [docs/v2-prd.md](docs/v2-prd.md) — full v2 PRD (16 sections, 566 lines)
-- [docs/v2-migration.md](docs/v2-migration.md) — v1 → v2 migration guide
+- [`_roadmap.md`](_roadmap.md) — current roadmap (active phases, decisions log)
+- [`docs/vision/roadmap.md`](docs/vision/roadmap.md) — long-term commercial trajectory
+- [`docs/v2-prd.md`](docs/v2-prd.md) — full v2 PRD (16 sections, 566 lines)
+- [`docs/v2-migration.md`](docs/v2-migration.md) — v1 → v2 migration guide
+- [`docs/dashboard-prd.md`](docs/dashboard-prd.md) — dashboard PRD (8 phases)
 - `agents/*/SKILL.md` — per-agent specs (interface, persona, rules, stage adaptation)
 - `agents-early/*/SKILL.md` — v2 early-stage agent specs
 

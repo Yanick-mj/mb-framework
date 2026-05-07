@@ -1,9 +1,13 @@
 """Typed, versioned deliverables for mb stories.
 
 Layout:
-  {cwd}/_bmad-output/deliverables/{story_id}/{TYPE}-rev{n}.md
+  {cwd}/<output-dir>/deliverables/{story_id}/{TYPE}-rev{n}.md
 
-Example: _bmad-output/deliverables/STU-46/PLAN-rev2.md
+Where <output-dir> is ``_mb-output/`` (default) or ``_bmad-output/`` for
+pre-v2.4 projects (read-compat fallback). Resolution lives in
+``scripts.v2_2._paths.deliverables_root``.
+
+Example: _mb-output/deliverables/STU-46/PLAN-rev2.md
 """
 from __future__ import annotations
 
@@ -11,6 +15,8 @@ import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List
+
+from scripts.v2_2._paths import deliverables_root as _deliverables_root
 
 
 VALID_TYPES = {"PLAN", "IMPL", "REVIEW", "DOC", "SPEC", "TEST", "NOTE"}
@@ -31,10 +37,6 @@ def _validate_story_id(story_id: str) -> None:
             f"Invalid story_id {story_id!r}. "
             f"Expected pattern: [A-Z]+-[A-Za-z0-9_-]+  (e.g. STU-46)"
         )
-
-
-def _deliverables_root() -> Path:
-    return Path.cwd() / "_bmad-output" / "deliverables"
 
 
 def path(story_id: str, type: str, rev: int) -> Path:

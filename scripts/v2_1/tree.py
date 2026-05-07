@@ -1,6 +1,10 @@
 """Story tree parser + ASCII renderer.
 
-Stories live at: {cwd}/_bmad-output/implementation-artifacts/stories/*.md
+Stories live under the mb output dir (``_mb-output/`` by default,
+``_bmad-output/`` for pre-v2.4 projects via read-compat fallback) at
+``implementation-artifacts/stories/*.md``. Resolution lives in
+``scripts.v2_2._paths.stories_root``.
+
 Frontmatter must include story_id. Optional: parent_story, children, title.
 """
 from __future__ import annotations
@@ -8,6 +12,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 from typing import Dict, List, Optional, Set
+
+from scripts.v2_2._paths import stories_root as _stories_root
 
 try:
     import yaml
@@ -32,10 +38,6 @@ def _validate_story_id(story_id: str) -> None:
             f"Invalid story_id {story_id!r}. "
             f"Expected pattern: [A-Z]+-[A-Za-z0-9_-]+  (e.g. STU-46)"
         )
-
-
-def _stories_root() -> Path:
-    return Path.cwd() / "_bmad-output" / "implementation-artifacts" / "stories"
 
 
 def _parse_frontmatter(text: str) -> dict:

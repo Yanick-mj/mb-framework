@@ -1,9 +1,13 @@
 """Deterministic scaffolder for /mb:init.
 
 Detects the stack from common manifest files, creates the mb directory
-skeleton (_backlog/, _bmad-output/, memory/_session/), and generates
+skeleton (_backlog/, _mb-output/, memory/_session/), and generates
 _roadmap.md + CLAUDE.md from templates on first run. Idempotent: re-running
 never overwrites existing user content.
+
+Pre-v2.4 projects with _bmad-output/ keep working — the read fallback in
+scripts.v2_2._paths.output_root() routes reads there. Only NEW projects
+get the new _mb-output/ name.
 
 Used by the `/mb:init` command — Claude Code invokes this script then does
 higher-level pattern detection (hooks, API, DB) with its own tools.
@@ -15,6 +19,8 @@ import os
 from datetime import date
 from pathlib import Path
 from typing import List, Optional
+
+from scripts.v2_2._paths import OUTPUT_DIRNAME
 
 try:
     import yaml  # noqa: F401 — imported for template consistency w/ other modules
@@ -127,8 +133,8 @@ def detect_stack() -> dict:
 
 _REQUIRED_DIRS = [
     "_backlog",
-    "_bmad-output/deliverables",
-    "_bmad-output/implementation-artifacts/stories",
+    f"{OUTPUT_DIRNAME}/deliverables",
+    f"{OUTPUT_DIRNAME}/implementation-artifacts/stories",
     "memory/_session",
 ]
 

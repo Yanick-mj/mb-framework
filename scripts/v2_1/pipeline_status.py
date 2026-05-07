@@ -7,7 +7,8 @@ Reads:
 - mb-stage.yaml (current stage)
 - memory/runs.jsonl (recent agent invocations, if any)
 - _discovery/*/  (Discovery artifacts per feature)
-- _bmad-output/deliverables/*/  (per-story typed artifacts)
+- <output-dir>/deliverables/*/  (per-story typed artifacts;
+   <output-dir> = _mb-output/ default, _bmad-output/ legacy fallback)
 """
 from __future__ import annotations
 

@@ -1,7 +1,8 @@
 """Add `status:` frontmatter to existing stories that don't have one.
 
 Heuristic:
-  - Story file lives in _bmad-output/implementation-artifacts/stories/ → default `todo`
+  - Story file lives in the mb output dir (``_mb-output/`` or legacy
+    ``_bmad-output/``) under ``implementation-artifacts/stories/`` → default `todo`
   - Story file lives in _backlog/ → default `backlog`
   - If frontmatter already has status, leave alone
 

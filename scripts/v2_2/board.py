@@ -1,8 +1,9 @@
 """ASCII kanban board for /mb:board.
 
-Reads stories from _bmad-output/implementation-artifacts/stories/*.md and
-groups by status. Only the 5 canonical statuses render; anything else is
-skipped silently (same strict approach as backlog priority in v2.1.2).
+Reads stories from the mb output dir (default ``_mb-output/``, legacy
+fallback ``_bmad-output/``) under ``implementation-artifacts/stories/*.md``
+and groups by status. Only the 5 canonical statuses render; anything else
+is skipped silently (same strict approach as backlog priority in v2.1.2).
 """
 from __future__ import annotations
 
@@ -56,7 +57,7 @@ def render() -> str:
     groups = _group_by_status()
     total = sum(len(v) for v in groups.values())
     if total == 0:
-        return "🎯 No stories yet.\nCreate one in _backlog/ or _bmad-output/.../stories/."
+        return "🎯 No stories yet.\nCreate one in _backlog/ or _mb-output/implementation-artifacts/stories/."
 
     # Header row
     header = ""

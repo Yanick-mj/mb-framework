@@ -24,15 +24,14 @@ def project_root() -> Path:
     return Path.cwd()
 
 
-def output_root() -> Path:
-    """Project's mb output directory.
+def output_root_for(project: Path) -> Path:
+    """Output directory for a specific project root.
 
-    Default: ``_mb-output/``. Falls back to ``_bmad-output/`` for projects that
-    haven't migrated yet (read-compat). New artifacts are always written under
-    ``_mb-output/``. The fallback is removed at v2.5.
+    Used by the dashboard which inspects multiple projects, each with its
+    own root path. ``output_root()`` is the single-project shorthand.
     """
-    new = project_root() / OUTPUT_DIRNAME
-    legacy = project_root() / LEGACY_OUTPUT_DIRNAME
+    new = project / OUTPUT_DIRNAME
+    legacy = project / LEGACY_OUTPUT_DIRNAME
     if new.exists():
         return new
     if legacy.exists():
@@ -40,12 +39,34 @@ def output_root() -> Path:
     return new
 
 
+def output_root() -> Path:
+    """Project's mb output directory (current project = ``Path.cwd()``).
+
+    Default: ``_mb-output/``. Falls back to ``_bmad-output/`` for projects that
+    haven't migrated yet (read-compat). New artifacts are always written under
+    ``_mb-output/``. The fallback is removed at v2.5.
+    """
+    return output_root_for(project_root())
+
+
+def deliverables_root_for(project: Path) -> Path:
+    return output_root_for(project) / "deliverables"
+
+
 def deliverables_root() -> Path:
-    return output_root() / "deliverables"
+    return deliverables_root_for(project_root())
+
+
+def sprint_status_file_for(project: Path) -> Path:
+    return output_root_for(project) / "implementation-artifacts" / "sprint-status.yaml"
 
 
 def sprint_status_file() -> Path:
-    return output_root() / "implementation-artifacts" / "sprint-status.yaml"
+    return sprint_status_file_for(project_root())
+
+
+def stories_root_for(project: Path) -> Path:
+    return output_root_for(project) / "implementation-artifacts" / "stories"
 
 
 def memory_root() -> Path:
@@ -80,7 +101,7 @@ def skills_dir(tier: str = "") -> Path:
 
 
 def stories_root() -> Path:
-    return output_root() / "implementation-artifacts" / "stories"
+    return stories_root_for(project_root())
 
 
 def backlog_dir() -> Path:

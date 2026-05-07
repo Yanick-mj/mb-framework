@@ -73,3 +73,41 @@ def test_sprint_status_file_legacy(tmp_path, monkeypatch):
     (tmp_path / "_bmad-output").mkdir()
     expected = tmp_path / "_bmad-output" / "implementation-artifacts" / "sprint-status.yaml"
     assert _paths.sprint_status_file() == expected
+
+
+# ---- *_for(project) variants used by the dashboard's multi-project view ----
+
+
+def test_output_root_for_explicit_project_default(tmp_path):
+    """No cwd dependency — caller passes the project root explicitly."""
+    project = tmp_path / "alpha"
+    project.mkdir()
+    assert _paths.output_root_for(project) == project / "_mb-output"
+
+
+def test_output_root_for_explicit_project_legacy(tmp_path):
+    project = tmp_path / "beta"
+    project.mkdir()
+    (project / "_bmad-output").mkdir()
+    assert _paths.output_root_for(project) == project / "_bmad-output"
+
+
+def test_stories_root_for_and_deliverables_root_for(tmp_path):
+    project = tmp_path / "gamma"
+    project.mkdir()
+    assert _paths.stories_root_for(project) == project / "_mb-output" / "implementation-artifacts" / "stories"
+    assert _paths.deliverables_root_for(project) == project / "_mb-output" / "deliverables"
+
+
+def test_sprint_status_file_for(tmp_path):
+    project = tmp_path / "delta"
+    project.mkdir()
+    (project / "_bmad-output").mkdir()
+    assert _paths.sprint_status_file_for(project) == project / "_bmad-output" / "implementation-artifacts" / "sprint-status.yaml"
+
+
+def test_output_root_and_output_root_for_agree_on_cwd(tmp_path, monkeypatch):
+    """Sanity: shorthand and explicit form produce the same path."""
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "_mb-output").mkdir()
+    assert _paths.output_root() == _paths.output_root_for(tmp_path)

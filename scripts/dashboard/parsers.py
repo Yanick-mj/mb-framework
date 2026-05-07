@@ -16,7 +16,6 @@ import yaml
 
 from scripts.v2_2 import _paths
 
-STORIES_SUBPATH = Path("_bmad-output") / "implementation-artifacts" / "stories"
 SPRINTS_SUBPATH = Path("_sprints")
 
 _FRONTMATTER_RE = re.compile(r"^---\r?\n(.*?)\r?\n---", re.DOTALL)
@@ -86,9 +85,9 @@ def _parse_frontmatter(text: str) -> dict:
 
 
 def _scan_all_stories(path: Path) -> list[dict]:
-    """Scan both _bmad-output stories and _backlog for story files."""
+    """Scan stories from the project's mb output dir and _backlog/."""
     stories = []
-    stories_dir = path / STORIES_SUBPATH
+    stories_dir = _paths.stories_root_for(path)
     if stories_dir.exists():
         for f in sorted(stories_dir.glob("*.md")):
             fm = _parse_frontmatter(f.read_text())
@@ -281,12 +280,9 @@ def _extract_roadmap_phases(text: str) -> list[dict[str, Any]]:
     return phases
 
 
-DELIVERABLES_SUBPATH = Path("_bmad-output") / "deliverables"
-
-
 def get_deliverables_list(path: Path, story_id: str) -> list[dict[str, str]]:
     """List deliverable files for a story."""
-    d = path / DELIVERABLES_SUBPATH / story_id
+    d = _paths.deliverables_root_for(path) / story_id
     if not d.exists():
         return []
     files = sorted(f for f in d.iterdir() if f.is_file())
@@ -295,7 +291,7 @@ def get_deliverables_list(path: Path, story_id: str) -> list[dict[str, str]]:
 
 def get_deliverable_content(path: Path, story_id: str, filename: str) -> dict[str, str] | None:
     """Read a deliverable file and return raw + rendered HTML."""
-    f = path / DELIVERABLES_SUBPATH / story_id / filename
+    f = _paths.deliverables_root_for(path) / story_id / filename
     if not f.exists():
         return None
     raw = f.read_text()

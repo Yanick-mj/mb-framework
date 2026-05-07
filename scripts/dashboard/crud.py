@@ -12,13 +12,14 @@ from typing import Any
 
 import yaml
 
-from scripts.dashboard.parsers import RUNS_LOG_SUBPATH, SPRINTS_SUBPATH, STORIES_SUBPATH, _parse_frontmatter, load_sprints
+from scripts.dashboard.parsers import RUNS_LOG_SUBPATH, SPRINTS_SUBPATH, _parse_frontmatter, load_sprints
+from scripts.v2_2._paths import stories_root_for
 
 _SUMMARY_KEYS = ("story_id", "title", "status", "priority")
 
 
 def _stories_dir(project_path: Path) -> Path:
-    d = project_path / STORIES_SUBPATH
+    d = stories_root_for(project_path)
     d.mkdir(parents=True, exist_ok=True)
     return d
 

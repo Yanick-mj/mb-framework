@@ -9,7 +9,7 @@ from scripts.v2_1 import deliverables
 def test_deliverable_path_computes_correctly(tmp_project):
     """path() returns the canonical location for a deliverable."""
     p = deliverables.path("STU-46", "PLAN", rev=1)
-    assert p == tmp_project / "_bmad-output" / "deliverables" / "STU-46" / "PLAN-rev1.md"
+    assert p == tmp_project / "_mb-output" / "deliverables" / "STU-46" / "PLAN-rev1.md"
 
 
 def test_write_creates_parents_and_writes_body(tmp_project):
@@ -70,7 +70,7 @@ def test_next_rev_rejects_invalid_type(tmp_project):
 
 def test_list_for_story_ignores_invalid_types(tmp_project):
     """list_for_story() skips files that don't match VALID_TYPES."""
-    story_dir = tmp_project / "_bmad-output" / "deliverables" / "STU-46"
+    story_dir = tmp_project / "_mb-output" / "deliverables" / "STU-46"
     story_dir.mkdir(parents=True)
     (story_dir / "PLAN-rev1.md").write_text("valid")
     (story_dir / "JUNK-rev1.md").write_text("stray file")
@@ -103,7 +103,7 @@ def test_path_rejects_path_traversal_in_story_id(tmp_project):
 
     Defense-in-depth: mb is Claude-Code-local today but if it ever accepts
     untrusted input (web UI, remote trigger), unsanitized story_id would let
-    an attacker write outside the _bmad-output/deliverables/ sandbox.
+    an attacker write outside the _mb-output/deliverables/ sandbox.
     """
     for bad in [
         "../../etc/passwd",

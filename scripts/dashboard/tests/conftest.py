@@ -25,7 +25,7 @@ def tmp_project(tmp_path, monkeypatch):
     project.mkdir()
     (project / "mb-stage.yaml").write_text("stage: mvp\nsince: 2026-04-19\n")
     (project / "memory").mkdir()
-    (project / "_bmad-output").mkdir()
+    (project / "_mb-output").mkdir()
     monkeypatch.chdir(project)
     return project
 
@@ -34,7 +34,7 @@ def write_story(root: Path, story_id: str, status: str,
                 title: str = "", priority: str = "medium",
                 labels: list[str] | None = None) -> None:
     """Helper: write a story .md with frontmatter to stories dir."""
-    d = root / "_bmad-output" / "implementation-artifacts" / "stories"
+    d = root / "_mb-output" / "implementation-artifacts" / "stories"
     d.mkdir(parents=True, exist_ok=True)
     fm = {
         "story_id": story_id,
@@ -105,7 +105,7 @@ def client(tmp_home, tmp_project):
 @pytest.fixture
 def stories_dir(tmp_project):
     """Ensure stories directory exists and return path."""
-    d = tmp_project / "_bmad-output" / "implementation-artifacts" / "stories"
+    d = tmp_project / "_mb-output" / "implementation-artifacts" / "stories"
     d.mkdir(parents=True, exist_ok=True)
     return d
 

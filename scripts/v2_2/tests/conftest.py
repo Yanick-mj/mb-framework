@@ -29,7 +29,7 @@ def tmp_project(tmp_path, monkeypatch):
     project.mkdir()
     (project / "mb-stage.yaml").write_text("stage: pmf\nsince: 2026-04-19\n")
     (project / "memory").mkdir()
-    (project / "_bmad-output").mkdir()
+    (project / "_mb-output").mkdir()
     (project / "agents").mkdir()
     monkeypatch.chdir(project)
     return project
@@ -42,7 +42,7 @@ def tmp_mvp_project(tmp_path, monkeypatch):
     project.mkdir()
     (project / "mb-stage.yaml").write_text("stage: mvp\nsince: 2026-04-19\n")
     (project / "memory").mkdir()
-    (project / "_bmad-output").mkdir()
+    (project / "_mb-output").mkdir()
     monkeypatch.chdir(project)
     return project
 
@@ -59,7 +59,7 @@ def tmp_project_with_mb_installed(tmp_path, monkeypatch):
     project.mkdir()
     (project / "mb-stage.yaml").write_text("stage: pmf\nsince: 2026-04-19\n")
     (project / "memory").mkdir()
-    (project / "_bmad-output").mkdir()
+    (project / "_mb-output").mkdir()
 
     mb_dir = project / ".claude" / "mb"
     (mb_dir / "agents").mkdir(parents=True)

@@ -25,6 +25,6 @@ def tmp_project(tmp_path, monkeypatch):
     project.mkdir()
     (project / "mb-stage.yaml").write_text("stage: mvp\nsince: 2026-04-19\n")
     (project / "memory").mkdir()
-    (project / "_bmad-output").mkdir()
+    (project / "_mb-output").mkdir()
     monkeypatch.chdir(project)
     return project

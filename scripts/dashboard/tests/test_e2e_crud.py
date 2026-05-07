@@ -35,7 +35,7 @@ def dashboard_server(tmp_path_factory):
     project.mkdir()
     (project / "mb-stage.yaml").write_text("stage: mvp\nsince: 2026-05-05\n")
     (project / "memory").mkdir()
-    (project / "_bmad-output" / "implementation-artifacts" / "stories").mkdir(parents=True)
+    (project / "_mb-output" / "implementation-artifacts" / "stories").mkdir(parents=True)
 
     home = tmp / "home"
     home.mkdir()

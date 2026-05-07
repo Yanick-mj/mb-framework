@@ -122,8 +122,8 @@ def test_detect_stack_handles_broken_package_json(tmp_project):
 def test_scaffold_dirs_creates_all_expected(tmp_project):
     created = init_scaffold.scaffold_dirs()
     assert (tmp_project / "_backlog").is_dir()
-    assert (tmp_project / "_bmad-output" / "deliverables").is_dir()
-    assert (tmp_project / "_bmad-output" / "implementation-artifacts" / "stories").is_dir()
+    assert (tmp_project / "_mb-output" / "deliverables").is_dir()
+    assert (tmp_project / "_mb-output" / "implementation-artifacts" / "stories").is_dir()
     assert (tmp_project / "memory" / "_session").is_dir()
     # .gitkeep in each
     assert (tmp_project / "_backlog" / ".gitkeep").exists()

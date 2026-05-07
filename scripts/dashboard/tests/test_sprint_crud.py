@@ -76,7 +76,7 @@ class TestAddStoryToSprint:
         write_sprint(tmp_project, "sprint-1", "Sprint", "Goal", stories=[])
         write_story(tmp_project, "S1", "todo", "Story One")
         add_story_to_sprint(tmp_project, "sprint-1", "S1")
-        story_file = tmp_project / "_bmad-output" / "implementation-artifacts" / "stories" / "S1.md"
+        story_file = tmp_project / "_mb-output" / "implementation-artifacts" / "stories" / "S1.md"
         fm = _parse_frontmatter(story_file.read_text())
         assert fm.get("sprint") == "sprint-1"
 
@@ -113,7 +113,7 @@ class TestRemoveStoryFromSprint:
         write_sprint(tmp_project, "sprint-1", "Sprint", "Goal", stories=["S1"])
         write_story(tmp_project, "S1", "todo", "Story One")
         # First add the sprint field
-        story_file = tmp_project / "_bmad-output" / "implementation-artifacts" / "stories" / "S1.md"
+        story_file = tmp_project / "_mb-output" / "implementation-artifacts" / "stories" / "S1.md"
         text = story_file.read_text()
         text = text.replace("status: todo", "status: todo\nsprint: sprint-1")
         story_file.write_text(text)

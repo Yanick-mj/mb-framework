@@ -15,7 +15,7 @@ def _write_story(dir: Path, name: str, frontmatter_body: str) -> Path:
 
 def test_adds_todo_status_to_stories_dir(tmp_project):
     s = _write_story(
-        tmp_project / "_bmad-output" / "implementation-artifacts" / "stories",
+        tmp_project / "_mb-output" / "implementation-artifacts" / "stories",
         "STU-1.md",
         "story_id: STU-1\ntitle: X",
     )
@@ -34,7 +34,7 @@ def test_adds_backlog_status_to_backlog_dir(tmp_project):
 
 def test_preserves_existing_status(tmp_project):
     s = _write_story(
-        tmp_project / "_bmad-output" / "implementation-artifacts" / "stories",
+        tmp_project / "_mb-output" / "implementation-artifacts" / "stories",
         "STU-3.md",
         "story_id: STU-3\nstatus: done",
     )

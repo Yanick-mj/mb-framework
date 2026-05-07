@@ -46,7 +46,7 @@ def tmp_project_symlinked_mb(tmp_path, monkeypatch):
     project = tmp_path / "demo-project"
     project.mkdir()
     (project / "memory").mkdir()
-    (project / "_bmad-output").mkdir()
+    (project / "_mb-output").mkdir()
 
     claude_dir = project / ".claude"
     claude_dir.mkdir()

@@ -9,7 +9,7 @@ from scripts.dashboard.tests.conftest import write_story
 
 def _write_deliverable(tmp_project: Path, story_id: str, filename: str, content: str) -> Path:
     """Write a deliverable file for a story."""
-    d = tmp_project / "_bmad-output" / "deliverables" / story_id
+    d = tmp_project / "_mb-output" / "deliverables" / story_id
     d.mkdir(parents=True, exist_ok=True)
     f = d / filename
     f.write_text(content)

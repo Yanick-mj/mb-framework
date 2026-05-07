@@ -8,7 +8,7 @@ from scripts.v2_1 import tree
 
 def _write_story(root: Path, story_id: str, title: str, parent: str | None = None,
                  children: list[str] | None = None):
-    stories_dir = root / "_bmad-output" / "implementation-artifacts" / "stories"
+    stories_dir = root / "_mb-output" / "implementation-artifacts" / "stories"
     stories_dir.mkdir(parents=True, exist_ok=True)
     fm = ["---", f"story_id: {story_id}", f"title: {title}"]
     if parent:
@@ -81,7 +81,7 @@ def test_missing_parent_promotes_to_root(tmp_project):
 
 def test_malformed_yaml_skips_file(tmp_project):
     """Story file with broken YAML is silently skipped."""
-    stories_dir = tmp_project / "_bmad-output" / "implementation-artifacts" / "stories"
+    stories_dir = tmp_project / "_mb-output" / "implementation-artifacts" / "stories"
     stories_dir.mkdir(parents=True, exist_ok=True)
     (stories_dir / "bad.md").write_text("---\n: [\ninvalid {{{\n---\n# Bad\n")
     _write_story(tmp_project, "STU-1", "Good")
@@ -92,7 +92,7 @@ def test_malformed_yaml_skips_file(tmp_project):
 
 def test_children_as_yaml_list(tmp_project):
     """Normal YAML list form: children: [STU-2, STU-3]."""
-    stories_dir = tmp_project / "_bmad-output" / "implementation-artifacts" / "stories"
+    stories_dir = tmp_project / "_mb-output" / "implementation-artifacts" / "stories"
     stories_dir.mkdir(parents=True, exist_ok=True)
     (stories_dir / "root.md").write_text(
         "---\n"
@@ -106,7 +106,7 @@ def test_children_as_yaml_list(tmp_project):
 
 def test_scan_stories_skips_binary_files(tmp_project):
     """Binary garbage in stories/ dir (e.g. accidental pdf rename) is skipped."""
-    stories_dir = tmp_project / "_bmad-output" / "implementation-artifacts" / "stories"
+    stories_dir = tmp_project / "_mb-output" / "implementation-artifacts" / "stories"
     stories_dir.mkdir(parents=True)
     # Write raw bytes that can't decode as UTF-8
     (stories_dir / "garbage.md").write_bytes(b"\xff\xfe\xfd binary crud \x00\x00")
@@ -122,7 +122,7 @@ def test_yaml_null_story_id_treated_as_missing(tmp_project):
     YAML parses `story_id:` as None. Without normalization, the script used
     None as a dict key — surprising behavior. Now treated as missing.
     """
-    stories_dir = tmp_project / "_bmad-output" / "implementation-artifacts" / "stories"
+    stories_dir = tmp_project / "_mb-output" / "implementation-artifacts" / "stories"
     stories_dir.mkdir(parents=True)
     (stories_dir / "null.md").write_text(
         "---\nstory_id: null\ntitle: Nullish\n---\n"
@@ -160,7 +160,7 @@ def test_children_as_string_with_quotes_strips_them(tmp_project):
     This happens when a skill accidentally writes children as a quoted string
     rather than a YAML list. We don't want stray ", ', [ or ] in story ids.
     """
-    stories_dir = tmp_project / "_bmad-output" / "implementation-artifacts" / "stories"
+    stories_dir = tmp_project / "_mb-output" / "implementation-artifacts" / "stories"
     stories_dir.mkdir(parents=True, exist_ok=True)
     (stories_dir / "root.md").write_text(
         "---\n"

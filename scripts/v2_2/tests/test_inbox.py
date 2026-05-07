@@ -7,7 +7,7 @@ from scripts.v2_2 import inbox
 
 
 def _write_story(root: Path, story_id: str, status: str, title: str = "") -> None:
-    d = root / "_bmad-output" / "implementation-artifacts" / "stories"
+    d = root / "_mb-output" / "implementation-artifacts" / "stories"
     d.mkdir(parents=True, exist_ok=True)
     (d / f"{story_id}.md").write_text(
         f"---\nstory_id: {story_id}\ntitle: {title or story_id}\n"
